@@ -53,6 +53,9 @@ def fetch_article_content(url: str) -> dict:
         resp = requests.get(actual_url, headers=HEADERS, timeout=15, allow_redirects=True)
         resp.raise_for_status()
         
+        # 인코딩 명시적으로 UTF-8로 설정 (한글 깨짐 방지)
+        resp.encoding = resp.apparent_encoding or 'utf-8'
+        
         final_url = resp.url
         html = resp.text
         
@@ -108,6 +111,19 @@ def scrape_all_articles(input_json: str, output_json: str = None):
     JSON 파일에서 기사 링크를 읽고 모든 기사의 내용을 스크래핑
     """
     # JSON 파일 로드
+    if not os.path.exists(input_json):
+        # 현재 경로에 없으면 스크립트 경로에서 시도
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        alt_path = os.path.join(script_dir, input_json)
+        if os.path.exists(alt_path):
+            input_json = alt_path
+        else:
+            print(f"[ERROR] Input file not found: {input_json}")
+            # Try to list available files to help debug
+            print(f"Current dir: {os.getcwd()}")
+            print(f"Script dir: {script_dir}")
+            return []
+
     with open(input_json, 'r', encoding='utf-8') as f:
         articles = json.load(f)
     
@@ -173,12 +189,23 @@ def scrape_all_articles(input_json: str, output_json: str = None):
 
 
 if __name__ == "__main__":
-    # 오늘 날짜의 뉴스 JSON 파일 스크래핑
-    today = datetime.now().strftime('%Y%m%d')
-    input_file = f"pharma_news_{today}.json"
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="기사 본문 스크래퍼")
+    parser.add_argument("-i", "--input", help="입력 JSON 파일")
+    parser.add_argument("-o", "--output", help="출력 JSON 파일")
+    
+    args = parser.parse_args()
+    
+    # 입력 파일 결정
+    if args.input:
+        input_file = args.input
+    else:
+        today = datetime.now().strftime('%Y%m%d')
+        input_file = f"pharma_news_{today}.json"
     
     try:
-        scraped_articles = scrape_all_articles(input_file)
+        scraped_articles = scrape_all_articles(input_file, args.output)
     except FileNotFoundError:
         print(f"[ERROR] 파일을 찾을 수 없습니다: {input_file}")
-        print("먼저 pharma_news_scraper.py를 실행하세요.")
+        print("먼저 뉴스 스크래퍼를 실행하세요.")

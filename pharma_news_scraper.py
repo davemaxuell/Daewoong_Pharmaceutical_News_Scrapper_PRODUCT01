@@ -1,4 +1,4 @@
-# [PARSING] RSS 뉴스 최근 뉴스 수집
+# [PARSING] 제약 뉴스 수집 - 메인 실행 파일
 
 import sys
 import io
@@ -6,26 +6,12 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-import feedparser
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from typing import Optional
+from datetime import datetime
 import time
 import json
-from keywords import KEYWORDS, classify_article
-
-
-
-@dataclass
-class NewsArticle:
-    """수집할 기사 데이터 클래스"""
-    title: str
-    link: str
-    published: Optional[datetime]
-    source: str
-    summary: Optional[str] = None
-    classifications: list = field(default_factory=list)  # 매칭된 분류
-    matched_keywords: list = field(default_factory=list)  # 매칭된 키워드
+from keywords import KEYWORDS
+from scrapers import AVAILABLE_SCRAPERS, NewsArticle
+from logger import log_execution
 
 
 def get_days_back() -> int:
@@ -35,79 +21,24 @@ def get_days_back() -> int:
     - 화~일: 전날부터 = 1일
     """
     today = datetime.now()
-    weekday = today.weekday()  # 0=월요일, 6=일요일
+    weekday = today.weekday()
     
-    if weekday == 0:  # 월요일
-        days_back = 3  # 금요일부터 (토, 일 포함)
+    if weekday == 0:
+        days_back = 3
         print("[INFO] 오늘은 월요일입니다. 금요일부터의 뉴스를 수집합니다 (3일간).")
     else:
-        days_back = 1  # 어제부터
+        days_back = 1
         print(f"[INFO] 어제부터의 뉴스를 수집합니다 (1일간).")
     
     return days_back
 
 
 def get_all_keywords() -> list[str]:
-    """
-    KEYWORDS 딕셔너리에서 모든 키워드 추출 (중복 제거)
-    """
+    """KEYWORDS 딕셔너리에서 모든 키워드 추출"""
     all_keywords = set()
     for category, keywords in KEYWORDS.items():
         all_keywords.update(keywords)
     return list(all_keywords)
-
-
-def fetch_google_news_rss(query: str, days_back: int = 1) -> list[NewsArticle]:
-    """
-    Google News RSS 뉴스 수집
-    """
-    from urllib.parse import quote
-    
-    # URL 인코딩 적용
-    encoded_query = quote(query)
-    
-    # Google News RSS URL (한국에 한정된 도메인)
-    url = f"https://news.google.com/rss/search?q={encoded_query}&hl=ko&gl=KR&ceid=KR:ko"
-    
-    print(f"\n[PROCESS] Google News RSS로 기사 수집, 검색어: '{query}'")
-    feed = feedparser.parse(url)
-    
-    if feed.bozo:
-        print(f"\n[WARNING] Feed parsing issue - {feed.bozo_exception}")
-    
-    articles = []
-    cutoff_date = datetime.now() - timedelta(days=days_back)
-    
-    for entry in feed.entries:
-        try:
-            # Parse the published date
-            if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                published = datetime(*entry.published_parsed[:6])
-            else:
-                published = None
-            
-            # Filter for recent articles only
-            if published and published >= cutoff_date:
-                # 분류 및 키워드 매칭
-                title = entry.title
-                summary = entry.get('summary', '') or ''
-                classifications, matched_keywords = classify_article(title, summary)
-                
-                article = NewsArticle(
-                    title=title,
-                    link=entry.link,
-                    published=published,
-                    source=entry.get('source', {}).get('title', None),
-                    summary=summary,
-                    classifications=classifications,
-                    matched_keywords=matched_keywords
-                )
-                articles.append(article)
-        except Exception as e:
-            continue
-    
-    print(f"\n[SUCCESS] {len(articles)}개의 뉴스를 수집했습니다.")
-    return articles
 
 
 def main():
@@ -116,34 +47,61 @@ def main():
     print(f"시작 시간: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 60)
     
-    # 키워드 목록 출력
-    all_keywords = get_all_keywords()
-    print(f"\n[INFO] 총 {len(all_keywords)}개의 키워드로 검색합니다.")
+    # 사용 가능한 스크래퍼 출력
+    scraper_names = [s().source_name for s in AVAILABLE_SCRAPERS]
+    print(f"\n[INFO] 사용 가능한 뉴스 소스: {', '.join(scraper_names)}")
     print(f"[INFO] 분류 카테고리: {list(KEYWORDS.keys())}")
     
     all_articles = []
     
-    # 기본 검색 키워드 (확장됨)
-    base_keywords = [
-        # 핵심 키워드
+    # 한국어 검색 키워드 (국내 뉴스 소스용)
+    korean_keywords = [
         "제약", "의약품", "신약", "바이오",
-        # 주요 분야
         "바이오시밀러", "임상시험", "FDA 승인",
         "항암제", "면역항암제", "세포치료제",
-        # 산업/시장
         "제약 주가", "바이오 투자", "기술이전",
-        # 헬스케어
         "디지털헬스케어", "AI 신약"
     ]
     
-    # 월요일이면 금요일부터 수집 (주말 커버)
+    # 영문 검색 키워드 (국제 뉴스 소스용)
+    english_keywords = [
+        "pharmaceutical", "drug approval", "GMP",
+        "clinical trial", "FDA", "EMA", "biosimilar",
+        "cell therapy", "gene therapy", "ATMP",
+        "ICH guideline", "regulatory"
+    ]
+    
+    # 국제 소스 목록 (영어 키워드 사용 또는 RSS 피드)
+    international_sources = ["GMP Journal"]
+    
+    # RSS 전용 소스 (키워드 검색 없이 전체 피드 수집)
+    rss_only_sources = ["ICH", "EudraLex"]
+    
     days_back = get_days_back()
     
-    print("\n<Google News RSS로 기사 수집 시작>\n")
-    for keyword in base_keywords:
-        articles = fetch_google_news_rss(keyword, days_back=days_back)
-        all_articles.extend(articles)
-        time.sleep(0.5)  # Be polite to Google
+    # 모든 스크래퍼에서 뉴스 수집
+    for ScraperClass in AVAILABLE_SCRAPERS:
+        scraper = ScraperClass()
+        print(f"\n{'='*40}")
+        print(f"<{scraper.source_name}에서 기사 수집 시작>")
+        print(f"{'='*40}")
+        
+        # RSS 전용 소스는 키워드 없이 한 번만 수집 (같은 days_back 사용)
+        if scraper.source_name in rss_only_sources:
+            articles = scraper.fetch_news(days_back=days_back)
+            all_articles.extend(articles)
+        # 국제 소스는 영어 키워드 사용
+        elif scraper.source_name in international_sources:
+            for keyword in english_keywords:
+                articles = scraper.fetch_news(keyword, days_back=days_back)
+                all_articles.extend(articles)
+                time.sleep(0.5)
+        # 국내 소스는 한국어 키워드 사용
+        else:
+            for keyword in korean_keywords:
+                articles = scraper.fetch_news(keyword, days_back=days_back)
+                all_articles.extend(articles)
+                time.sleep(0.5)
     
     # 중복 제거
     seen_links = set()
@@ -165,9 +123,20 @@ def main():
         for cls in article.classifications:
             classification_stats[cls] = classification_stats.get(cls, 0) + 1
     
+    # 소스별 통계
+    source_stats = {}
+    for article in unique_articles:
+        source_stats[article.source] = source_stats.get(article.source, 0) + 1
+    
     # 결과 출력
-    print(f"\n[SUCCESS] {len(unique_articles)}개의 뉴스를 수집했습니다.")
+    print(f"\n{'='*60}")
+    print(f"[SUCCESS] 총 {len(unique_articles)}개의 뉴스를 수집했습니다.")
     print("=" * 60)
+    
+    if source_stats:
+        print("\n[소스별 통계]")
+        for src, count in sorted(source_stats.items(), key=lambda x: -x[1]):
+            print(f"  - {src}: {count}개")
     
     if classification_stats:
         print("\n[분류별 통계]")
@@ -185,17 +154,7 @@ def main():
         print(f"Link: {article.link}")
     
     # JSON 파일로 저장
-    output_data = []
-    for article in unique_articles:
-        output_data.append({
-            "title": article.title,
-            "link": article.link,
-            "published": article.published.isoformat() if article.published else None,
-            "source": article.source,
-            "summary": article.summary,
-            "classifications": article.classifications,
-            "matched_keywords": article.matched_keywords
-        })
+    output_data = [article.to_dict() for article in unique_articles]
     
     output_file = f"pharma_news_{datetime.now().strftime('%Y%m%d')}.json"
     with open(output_file, 'w', encoding='utf-8') as f:
@@ -203,7 +162,17 @@ def main():
     
     print(f"\n[SUCCESS] 결과를 {output_file}에 저장했습니다.")
     
-    return unique_articles
+    # 실행 결과 로깅
+    log_execution(
+        total_articles=len(unique_articles),
+        source_stats=source_stats,
+        classification_stats=classification_stats,
+        output_file=output_file
+    )
+    print(f"[LOG] 실행 기록이 logs/ 폴더에 저장되었습니다.")
+    
+    return unique_articles, source_stats, classification_stats, output_file
+
 
 if __name__ == "__main__":
     articles = main()

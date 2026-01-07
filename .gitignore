@@ -14,13 +14,35 @@ ENV/
 # IDE
 .vscode/
 .idea/
+.claude/
 
-# Output files (JSON data)
+# Output files (JSON data - don't upload scraped data)
 pharma_news_*.json
+multi_source_*.json
+monitor_updates_*.json
+*_test.json
+test_*.json
+*_output.json
+*_sample.json
+
+# Logs
+logs/
+*.log
+
+# Snapshots (ICH/page monitoring)
+.ich_snapshots/
+.page_snapshots/
 
 # Screenshots
 *.png
+*.webp
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Excel temp files
+~$*.xlsx
+
+# Gemini artifacts
+.gemini/

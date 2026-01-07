@@ -31,7 +31,7 @@ def get_openai_client() -> OpenAI:
     return OpenAI(api_key=api_key)
 
 
-def summarize_article(client: OpenAI, title: str, content: str, images: list = None, model: str = "gpt-4o-mini") -> dict:
+def summarize_article(client: OpenAI, title: str, content: str, images: list = None, model: str = "gpt-4o") -> dict:
     """
     OpenAI API를 사용하여 단일 기사를 요약합니다 (선택적 이미지 분석 포함).
     
@@ -51,7 +51,10 @@ def summarize_article(client: OpenAI, title: str, content: str, images: list = N
         return {
             "ai_summary": "기사 본문이 충분하지 않습니다.",
             "key_points": [],
-            "industry_impact": ""
+            "industry_impact": "",
+            "ai_categories": [],
+            "ai_keywords": [],
+            "target_teams": []
         }
     
     # 토큰 절약을 위해 긴 내용 자르기 (최대 5000자)
@@ -66,16 +69,41 @@ def summarize_article(client: OpenAI, title: str, content: str, images: list = N
     if has_images:
         images = images[:5]
     
-    system_prompt = """당신은 제약/바이오 산업 전문 뉴스 분석가입니다.
+    # 분류 카테고리 목록
+    categories = [
+        "주요전문지 헤드라인",
+        "대웅/관계사",
+        "정책/행정",
+        "AI",
+        "업계/R&D",
+        "제품",
+        "시장/투자",
+        "인력/교육"
+    ]
+    
+    # 팀 라우팅 정의
+    from team_definitions import get_team_prompt, get_team_list
+    team_descriptions = get_team_prompt()
+    team_list = get_team_list()
+    
+    system_prompt = f"""당신은 제약/바이오 산업 전문 뉴스 분석가입니다.
 
 기사 본문과 이미지(제공된 경우)를 함께 분석하여 다음 형식으로 JSON 응답을 제공해주세요.
 이미지가 있다면 기사 이해에 도움이 되는 시각적 정보를 요약에 통합하세요.
 
-{
+{{
     "summary": "기사의 핵심 내용을 2-3문장으로 요약",
     "key_points": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
-    "industry_impact": "업계에 미치는 영향을 1-2문장으로 설명"
-}
+    "industry_impact": "업계에 미치는 영향을 1-2문장으로 설명",
+    "categories": ["해당되는 카테고리들"],
+    "keywords": ["기사에서 추출한 핵심 키워드 3-5개"],
+    "target_teams": ["이 뉴스를 받아야 할 팀 1-2개"]
+}}
+
+분류 카테고리 옵션 (1개 이상 선택): {categories}
+
+타겟 팀 옵션 (가장 관련 있는 1-2개 선택):
+{team_descriptions}
 
 반드시 유효한 JSON 형식으로만 응답하세요."""
 
@@ -116,7 +144,7 @@ def summarize_article(client: OpenAI, title: str, content: str, images: list = N
             model=model,
             messages=messages,
             temperature=0.3,
-            max_tokens=600,
+            max_tokens=800,
             response_format={"type": "json_object"}
         )
         
@@ -128,6 +156,9 @@ def summarize_article(client: OpenAI, title: str, content: str, images: list = N
             "ai_summary": result.get("summary", ""),
             "key_points": result.get("key_points", []),
             "industry_impact": result.get("industry_impact", ""),
+            "ai_categories": result.get("categories", []),
+            "ai_keywords": result.get("keywords", []),
+            "target_teams": result.get("target_teams", []),
             "tokens_used": response.usage.total_tokens
         }
         
@@ -137,6 +168,9 @@ def summarize_article(client: OpenAI, title: str, content: str, images: list = N
             "ai_summary": response.choices[0].message.content if response else "",
             "key_points": [],
             "industry_impact": "",
+            "ai_categories": [],
+            "ai_keywords": [],
+            "target_teams": [],
             "error": "JSON 파싱 실패"
         }
     except Exception as e:
@@ -152,6 +186,9 @@ def summarize_article(client: OpenAI, title: str, content: str, images: list = N
             "ai_summary": "",
             "key_points": [],
             "industry_impact": "",
+            "ai_categories": [],
+            "ai_keywords": [],
+            "target_teams": [],
             "error": error_str
         }
 
@@ -187,6 +224,9 @@ def summarize_all_articles(input_json: str, output_json: str = None, model: str 
                 "ai_summary": "기사 본문을 가져올 수 없습니다.",
                 "key_points": [],
                 "industry_impact": "",
+                "ai_categories": [],
+                "ai_keywords": [],
+                "target_teams": [],
                 "error": "기사 본문 없음"
             }
             fail_count += 1
