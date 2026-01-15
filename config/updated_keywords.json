@@ -1,0 +1,753 @@
+{
+  "pharmaceutical_terminology": {
+    "revisions_and_changes": {
+      "category_name": {
+        "en": "Revisions/Changes",
+        "ko": "개정/변경"
+      },
+      "terms": [
+        {
+          "en": [
+            "revision",
+            "revised"
+          ],
+          "ko": [
+            "개정"
+          ]
+        },
+        {
+          "en": [
+            "update",
+            "updated"
+          ],
+          "ko": [
+            "업데이트"
+          ]
+        },
+        {
+          "en": [
+            "amendment",
+            "amended"
+          ],
+          "ko": [
+            "개정"
+          ]
+        },
+        {
+          "en": [
+            "corrigendum",
+            "errata"
+          ],
+          "ko": [
+            "정정",
+            "수정"
+          ]
+        },
+        {
+          "en": [
+            "draft",
+            "consultation",
+            "public comment",
+            "concept paper"
+          ],
+          "ko": [
+            "초안"
+          ]
+        },
+        {
+          "en": [
+            "effective date",
+            "implementation date",
+            "transition period"
+          ],
+          "ko": [
+            "시행",
+            "시행일"
+          ]
+        }
+      ]
+    },
+    "aseptic_injectables": {
+      "category_name": {
+        "en": "Aseptic/Injectables",
+        "ko": "무균/주사제"
+      },
+      "terms": [
+        {
+          "en": [
+            "aseptic",
+            "sterile",
+            "sterilization",
+            "aseptic processing"
+          ],
+          "ko": [
+            "무균",
+            "무균 조작",
+            "멸균"
+          ]
+        },
+        {
+          "en": [
+            "CCS",
+            "contamination control strategy"
+          ],
+          "ko": [
+            "오염 관리 전략"
+          ]
+        },
+        {
+          "en": [
+            "cleanroom",
+            "HVAC",
+            "HEPA",
+            "airflow",
+            "smoke study"
+          ],
+          "ko": [
+            "청정작업실",
+            "청정실",
+            "공기 조화 장치",
+            "헤파",
+            "기류",
+            "기류패턴 테스트"
+          ]
+        },
+        {
+          "en": [
+            "EM",
+            "environmental monitoring",
+            "trending",
+            "alert level",
+            "action level"
+          ],
+          "ko": [
+            "환경모니터링",
+            "경고수준",
+            "조시수준"
+          ]
+        },
+        {
+          "en": [
+            "APS",
+            "media fill",
+            "worst case",
+            "intervention"
+          ],
+          "ko": [
+            "무균공정밸리데이션",
+            "배지충전시험",
+            "메디어필",
+            "간섭",
+            "최악의 경우"
+          ]
+        },
+        {
+          "en": [
+            "sterilizing filter",
+            "integrity test",
+            "PUPSIT"
+          ],
+          "ko": [
+            "멸균 필터",
+            "필터 완전성 시험"
+          ]
+        },
+        {
+          "en": [
+            "endotoxin",
+            "pyrogen",
+            "bioburden"
+          ],
+          "ko": [
+            "엔도톡신",
+            "발열성물질",
+            "바이오버든"
+          ]
+        },
+        {
+          "en": [
+            "CCI",
+            "container closure integrity",
+            "leak test"
+          ],
+          "ko": [
+            "용기 완전성 시험",
+            "용기 마개 완전성 시험"
+          ]
+        },
+        {
+          "en": [
+            "particulates",
+            "visible particles",
+            "settle plate",
+            "contact plate",
+            "air sample"
+          ],
+          "ko": [
+            "부유입자",
+            "부유분",
+            "낙하균",
+            "표면균",
+            "미생물",
+            "미립자"
+          ]
+        }
+      ]
+    },
+    "quality_systems": {
+      "category_name": {
+        "en": "Quality Systems (QMS)",
+        "ko": "품질 시스템(QMS)"
+      },
+      "terms": [
+        {
+          "en": [
+            "deviation",
+            "investigation",
+            "root cause",
+            "CAPA",
+            "effectiveness check"
+          ],
+          "ko": [
+            "일탈",
+            "조사",
+            "근본 원인",
+            "CAPA",
+            "유효성 평가",
+            "시정 조치",
+            "예방 조치"
+          ]
+        },
+        {
+          "en": [
+            "change control",
+            "change management",
+            "impact assessment"
+          ],
+          "ko": [
+            "변경",
+            "변경관리",
+            "영향평가",
+            "영향성 평가"
+          ]
+        },
+        {
+          "en": [
+            "risk assessment",
+            "QRM",
+            "FMEA"
+          ],
+          "ko": [
+            "위험 관리",
+            "품질 위험 관리",
+            "위험 평가"
+          ]
+        },
+        {
+          "en": [
+            "stability",
+            "OOS",
+            "OOT",
+            "data trending"
+          ],
+          "ko": [
+            "안정성",
+            "규격 소외",
+            "경향 소외"
+          ]
+        }
+      ]
+    },
+    "validation": {
+      "category_name": {
+        "en": "Validation",
+        "ko": "밸리데이션"
+      },
+      "terms": [
+        {
+          "en": [
+            "qualification",
+            "DQ",
+            "IQ",
+            "OQ",
+            "PQ",
+            "process validation",
+            "continued process verification",
+            "shipping validation"
+          ],
+          "ko": [
+            "적격성 평가",
+            "검증",
+            "벨리데이션",
+            "공정 벨리데이션",
+            "지속적 공정 검증",
+            "운송 벨리데이션"
+          ]
+        }
+      ]
+    },
+    "data_integrity": {
+      "category_name": {
+        "en": "Data Integrity",
+        "ko": "데이터 완전성"
+      },
+      "terms": [
+        {
+          "en": [
+            "data integrity",
+            "ALCOA",
+            "ALCOA+",
+            "audit trail",
+            "electronic records",
+            "raw data"
+          ],
+          "ko": [
+            "데이터 완전성",
+            "점검 기록",
+            "전자 기록",
+            "원 기록",
+            "원천 기록"
+          ]
+        },
+        {
+          "en": [
+            "Part 11",
+            "computerized system validation",
+            "CSV"
+          ],
+          "ko": [
+            "컴퓨터화 시스템",
+            "컴퓨터 시스템 벨리데이션"
+          ]
+        },
+        {
+          "en": [
+            "access control",
+            "privilege",
+            "backup",
+            "disaster recovery",
+            "security",
+            "log review"
+          ],
+          "ko": [
+            "접근 관리",
+            "백업",
+            "재난 복구"
+          ]
+        }
+      ]
+    },
+    "pharmacopoeia": {
+      "category_name": {
+        "en": "Pharmacopoeia",
+        "ko": "약전"
+      },
+      "terms": [
+        {
+          "en": [
+            "monograph",
+            "general chapter",
+            "general notice"
+          ],
+          "ko": [
+            "각조",
+            "개별 기준",
+            "각 약전 시험법",
+            "일반 기준",
+            "총칙",
+            "일반 총칙"
+          ]
+        },
+        {
+          "en": [
+            "revision bulletin",
+            "official text",
+            "harmonization"
+          ],
+          "ko": [
+            "개정 공지",
+            "개정 고시",
+            "공식 문서",
+            "공식 단독",
+            "조화",
+            "국제 조화"
+          ]
+        },
+        {
+          "en": [
+            "method validation",
+            "verification",
+            "specificity",
+            "accuracy",
+            "precision",
+            "robustness"
+          ],
+          "ko": [
+            "시험법 벨리데이션",
+            "시험법 검증",
+            "시험법 적합성 확인",
+            "검증",
+            "특이성",
+            "정확성",
+            "정밀성",
+            "견고성",
+            "건고성"
+          ]
+        },
+        {
+          "en": [
+            "impurities",
+            "residual solvents",
+            "elemental impurities"
+          ],
+          "ko": [
+            "불순물",
+            "순도 시험",
+            "잔류용매",
+            "산류용매 시험"
+          ]
+        },
+        {
+          "en": [
+            "dissolution",
+            "assay",
+            "related substances",
+            "sterility test",
+            "endotoxin test"
+          ],
+          "ko": [
+            "용출",
+            "용출 시험",
+            "함량",
+            "함량 시험",
+            "유연물질",
+            "유연물질 시험",
+            "무균 시험",
+            "엔도톡신"
+          ]
+        }
+      ]
+    },
+    "solid_dosage_weighing": {
+      "category_name": {
+        "en": "Solid Dosage - Weighing/Blending",
+        "ko": "고형제 - 칭량/혼합"
+      },
+      "terms": [
+        {
+          "en": [
+            "dispensing",
+            "weighing",
+            "material handling"
+          ],
+          "ko": [
+            "칭량"
+          ]
+        },
+        {
+          "en": [
+            "blend",
+            "blending",
+            "mixing",
+            "blend uniformity",
+            "content uniformity"
+          ],
+          "ko": [
+            "혼합",
+            "혼합물",
+            "혼합 균일성",
+            "함량 균일성"
+          ]
+        },
+        {
+          "en": [
+            "segregation",
+            "demixing",
+            "particle size distribution"
+          ],
+          "ko": [
+            "분리",
+            "성분 분리",
+            "탈혼합",
+            "입도 분포",
+            "입자 크기 분포"
+          ]
+        },
+        {
+          "en": [
+            "flowability",
+            "bulk density",
+            "tapped density"
+          ],
+          "ko": [
+            "유동성",
+            "겉보기 밀도",
+            "다짐 밀도"
+          ]
+        }
+      ]
+    },
+    "solid_dosage_granulation_drying": {
+      "category_name": {
+        "en": "Solid Dosage - Granulation & Drying",
+        "ko": "고형제 - 과립 & 건조"
+      },
+      "terms": [
+        {
+          "en": [
+            "wet granulation",
+            "dry granulation",
+            "roller compaction"
+          ],
+          "ko": [
+            "과립",
+            "습식 과립",
+            "건식 과립"
+          ]
+        },
+        {
+          "en": [
+            "fluid bed granulation",
+            "high shear granulation"
+          ],
+          "ko": [
+            "유동층 과립",
+            "고전단 과립"
+          ]
+        },
+        {
+          "en": [
+            "drying",
+            "LOD",
+            "moisture content"
+          ],
+          "ko": [
+            "건조",
+            "건조 감량",
+            "수분 함량"
+          ]
+        },
+        {
+          "en": [
+            "over-granulation",
+            "under-granulation"
+          ],
+          "ko": [
+            "과과립",
+            "미과립"
+          ]
+        },
+        {
+          "en": [
+            "binder solution",
+            "spray rate",
+            "inlet air temperature"
+          ],
+          "ko": [
+            "결합액",
+            "분무 속도",
+            "유입 공기 온도"
+          ]
+        }
+      ]
+    },
+    "solid_dosage_compression": {
+      "category_name": {
+        "en": "Solid Dosage - Compression",
+        "ko": "고형제 - 타정"
+      },
+      "terms": [
+        {
+          "en": [
+            "compression",
+            "tablet press",
+            "turret",
+            "punch",
+            "die"
+          ],
+          "ko": [
+            "타정",
+            "타정기",
+            "타렛",
+            "펀치",
+            "다이"
+          ]
+        },
+        {
+          "en": [
+            "tablet weight variation",
+            "hardness",
+            "friability"
+          ],
+          "ko": [
+            "질량 편차",
+            "경도",
+            "마손도"
+          ]
+        },
+        {
+          "en": [
+            "capping",
+            "lamination",
+            "sticking",
+            "picking"
+          ],
+          "ko": [
+            "캡핑",
+            "층분리",
+            "부착",
+            "점착",
+            "스티킹",
+            "픈킹"
+          ]
+        }
+      ]
+    },
+    "solid_dosage_coating": {
+      "category_name": {
+        "en": "Solid Dosage - Coating",
+        "ko": "고형제 - 코팅"
+      },
+      "terms": [
+        {
+          "en": [
+            "film coating",
+            "enteric coating",
+            "functional coating"
+          ],
+          "ko": [
+            "필름 코팅",
+            "장용 코팅",
+            "기능성 코팅"
+          ]
+        },
+        {
+          "en": [
+            "coating uniformity",
+            "weight gain"
+          ],
+          "ko": [
+            "코팅 균일성",
+            "중량 증가율"
+          ]
+        },
+        {
+          "en": [
+            "coating defects",
+            "orange peel",
+            "mottling",
+            "cracking",
+            "peeling",
+            "picking",
+            "twinning"
+          ],
+          "ko": [
+            "코팅 결함",
+            "표면 거칠음",
+            "얼룩",
+            "균열",
+            "박리",
+            "코팅 뜯김",
+            "정제 들러붙음"
+          ]
+        },
+        {
+          "en": [
+            "solvent-based",
+            "aqueous coating"
+          ],
+          "ko": [
+            "유기용매 코팅",
+            "수계 코팅"
+          ]
+        },
+        {
+          "en": [
+            "spray gun",
+            "atomization",
+            "pan speed"
+          ],
+          "ko": [
+            "스프레이 건",
+            "분무 노즐",
+            "미립화",
+            "분무 미립화",
+            "팬 속도"
+          ]
+        }
+      ]
+    },
+    "cross_contamination": {
+      "category_name": {
+        "en": "Cross Contamination",
+        "ko": "교차 오염"
+      },
+      "terms": [
+        {
+          "en": [
+            "cross contamination",
+            "carryover"
+          ],
+          "ko": [
+            "교차 오염",
+            "잔류 오염"
+          ]
+        },
+        {
+          "en": [
+            "dust control",
+            "dust explosion",
+            "ATEX"
+          ],
+          "ko": [
+            "분진 관리",
+            "분진 폭발"
+          ]
+        },
+        {
+          "en": [
+            "cleaning validation",
+            "MACO",
+            "PED",
+            "HBEL"
+          ],
+          "ko": [
+            "세척 밸리데이션",
+            "허용 일일 노출량",
+            "최대 허용 이월량"
+          ]
+        },
+        {
+          "en": [
+            "shared equipment",
+            "campaign production"
+          ],
+          "ko": [
+            "공유 설비",
+            "캠페인 생산"
+          ]
+        },
+        {
+          "en": [
+            "dedicated equipment"
+          ],
+          "ko": [
+            "전용 설비",
+            "전용 생산 설비"
+          ]
+        },
+        {
+          "en": [
+            "HVAC zoning",
+            "pressure cascade",
+            "differential pressure"
+          ],
+          "ko": [
+            "차압",
+            "차압 구배"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -7,6 +7,11 @@ import io
 import json
 import os
 from datetime import datetime
+
+# 프로젝트 루트 설정 (src/ 상위 디렉토리)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -14,8 +19,8 @@ from dotenv import load_dotenv
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-# API 키 로드
-load_dotenv()
+# API 키 로드 (config 디렉토리에서)
+load_dotenv(os.path.join(PROJECT_ROOT, "config", ".env"))
 
 # 모델명 상수
 MODEL_NAME = 'gemini-2.0-flash'
@@ -68,8 +73,9 @@ def summarize_article(client, title: str, content: str, images: list = None) -> 
     if len(content) > max_content_length:
         content = content[:max_content_length] + "..."
     
-    # 분류 카테고리 목록
+    # 분류 카테고리 목록 (기존 + GMP/QMS 카테고리)
     categories = [
+        # 기존 뉴스 분류
         "주요전문지 헤드라인",
         "대웅/관계사",
         "정책/행정",
@@ -77,11 +83,23 @@ def summarize_article(client, title: str, content: str, images: list = None) -> 
         "업계/R&D",
         "제품",
         "시장/투자",
-        "인력/교육"
+        "인력/교육",
+        # GMP/QMS 전문 용어 카테고리
+        "개정/변경",
+        "무균/주사제",
+        "품질시스템/QMS",
+        "밸리데이션",
+        "데이터 완전성",
+        "약전",
+        "고형제-칭량/혼합",
+        "고형제-과립/건조",
+        "고형제-타정",
+        "고형제-코팅",
+        "교차오염"
     ]
     
     # 팀 라우팅 정의
-    from team_definitions import get_team_prompt
+    from src.team_definitions import get_team_prompt
     team_descriptions = get_team_prompt()
     
     prompt = f"""당신은 제약/바이오 산업 전문 뉴스 분석가입니다.

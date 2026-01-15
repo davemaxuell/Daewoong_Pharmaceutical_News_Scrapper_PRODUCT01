@@ -9,7 +9,10 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# 프로젝트 루트 및 config 디렉토리 경로
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
+load_dotenv(os.path.join(CONFIG_DIR, ".env"))
 
 # 이메일 설정 (.env 파일에서 로드)
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -58,36 +61,53 @@ def create_email_html(team_name: str, articles: list) -> str:
     """팀별 이메일 HTML 생성"""
     today = datetime.now().strftime('%Y년 %m월 %d일')
     
+    # Daewoong 브랜드 색상
+    # Primary Orange: #F7941D, Dark Gray: #4D4D4D, Light Orange: #FEF4E8
+    
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <style>
-            body {{ font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; color: #333; }}
-            .container {{ max-width: 700px; margin: 0 auto; padding: 20px; }}
-            .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }}
-            .header h1 {{ margin: 0; font-size: 24px; }}
-            .header p {{ margin: 5px 0 0 0; opacity: 0.9; }}
-            .article {{ background: #f8f9fa; margin: 15px 0; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }}
-            .article h2 {{ margin: 0 0 10px 0; font-size: 18px; color: #2c3e50; }}
-            .article .meta {{ font-size: 12px; color: #666; margin-bottom: 10px; }}
-            .article .summary {{ color: #444; }}
-            .article .key-points {{ margin: 10px 0; padding-left: 20px; }}
-            .article .key-points li {{ margin: 5px 0; }}
-            .article .impact {{ background: #e8f4fd; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; }}
-            .article .keywords {{ margin-top: 10px; }}
-            .article .keyword {{ display: inline-block; background: #667eea; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; margin: 2px; }}
-            .article .link {{ margin-top: 10px; }}
-            .article .link a {{ color: #667eea; text-decoration: none; }}
-            .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+            body {{ font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; color: #4D4D4D; background-color: #f5f5f5; }}
+            .container {{ max-width: 900px; margin: 0 auto; padding: 20px; background: white; }}
+            .header {{ background: linear-gradient(135deg, #F7941D 0%, #E8820C 100%); color: white; padding: 25px 20px; border-radius: 10px 10px 0 0; }}
+            .header-content {{ display: flex; align-items: center; }}
+            .logo {{ height: 40px; margin-right: 15px; }}
+            .header-text h1 {{ margin: 0; font-size: 22px; font-weight: 600; }}
+            .header-text p {{ margin: 5px 0 0 0; opacity: 0.95; font-size: 14px; }}
+            .article {{ background: #FAFAFA; margin: 15px 0; padding: 20px; border-radius: 8px; border-left: 4px solid #F7941D; }}
+            .article h2 {{ margin: 0 0 10px 0; font-size: 17px; color: #333; font-weight: 600; }}
+            .article .meta {{ font-size: 12px; color: #888; margin-bottom: 10px; }}
+            .article .summary {{ color: #555; line-height: 1.7; }}
+            .article .key-points {{ margin: 12px 0; padding-left: 20px; color: #555; }}
+            .article .key-points li {{ margin: 6px 0; }}
+            .article .impact {{ background: #FEF4E8; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 14px; border-left: 3px solid #F7941D; }}
+            .article .keywords {{ margin-top: 12px; }}
+            .article .keyword {{ display: inline-block; background: #F7941D; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px; }}
+            .article .link {{ margin-top: 12px; }}
+            .article .link a {{ color: #F7941D; text-decoration: none; font-weight: 500; }}
+            .article .link a:hover {{ text-decoration: underline; }}
+            .footer {{ text-align: center; padding: 25px 20px; color: #888; font-size: 12px; border-top: 1px solid #eee; margin-top: 20px; }}
+            .footer-logo {{ height: 24px; margin-bottom: 10px; opacity: 0.7; }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>📰 {team_name} 뉴스 브리핑</h1>
-                <p>{today} | {len(articles)}건의 관련 뉴스</p>
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <div style="font-size: 20px; font-weight: 600;">📰 {team_name} 뉴스 브리핑</div>
+                            <div style="font-size: 13px; opacity: 0.95; margin-top: 4px;">{today} | {len(articles)}건의 관련 뉴스</div>
+                        </td>
+                        <td style="vertical-align: middle; text-align: right;">
+                            <div style="font-size: 18px; font-weight: 700; letter-spacing: 2px;">DAEWOONG</div>
+                            <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">PHARMACEUTICAL</div>
+                        </td>
+                    </tr>
+                </table>
             </div>
     """
     
@@ -132,6 +152,7 @@ def create_email_html(team_name: str, articles: list) -> str:
     
     html += """
             <div class="footer">
+                <p style="color: #F7941D; font-weight: 500;">DAEWOONG PHARMACEUTICAL</p>
                 <p>이 이메일은 제약 뉴스 에이전트에 의해 자동으로 발송되었습니다.</p>
             </div>
         </div>
@@ -146,34 +167,46 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
     """모니터링 업데이트 이메일 HTML 생성"""
     today = datetime.now().strftime('%Y년 %m월 %d일')
     
+    # Daewoong 브랜드 색상 (규제 알림용 - 어두운 오렌지)
+    # Alert Orange: #E67E22, Dark Orange: #D35400
+    
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <style>
-            body {{ font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; color: #333; }}
-            .container {{ max-width: 700px; margin: 0 auto; padding: 20px; }}
-            .header {{ background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }}
-            .header h1 {{ margin: 0; font-size: 24px; }}
-            .header p {{ margin: 5px 0 0 0; opacity: 0.9; }}
-            .update {{ background: #fff5f5; margin: 15px 0; padding: 20px; border-radius: 8px; border-left: 4px solid #DD2476; }}
-            .update h2 {{ margin: 0 0 10px 0; font-size: 18px; color: #c0392b; }}
-            .update .meta {{ font-size: 12px; color: #666; margin-bottom: 10px; }}
-            .update .summary {{ color: #444; font-weight: bold; }}
-            .update .changes {{ margin: 10px 0; background: white; padding: 10px; border: 1px solid #eee; }}
-            .update .changes li {{ margin: 5px 0; }}
-            .update .implications {{ background: #ffeaa7; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; }}
-            .update .link {{ margin-top: 10px; }}
-            .update .link a {{ color: #DD2476; text-decoration: none; font-weight: bold; }}
-            .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+            body {{ font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; color: #4D4D4D; background-color: #f5f5f5; }}
+            .container {{ max-width: 900px; margin: 0 auto; padding: 20px; background: white; }}
+            .header {{ background: linear-gradient(135deg, #E67E22 0%, #D35400 100%); color: white; padding: 25px 20px; border-radius: 10px 10px 0 0; }}
+            .update {{ background: #FEF9F3; margin: 15px 0; padding: 20px; border-radius: 8px; border-left: 4px solid #E67E22; }}
+            .update h2 {{ margin: 0 0 10px 0; font-size: 17px; color: #D35400; font-weight: 600; }}
+            .update .meta {{ font-size: 12px; color: #888; margin-bottom: 10px; }}
+            .update .summary {{ color: #555; font-weight: 500; line-height: 1.7; }}
+            .update .changes {{ margin: 12px 0; background: white; padding: 12px; border: 1px solid #F5DCC3; border-radius: 6px; }}
+            .update .changes li {{ margin: 6px 0; color: #555; }}
+            .update .implications {{ background: #FEF4E8; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 14px; border-left: 3px solid #E67E22; }}
+            .update .link {{ margin-top: 12px; }}
+            .update .link a {{ color: #D35400; text-decoration: none; font-weight: 600; }}
+            .update .link a:hover {{ text-decoration: underline; }}
+            .footer {{ text-align: center; padding: 25px 20px; color: #888; font-size: 12px; border-top: 1px solid #eee; margin-top: 20px; }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🚨 {team_name} 규제 모니터링 알림</h1>
-                <p>{today} | {len(updates)}건의 규제 업데이트</p>
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <div style="font-size: 20px; font-weight: 600;">🚨 {team_name} 규제 모니터링 알림</div>
+                            <div style="font-size: 13px; opacity: 0.95; margin-top: 4px;">{today} | {len(updates)}건의 규제 업데이트</div>
+                        </td>
+                        <td style="vertical-align: middle; text-align: right;">
+                            <div style="font-size: 18px; font-weight: 700; letter-spacing: 2px;">DAEWOONG</div>
+                            <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">PHARMACEUTICAL</div>
+                        </td>
+                    </tr>
+                </table>
             </div>
     """
     
@@ -214,6 +247,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
     
     html += """
             <div class="footer">
+                <p style="color: #E67E22; font-weight: 500;">DAEWOONG PHARMACEUTICAL</p>
                 <p>이 알림은 규제 모니터링 시스템에 의해 감지된 중요 변경사항입니다.</p>
             </div>
         </div>

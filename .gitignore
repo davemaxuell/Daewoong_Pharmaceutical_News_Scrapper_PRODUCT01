@@ -8,8 +8,13 @@ __pycache__/
 venv/
 ENV/
 
-# Environment
-.env
+# Environment & Sensitive Data
+config/.env
+*.pem
+*.key
+
+# Team emails (contains real email addresses)
+config/team_emails.json
 
 # IDE
 .vscode/
@@ -17,6 +22,8 @@ ENV/
 .claude/
 
 # Output files (JSON data - don't upload scraped data)
+data/news/*.json
+data/monitors/*.json
 pharma_news_*.json
 multi_source_*.json
 monitor_updates_*.json
@@ -29,9 +36,11 @@ test_*.json
 logs/
 *.log
 
-# Snapshots (ICH/page monitoring)
+# Snapshots (monitoring state)
+snapshots/
 .ich_snapshots/
 .page_snapshots/
+.usp_snapshots/
 
 # Screenshots
 *.png
@@ -46,3 +55,6 @@ Thumbs.db
 
 # Gemini artifacts
 .gemini/
+
+# Assets (local only)
+assets/

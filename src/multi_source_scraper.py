@@ -7,8 +7,10 @@ import sys
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-# 프로젝트 루트 설정
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 프로젝트 루트 설정 (src/ 상위 디렉토리)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
 
 from scrapers.base_scraper import NewsArticle
 from scrapers.kpanews_scraper import KPANewsScraper

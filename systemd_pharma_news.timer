@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Pharmaceutical News Agent daily at 7 AM KST
+Requires=systemd_pharma_news.service
+
+[Timer]
+# 매일 오전 7시 실행 (KST)
+OnCalendar=*-*-* 07:00:00
+# 부팅 후 10분 뒤에도 실행 (놓친 작업 방지)
+Persistent=true
+
+[Install]
+WantedBy=timers.target

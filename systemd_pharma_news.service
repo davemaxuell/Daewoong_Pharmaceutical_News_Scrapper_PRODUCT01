@@ -1,0 +1,16 @@
+[Unit]
+Description=Pharmaceutical News Agent Daily Pipeline
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/pharma_news_agent
+Environment="PATH=/home/ubuntu/pharma_news_agent/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/ubuntu/pharma_news_agent/venv/bin/python /home/ubuntu/pharma_news_agent/run_pipeline.py
+StandardOutput=append:/home/ubuntu/pharma_news_agent/logs/systemd_output.log
+StandardError=append:/home/ubuntu/pharma_news_agent/logs/systemd_error.log
+
+[Install]
+WantedBy=multi-user.target
