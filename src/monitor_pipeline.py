@@ -18,12 +18,13 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(PROJECT_ROOT, "config", ".env"))
 
 # Snapshot directory for change detection
-SNAPSHOT_DIR = os.path.join(PROJECT_ROOT, "snapshots", "usp")
+SNAPSHOT_DIR_USP = os.path.join(PROJECT_ROOT, "snapshots", "usp")
+SNAPSHOT_DIR_PMDA = os.path.join(PROJECT_ROOT, "snapshots", "pmda")
 DATA_MONITORS_DIR = os.path.join(PROJECT_ROOT, "data", "monitors")
 
 def load_usp_snapshot():
     """Load previous USP PDF links snapshot"""
-    snapshot_file = os.path.join(SNAPSHOT_DIR, "usp_pdfs.json")
+    snapshot_file = os.path.join(SNAPSHOT_DIR_USP, "usp_pdfs.json")
     if os.path.exists(snapshot_file):
         with open(snapshot_file, 'r', encoding='utf-8') as f:
             return set(json.load(f))
@@ -31,8 +32,23 @@ def load_usp_snapshot():
 
 def save_usp_snapshot(pdf_links):
     """Save current USP PDF links snapshot"""
-    os.makedirs(SNAPSHOT_DIR, exist_ok=True)
-    snapshot_file = os.path.join(SNAPSHOT_DIR, "usp_pdfs.json")
+    os.makedirs(SNAPSHOT_DIR_USP, exist_ok=True)
+    snapshot_file = os.path.join(SNAPSHOT_DIR_USP, "usp_pdfs.json")
+    with open(snapshot_file, 'w', encoding='utf-8') as f:
+        json.dump(list(pdf_links), f, ensure_ascii=False, indent=2)
+
+def load_pmda_snapshot():
+    """Load previous PMDA PDF links snapshot"""
+    snapshot_file = os.path.join(SNAPSHOT_DIR_PMDA, "pmda_pdfs.json")
+    if os.path.exists(snapshot_file):
+        with open(snapshot_file, 'r', encoding='utf-8') as f:
+            return set(json.load(f))
+    return set()
+
+def save_pmda_snapshot(pdf_links):
+    """Save current PMDA PDF links snapshot"""
+    os.makedirs(SNAPSHOT_DIR_PMDA, exist_ok=True)
+    snapshot_file = os.path.join(SNAPSHOT_DIR_PMDA, "pmda_pdfs.json")
     with open(snapshot_file, 'w', encoding='utf-8') as f:
         json.dump(list(pdf_links), f, ensure_ascii=False, indent=2)
 
@@ -92,33 +108,57 @@ def run_monitor_pipeline():
                             "timestamp": datetime.now().isoformat()
                         })
     
-    # 2. PMDA Newsletter Monitor (Quarterly)
+    # 2. PMDA Newsletter Monitor (with Change Detection)
     print("\n[2] Checking PMDA Newsletter...")
     try:
         from scrapers.pmda_scraper import PMDAScraper
         pmda = PMDAScraper()
-        pmda_articles = pmda.fetch_news(days_back=90)  # 분기별 (90일)
+        
+        # Load previous snapshot
+        previous_pmda_pdfs = load_pmda_snapshot()
+        
+        # Fetch current PMDA articles
+        pmda_articles = pmda.fetch_news(days_back=365)  # 1년치 수집
         
         if pmda_articles:
-            print(f"  -> Found {len(pmda_articles)} PMDA updates")
-            for article in pmda_articles[:5]:  # 최대 5개
-                update = {
-                    "source": "PMDA Newsletter",
-                    "title": article.title,
-                    "link": article.link,
-                    "published": article.published.isoformat() if article.published else None,
-                    "timestamp": datetime.now().isoformat()
-                }
+            # Get all current PDF links
+            current_pmda_pdfs = set(article.link for article in pmda_articles)
+            
+            # Find NEW PDFs (not in previous snapshot)
+            new_pmda_pdfs = current_pmda_pdfs - previous_pmda_pdfs
+            
+            if new_pmda_pdfs:
+                print(f"  -> Found {len(new_pmda_pdfs)} NEW PMDA updates (out of {len(pmda_articles)} total)")
                 
-                # PDF 분석 시도
-                if model and article.link.lower().endswith('.pdf'):
-                    print(f"    -> Analyzing: {article.title[:50]}...")
-                    analysis = analyze_pdf(model, article.link, title=article.title)
-                    update["ai_analysis"] = analysis
+                # Only process new articles
+                for article in pmda_articles:
+                    if article.link in new_pmda_pdfs:
+                        update = {
+                            "source": "PMDA Newsletter",
+                            "title": article.title,
+                            "link": article.link,
+                            "published": article.published.isoformat() if article.published else None,
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        
+                        # PDF 분석 시도
+                        if model and article.link.lower().endswith('.pdf'):
+                            print(f"    -> Analyzing: {article.title[:50]}...")
+                            analysis = analyze_pdf(model, article.link, title=article.title)
+                            update["ai_analysis"] = analysis
+                        
+                        updates.append(update)
                 
-                updates.append(update)
+                # Save updated snapshot
+                save_pmda_snapshot(current_pmda_pdfs)
+            else:
+                print(f"  -> No NEW PMDA updates (already seen {len(current_pmda_pdfs)} PDFs)")
+                # Still update snapshot in case of first run
+                if not previous_pmda_pdfs:
+                    save_pmda_snapshot(current_pmda_pdfs)
+                    print(f"  -> Initialized PMDA snapshot with {len(current_pmda_pdfs)} PDFs")
         else:
-            print("  -> No new PMDA updates")
+            print("  -> No PMDA updates found")
     except Exception as e:
         print(f"  -> PMDA check error: {e}")
     
