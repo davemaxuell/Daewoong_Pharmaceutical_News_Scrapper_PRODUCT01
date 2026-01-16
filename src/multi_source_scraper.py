@@ -71,7 +71,7 @@ class MultiSourceScraper:
         # === 해외 규제 기관 ===
         "fda_recalls": {
             "class": FDAEnforcementScraper,
-            "enabled": True,  # openFDA API 사용 (Drug Recalls)
+            "enabled": False,  # Disabled - FDA Drug Recalls
             "description": "FDA Drug Recalls (openFDA API)",
             "args": {"category": "drug"},
             "use_internal_days_back": True  # FDA는 자체 14일 lookback 사용
