@@ -1,0 +1,430 @@
+=============================================================================
+BioProcess International 스크래퍼 상세 매뉴얼
+=============================================================================
+작성일: 2026-02-03
+버전: 2.0 (업데이트: 4개 소스 구조)
+파일 위치: scrapers/bioprocess_scraper.py
+
+
+=============================================================================
+1. 개요 (Overview)
+=============================================================================
+
+BioProcess International 스크래퍼는 생물의약품 제조, QA/QC, 분석 기술,
+Validation, Fill-Finish 관련 최신 정보를 자동 수집하는 도구입니다.
+
+【수집 소스 (4개)】
+1. RSS 피드 (메인) - https://www.bioprocessintl.com/rss.xml
+2. Validation - https://www.bioprocessintl.com/manufacturing/validation
+3. Fill-Finish - https://www.bioprocessintl.com/manufacturing/fill-finish
+4. QA/QC - https://www.bioprocessintl.com/analytical/qa-qc
+
+【특징】
+- 4개 소스 병렬 수집 (RSS + 3개 카테고리)
+- 중복 제거 (seen_links)
+- 전체 기사 본문 수집 (10,000자)
+- 70+ 키워드 기반 자동 분류
+- 봇 차단 방지 기술 적용
+- AI 요약을 위한 full_text 확장 (10,000자)
+
+
+=============================================================================
+2. 데이터 소스 상세 (Data Sources)
+=============================================================================
+
+【1】 RSS 피드 (Primary Source)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.bioprocessintl.com/rss.xml
+상태: ✓ 정상 작동
+수집량: 50개 RSS 아이템 (전체 피드)
+안정성: ★★★★★ (매우 높음)
+설명:
+- BioProcess International의 공식 RSS 피드
+- 최신 기사의 제목, 링크, 발행일, 요약 제공
+- 모든 카테고리의 기사 포함
+- 각 RSS 아이템에서 전체 기사 본문 추가 수집
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【2】 Manufacturing/Validation 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.bioprocessintl.com/manufacturing/validation
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- Process Validation (공정 검증)
+- Method Validation (분석법 검증)
+- Cleaning Validation (세척 검증)
+- IQ/OQ/PQ (적격성 평가)
+- 21 CFR Part 11 (데이터 무결성)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【3】 Manufacturing/Fill-Finish 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.bioprocessintl.com/manufacturing/fill-finish
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- Aseptic Filling (무균 충전)
+- Vial/Syringe/Cartridge Filling
+- Lyophilization (동결건조)
+- Isolator/RABS 기술
+- Container Closure Integrity
+- Primary Packaging
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【4】 Analytical/QA-QC 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.bioprocessintl.com/analytical/qa-qc
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- Quality Assurance/Control
+- CAPA, Deviation, OOS/OOT
+- Audit, Inspection
+- Testing, Assay Development
+- Data Integrity
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+3. 키워드 시스템 (Keyword System) - 70+ 키워드
+=============================================================================
+
+3-1. QA/QC 관련 (14개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+quality assurance     품질 보증
+quality control       품질 관리
+QA, QC               약어
+quality management    품질 경영
+quality system        품질 시스템
+CAPA                 시정/예방 조치
+deviation            일탈
+OOS, OOT             규격/트렌드 이탈
+investigation        조사
+audit                감사
+inspection           검사
+compliance           준수
+regulatory           규제
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-2. 분석법 관련 (12개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+analytical, analysis   분석
+testing, assay, method 시험, 분석법
+HPLC, LC-MS           기기 분석
+mass spectrometry     질량 분석
+chromatography        크로마토그래피
+potency, purity       역가, 순도
+impurity, stability   불순물, 안정성
+bioassay              바이오어세이
+cell-based assay      세포 기반 분석
+binding assay         결합 분석
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-3. 바이오공정 관련 (10개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+bioprocess            바이오공정
+bioreactor            생물반응기
+cell culture          세포 배양
+fermentation          발효
+upstream              업스트림
+downstream            다운스트림
+purification          정제
+filtration            여과
+chromatography        크로마토그래피
+formulation           제형
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-4. Fill-Finish 관련 (16개) ★ 신규 추가
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+fill-finish, fill finish  충전/마감
+filling                   충전 공정
+aseptic filling           무균 충전
+vial filling              바이알 충전
+syringe filling           시린지 충전
+cartridge filling         카트리지 충전
+lyophilization            동결건조
+freeze-drying             동결건조
+capping                   캡핑
+stoppering                스토퍼링
+isolator                  아이솔레이터
+RABS                      제한적 접근 장벽 시스템
+sterile                   무균
+aseptic processing        무균 공정
+container closure         용기 마개
+primary packaging         1차 포장
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-5. 품질 검증 관련 (10개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+validation              밸리데이션
+qualification           적격성 평가
+verification            검증
+IQ, OQ, PQ              적격성 평가 단계
+process validation      공정 검증
+method validation       분석법 검증
+cleaning validation     세척 검증
+data integrity          데이터 무결성
+21 CFR Part 11          전자기록 규정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-6. 바이오의약품 관련 (10개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+biopharmaceutical       생물의약품
+biologic                생물학적 제제
+biosimilar              바이오시밀러
+monoclonal antibody     단클론항체
+mAb                     단클론항체 (약어)
+protein                 단백질 의약품
+vaccine                 백신
+cell therapy            세포치료제
+gene therapy            유전자치료제
+AAV                     아데노 관련 바이러스
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-7. GMP/규제 관련 (8개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GMP, cGMP               우수 의약품 제조 기준
+FDA, EMA                미국/유럽 규제기관
+ICH                     국제조화회의
+guideline               가이드라인
+regulation              규정
+standard                표준
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+4. 스크래핑 프로세스 (Scraping Process)
+=============================================================================
+
+4-1. 전체 흐름도 (신규 - 4소스 병렬 구조)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    [시작]
+                      ↓
+              ┌──────────────┐
+              │ 수집 기간 계산 │
+              │ 월요일: 3일   │
+              │ 평일: 1일    │
+              └──────────────┘
+                      ↓
+              ┌──────────────┐
+              │ Session 생성  │
+              │ + HTTP 헤더   │
+              └──────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 1. RSS 피드 수집         │
+        │ https://...com/rss.xml  │
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 2. Validation 카테고리   │
+        │ /manufacturing/validation│
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 3. Fill-Finish 카테고리  │
+        │ /manufacturing/fill-finish│
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 4. QA/QC 카테고리        │
+        │ /analytical/qa-qc       │
+        └─────────────────────────┘
+                      ↓
+              ┌──────────────┐
+              │ 중복 제거     │
+              │ (seen_links)  │
+              └──────────────┘
+                      ↓
+              ┌──────────────┐
+              │ 최종 결과     │
+              └──────────────┘
+                      ↓
+                   [종료]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4-2. fetch_news() 메인 함수
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1) days_back 계산 (월요일: 3, 평일: 1)
+2) cutoff_date 설정
+3) Session 생성 및 헤더 설정
+4) seen_links 초기화 (중복 방지)
+5) RSS 피드 수집 → seen_links에 추가
+6) 각 카테고리 순회:
+   - /manufacturing/validation
+   - /manufacturing/fill-finish
+   - /analytical/qa-qc
+7) 중복 확인 후 articles에 추가
+8) 최종 결과 반환
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4-3. _scrape_category_page() 카테고리 수집
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+입력: category_path, cutoff_date, query
+출력: List[NewsArticle]
+
+프로세스:
+1) category_url 생성 (BASE_URL + category_path)
+2) 2초 딜레이 (Rate limiting)
+3) HTTP GET 요청
+4) 에러 처리 (403/404)
+5) HTML 파싱 (BeautifulSoup)
+6) 기사 링크 추출:
+   - Method 1: article/div 컨테이너
+   - Method 2: h2/h3/h4 헤딩
+   - Method 3: /analytical/, /manufacturing/ 패턴
+7) 중복 제거
+8) 각 기사 파싱 (_parse_article)
+9) 5개마다 2초 딜레이
+10) 결과 반환
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4-4. _parse_article() 기사 파싱
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+입력: link, cutoff_date, query, rss_data, category
+출력: NewsArticle 또는 None
+
+프로세스:
+1) RSS 데이터 우선 사용
+2) 전체 기사 페이지 접속 (1초 딜레이)
+3) 제목 추출 (h1 태그)
+4) 날짜 추출 (time, meta 태그)
+5) 본문 추출 (article, .content 등)
+6) 날짜/키워드 필터링
+7) 분류 및 태깅 (classify_article)
+8) 카테고리 태그 추가
+9) NewsArticle 객체 반환
+
+출력 형식:
+- title: "[BioProcess - {category}] {title}"
+- full_text: 최대 10,000자 (AI 요약용)
+- classifications: 카테고리 태그 포함
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+5. 봇 차단 방지 기술 (Anti-Bot Detection)
+=============================================================================
+
+5-1. HTTP 헤더 설정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+User-Agent: Chrome 131.0 on Windows 10
+Accept: text/html,application/xhtml+xml,application/xml
+Accept-Language: en-US,en;q=0.9,ko;q=0.8
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Cache-Control: max-age=0
+Referer: https://www.google.com/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5-2. Rate Limiting
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- RSS 피드 접속 전: 2초 대기
+- 카테고리 페이지 접속 전: 2초 대기
+- 개별 기사 접속 전: 1초 대기
+- 5개 기사 수집마다: 2초 추가 대기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+6. 파이프라인 통합 (Pipeline Integration)
+=============================================================================
+
+6-1. multi_source_scraper.py 설정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+위치: src/multi_source_scraper.py (약 132-137번째 줄)
+
+"bioprocess": {
+    "class": BioProcessScraper,
+    "enabled": True,
+    "description": "BioProcess International (Validation, Fill-Finish, QA/QC)",
+    "args": {}
+},
+
+상태: ✓ 활성화 (enabled: True)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6-2. 수집 기간 규칙
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+월요일: 3일 (주말 포함)
+평일: 1일
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6-3. 출력 데이터 구조
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{
+  "title": "[BioProcess - Validation] Process Validation in Biomanufacturing",
+  "link": "https://www.bioprocessintl.com/...",
+  "published": "2026-02-03T00:00:00",
+  "source": "BioProcess International",
+  "summary": "요약 (최대 300자)...",
+  "full_text": "전체 본문 (최대 10,000자)...",
+  "images": [],
+  "scrape_status": "success",
+  "classifications": ["BioProcess", "Validation", "Quality Assurance"],
+  "matched_keywords": ["validation", "process validation", "GMP", ...]
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+7. 테스트 명령어 (Test Commands)
+=============================================================================
+
+【기본 테스트】
+python scrapers/bioprocess_scraper.py --days 30
+
+【짧은 기간 테스트】
+python scrapers/bioprocess_scraper.py --days 7
+
+【파이프라인 통합 테스트】
+python src/multi_source_scraper.py --days 30
+
+
+=============================================================================
+8. 관련 파일 (Related Files)
+=============================================================================
+
+【스크래퍼 관련】
+scrapers/bioprocess_scraper.py    메인 스크래퍼 파일
+scrapers/base_scraper.py          BaseScraper 추상 클래스
+src/keywords.py                   키워드 및 분류 시스템
+
+【파이프라인 관련】
+src/multi_source_scraper.py       통합 스크래퍼
+src/run_pipeline.py               전체 파이프라인 실행
+src/ai_summarizer_gemini.py       AI 요약 (Gemini)
+src/email_sender.py               이메일 발송
+
+【출력 파일】
+data/news/multi_source_news_YYYYMMDD.json          원본 뉴스
+data/news/multi_source_summarized_YYYYMMDD.json    AI 요약본
+
+
+=============================================================================
+9. 버전 히스토리
+=============================================================================
+
+v2.0 (2026-02-03)
+- 4개 소스 구조로 변경 (RSS + 3개 카테고리)
+- Fill-Finish 카테고리 추가 (/manufacturing/fill-finish)
+- Validation 카테고리 추가 (/manufacturing/validation)
+- Fill-Finish 관련 키워드 16개 추가
+- full_text 1,000자 → 10,000자 확대 (AI 요약 품질 향상)
+- days_back 규칙 변경: 평일 3일 → 1일
+- 중복 제거 로직 추가 (seen_links)
+- 카테고리별 제목 접두사 추가 ([BioProcess - {category}])
+
+v1.0 (2026-02-02)
+- 초기 버전 (RSS + QA/QC + Analytical 섹션)
+
+
+=============================================================================
+문서 끝
+=============================================================================

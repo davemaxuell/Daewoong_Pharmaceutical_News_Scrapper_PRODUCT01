@@ -1,0 +1,393 @@
+=============================================================================
+PDA (Parenteral Drug Association) Letter Portal 스크래퍼 상세 매뉴얼
+=============================================================================
+작성일: 2026-02-03
+버전: 1.0
+파일 위치: scrapers/pda_scraper.py
+
+
+=============================================================================
+1. 개요 (Overview)
+=============================================================================
+
+PDA Letter Portal 스크래퍼는 주사제/무균 공정, 멸균, 바이오의약품 관련
+최신 정보를 자동 수집하는 도구입니다.
+
+【수집 소스 (5개)】
+1. https://www.pda.org/pda-letter-portal (메인 - Recent Articles)
+2. https://www.pda.org/pda-letter-portal/home/biopharmaceuticals-biotechnology
+3. https://www.pda.org/pda-letter-portal/home/aseptic-processing-sterilization
+4. https://www.pda.org/pda-letter-portal/home/manufacturing-science
+5. https://www.pda.org/pda-letter-portal/home/quality-and-regulatory
+
+【특징】
+- 5개 소스 병렬 수집 (메인 포털 + 4개 카테고리)
+- 중복 제거 (seen_links)
+- 전체 기사 본문 수집 (10,000자)
+- 40+ 주사제/무균 특화 키워드
+- 봇 차단 방지 기술 적용
+- AI 요약을 위한 full_text 확장
+
+
+=============================================================================
+2. 데이터 소스 상세 (Data Sources)
+=============================================================================
+
+【1】 PDA Letter Portal 메인 (Recent Articles)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.pda.org/pda-letter-portal
+상태: ✓ 정상 작동
+수집량: 최대 30개 기사
+안정성: ★★★★★ (매우 높음)
+설명:
+- Recent Articles (Past 60 Days) 섹션
+- 모든 카테고리의 최신 기사 포함
+- /pda-letter-portal/home/full-article/ 패턴 기사 수집
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【2】 Biopharmaceuticals & Biotechnology 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.pda.org/pda-letter-portal/home/biopharmaceuticals-biotechnology
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- 바이오의약품 (Biopharmaceuticals)
+- 바이오테크놀로지 (Biotechnology)
+- 단클론항체 (Monoclonal Antibodies)
+- 세포치료제/유전자치료제 (Cell/Gene Therapy)
+- 백신 (Vaccines)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【3】 Aseptic Processing & Sterilization 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.pda.org/pda-letter-portal/home/aseptic-processing-sterilization
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- 무균 공정 (Aseptic Processing)
+- 멸균 (Sterilization)
+- Terminal Sterilization
+- Sterility Assurance
+- Contamination Control
+- Cleanroom, Isolator, RABS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【4】 Manufacturing Science 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.pda.org/pda-letter-portal/home/manufacturing-science
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- 제조 과학 (Manufacturing Science)
+- 공정 개발 (Process Development)
+- Lyophilization (동결건조)
+- Filtration (여과)
+- Process Control
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【5】 Quality & Regulatory 카테고리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: https://www.pda.org/pda-letter-portal/home/quality-and-regulatory
+상태: ✓ 정상 작동
+수집량: 최대 20개 기사
+안정성: ★★★★☆ (높음)
+주요 내용:
+- 품질 보증 (Quality Assurance)
+- 규제 준수 (Regulatory Compliance)
+- Annex 1
+- cGMP
+- Data Integrity
+- FDA, EMA, ICH 가이드라인
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+3. 키워드 시스템 (Keyword System) - 40+ 키워드
+=============================================================================
+
+3-1. 주사제 관련 (10개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+parenteral            비경구 투여
+injectable            주사제
+aseptic               무균
+sterile               멸균
+sterilization         멸균 공정
+vial                  바이알
+ampoule, ampule       앰플
+prefilled syringe     프리필드 시린지
+cartridge             카트리지
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-2. 무균/멸균 관련 (7개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+aseptic processing    무균 공정
+terminal sterilization 최종 멸균
+sterility assurance   무균 보증
+contamination control 오염 관리
+cleanroom             클린룸
+isolator              아이솔레이터
+RABS                  제한적 접근 장벽 시스템
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-3. 품질/규제 관련 (10개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Annex 1               EU GMP Annex 1
+cGMP                  현행 우수 의약품 제조 기준
+validation            밸리데이션
+qualification         적격성 평가
+data integrity        데이터 무결성
+quality assurance     품질 보증
+regulatory            규제
+FDA, EMA              미국/유럽 규제기관
+ICH                   국제조화회의
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-4. 바이오의약품 관련 (7개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+biopharmaceutical     생물의약품
+biologics             생물학적 제제
+monoclonal antibody   단클론항체
+mAb                   단클론항체 (약어)
+cell therapy          세포치료제
+gene therapy          유전자치료제
+vaccine               백신
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3-5. 제조 공정 관련 (7개)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+lyophilization        동결건조
+freeze-dry            동결건조 (다른 표현)
+filtration            여과
+bioburden             미생물 부하
+endotoxin             내독소
+depyrogenation        발열물질 제거
+process control       공정 관리
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+4. 스크래핑 프로세스 (Scraping Process)
+=============================================================================
+
+4-1. 전체 흐름도
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    [시작]
+                      ↓
+              ┌──────────────┐
+              │ 수집 기간 계산 │
+              │ 월요일: 3일   │
+              │ 평일: 1일    │
+              └──────────────┘
+                      ↓
+              ┌──────────────┐
+              │ Session 생성  │
+              │ + HTTP 헤더   │
+              └──────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 1. 메인 포털 수집        │
+        │ /pda-letter-portal      │
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 2. Biopharmaceuticals   │
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 3. Aseptic Processing   │
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 4. Manufacturing Science│
+        └─────────────────────────┘
+                      ↓
+        ┌─────────────────────────┐
+        │ 5. Quality & Regulatory │
+        └─────────────────────────┘
+                      ↓
+              ┌──────────────┐
+              │ 중복 제거     │
+              │ (seen_links)  │
+              └──────────────┘
+                      ↓
+              ┌──────────────┐
+              │ 최종 결과     │
+              └──────────────┘
+                      ↓
+                   [종료]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4-2. fetch_news() 메인 함수
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1) days_back 계산 (월요일: 3, 평일: 1)
+2) cutoff_date 설정
+3) Session 생성 및 헤더 설정
+4) seen_links 초기화 (중복 방지)
+5) 메인 포털 수집 → seen_links에 추가
+6) 각 카테고리 순회:
+   - /home/biopharmaceuticals-biotechnology
+   - /home/aseptic-processing-sterilization
+   - /home/manufacturing-science
+   - /home/quality-and-regulatory
+7) 중복 확인 후 articles에 추가
+8) 최종 결과 반환
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4-3. _parse_article() 기사 파싱
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+입력: link, cutoff_date, query, category
+출력: NewsArticle 또는 None
+
+프로세스:
+1) 전체 기사 페이지 접속 (1초 딜레이)
+2) 제목 추출 (h1 태그)
+3) 날짜 추출 (PDA 형식: "30 January 2026")
+4) 본문 추출 (article, .content 등)
+5) 날짜/키워드 필터링
+6) 분류 및 태깅 (classify_article)
+7) 카테고리 태그 추가
+8) NewsArticle 객체 반환
+
+출력 형식:
+- title: "[PDA - {category}] {title}"
+- full_text: 최대 10,000자 (AI 요약용)
+- classifications: 카테고리 태그 포함
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+5. 봇 차단 방지 기술 (Anti-Bot Detection)
+=============================================================================
+
+5-1. HTTP 헤더 설정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+User-Agent: Chrome 131.0 on Windows 10
+Accept: text/html,application/xhtml+xml,application/xml
+Accept-Language: en-US,en;q=0.9,ko;q=0.8
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Cache-Control: max-age=0
+Referer: https://www.google.com/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5-2. Rate Limiting
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- 포털/카테고리 페이지 접속 전: 2초 대기
+- 개별 기사 접속 전: 1초 대기
+- 5개 기사 수집마다: 1초 추가 대기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+6. 파이프라인 통합 (Pipeline Integration)
+=============================================================================
+
+6-1. multi_source_scraper.py 설정
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+위치: src/multi_source_scraper.py (약 138-143번째 줄)
+
+"pda": {
+    "class": PDAScraper,
+    "enabled": True,
+    "description": "PDA Letter (주사제/무균공정, 멸균, 바이오의약품)",
+    "args": {}
+},
+
+상태: ✓ 활성화 (enabled: True)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6-2. 수집 기간 규칙
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+월요일: 3일 (주말 포함)
+평일: 1일
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6-3. 출력 데이터 구조
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{
+  "title": "[PDA - Aseptic Sterilization] Annex 1 Implementation Guide",
+  "link": "https://www.pda.org/pda-letter-portal/home/full-article/...",
+  "published": "2026-02-03T00:00:00",
+  "source": "PDA Letter",
+  "summary": "요약 (최대 300자)...",
+  "full_text": "전체 본문 (최대 10,000자)...",
+  "images": [],
+  "scrape_status": "success",
+  "classifications": ["PDA", "Parenteral", "Aseptic-Sterilization"],
+  "matched_keywords": ["aseptic", "sterilization", "Annex 1", ...]
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+=============================================================================
+7. 테스트 명령어 (Test Commands)
+=============================================================================
+
+【기본 테스트】
+python scrapers/pda_scraper.py --days 30
+
+【짧은 기간 테스트】
+python scrapers/pda_scraper.py --days 7
+
+【파이프라인 통합 테스트】
+python src/multi_source_scraper.py --days 30
+
+
+=============================================================================
+8. 관련 파일 (Related Files)
+=============================================================================
+
+【스크래퍼 관련】
+scrapers/pda_scraper.py           메인 스크래퍼 파일
+scrapers/base_scraper.py          BaseScraper 추상 클래스
+src/keywords.py                   키워드 및 분류 시스템
+
+【파이프라인 관련】
+src/multi_source_scraper.py       통합 스크래퍼
+src/run_pipeline.py               전체 파이프라인 실행
+src/ai_summarizer_gemini.py       AI 요약 (Gemini)
+src/email_sender.py               이메일 발송
+
+【출력 파일】
+data/news/multi_source_news_YYYYMMDD.json          원본 뉴스
+data/news/multi_source_summarized_YYYYMMDD.json    AI 요약본
+
+
+=============================================================================
+9. 날짜 파싱 형식 지원
+=============================================================================
+
+PDA 사이트는 다양한 날짜 형식을 사용합니다.
+스크래퍼는 다음 형식을 자동으로 파싱합니다:
+
+- "30 January 2026" (PDA 기본 형식)
+- "January 30, 2026"
+- "30 Jan 2026"
+- "Jan 30, 2026"
+- "2026-01-30" (ISO 형식)
+- "2026-01-30T00:00:00" (ISO with time)
+- RFC 2822 형식
+
+
+=============================================================================
+10. 버전 히스토리
+=============================================================================
+
+v1.0 (2026-02-03)
+- 초기 버전
+- 5개 소스 구조 (메인 포털 + 4개 카테고리)
+- 40+ 주사제/무균 특화 키워드
+- 다양한 날짜 형식 파싱 지원
+- full_text 10,000자 지원 (AI 요약용)
+- 중복 제거 로직 (seen_links)
+- 카테고리별 제목 접두사 ([PDA - {category}])
+
+
+=============================================================================
+문서 끝
+=============================================================================

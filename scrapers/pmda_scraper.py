@@ -46,13 +46,14 @@ class PMDAScraper(BaseScraper):
     def page_url(self) -> str:
         return "https://www.pmda.go.jp/english/int-activities/outline/0006.html"
     
-    def fetch_news(self, query: str = None, days_back: int = 365) -> List[NewsArticle]:
+    def fetch_news(self, query: str = None, days_back: int = 365, max_pdfs: int = 2) -> List[NewsArticle]:
         """
         PMDA Updates 뉴스레터 수집
         
         Args:
             query: 검색 키워드 (선택적)
             days_back: 수집할 기간 (일수) - 뉴스레터는 분기별이므로 넉넉하게 설정
+            max_pdfs: 가져올 최대 PDF 수 (최신순, 기본값 2)
             
         Returns:
             NewsArticle 리스트 (PDF 링크 포함)
@@ -75,20 +76,27 @@ class PMDAScraper(BaseScraper):
             # PDF 링크 찾기 (모든 /files/*.pdf 링크)
             pdf_links = soup.select('a[href*="/files/"][href$=".pdf"]')
             
-            print(f"[PMDA] Found {len(pdf_links)} PDF links")
+            print(f"[PMDA] Found {len(pdf_links)} PDF links on page (will process max {max_pdfs})")
             
             for link in pdf_links:
                 try:
                     article = self._parse_update_entry(link, query)
                     if article:
                         articles.append(article)
-                        print(f"[PMDA] Added: {article.title}")
                 except Exception as e:
                     print(f"[PMDA] Error parsing entry: {e}")
                     continue
             
             # 날짜순 정렬 (최신순)
             articles.sort(key=lambda x: x.published if x.published else datetime.min, reverse=True)
+            
+            # Limit to max_pdfs most recent
+            if max_pdfs and len(articles) > max_pdfs:
+                articles = articles[:max_pdfs]
+                print(f"[PMDA] Limited to {max_pdfs} most recent updates")
+            
+            for article in articles:
+                print(f"[PMDA] Added: {article.title}")
             
             print(f"[PMDA] Successfully collected {len(articles)} updates")
             

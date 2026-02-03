@@ -26,6 +26,10 @@ from scrapers.pmda_scraper import PMDAScraper
 from scrapers.ich_news_scraper import ICHScraper
 from scrapers.fda_warning_scraper import FDAEnforcementScraper  # FDA Drug Recalls
 from scrapers.fda_warning_letters_scraper import FDAWarningLettersScraper  # FDA Warning Letters
+from scrapers.ispe_scraper import ISPEScraper  # ISPE 제약 엔지니어링
+from scrapers.bioprocess_scraper import BioProcessScraper  # BioProcess QA/QC
+from scrapers.pda_scraper import PDAScraper  # PDA Letter (주사제/무균공정)
+from scrapers.pharmaceutical_online_scraper import PharmaceuticalOnlineScraper  # 완제의약품 제조 실무
 # from scrapers.usp_monograph_scraper import USPMonographScraper  # PDF parsing, optional
 
 
@@ -47,7 +51,7 @@ class MultiSourceScraper:
         "dailypharm": {
             "class": DailyPharmScraper,
             "enabled": True,
-            "description": "데일리팜 (Daily Pharm)",
+            "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
             "args": {}
         },
         "yakup": {
@@ -71,16 +75,16 @@ class MultiSourceScraper:
         # === 해외 규제 기관 ===
         "fda_recalls": {
             "class": FDAEnforcementScraper,
-            "enabled": False,  # Disabled - FDA Drug Recalls
+            "enabled": True,  # Re-enabled - working via openFDA API
             "description": "FDA Drug Recalls (openFDA API)",
             "args": {"category": "drug"},
             "use_internal_days_back": True  # FDA는 자체 14일 lookback 사용
         },
         "fda_warning_letters": {
             "class": FDAWarningLettersScraper,
-            "enabled": False,  # FDA blocks automated access - enable manually when needed
-            "description": "FDA Warning Letters (CDER/CBER) - Currently disabled due to FDA bot detection",
-            "args": {"centers": ["CDER", "CBER"]}
+            "enabled": True,  # Re-enabled - comprehensive coverage with Posted Date filtering
+            "description": "FDA Warning Letters (All Offices)",
+            "args": {"centers": ["ALL"]}  # Changed to ALL for comprehensive coverage
         },
         "pmda": {
             "class": PMDAScraper,
@@ -117,6 +121,30 @@ class MultiSourceScraper:
             "class": GMPJournalScraper,
             "enabled": True,
             "description": "GMP Journal",
+            "args": {}
+        },
+        "ispe": {
+            "class": ISPEScraper,
+            "enabled": True,
+            "description": "ISPE (주사제/고형제 제조 공정, QA 이슈)",
+            "args": {}
+        },
+        "bioprocess": {
+            "class": BioProcessScraper,
+            "enabled": True,
+            "description": "BioProcess International (Validation, Fill-Finish, QA/QC)",
+            "args": {}
+        },
+        "pda": {
+            "class": PDAScraper,
+            "enabled": True,
+            "description": "PDA Letter (주사제/무균공정, 멸균, 바이오의약품)",
+            "args": {}
+        },
+        "pharmaceutical_online": {
+            "class": PharmaceuticalOnlineScraper,
+            "enabled": True,
+            "description": "Pharmaceutical Online (완제의약품 10개 카테고리: 고형제/액제, 검사, 포장, 시리얼화, QA/QC)",
             "args": {}
         },
     }

@@ -117,8 +117,8 @@ def run_monitor_pipeline():
         # Load previous snapshot
         previous_pmda_pdfs = load_pmda_snapshot()
         
-        # Fetch current PMDA articles
-        pmda_articles = pmda.fetch_news(days_back=365)  # 1년치 수집
+        # Fetch current PMDA articles (only 2 most recent)
+        pmda_articles = pmda.fetch_news(days_back=365, max_pdfs=2)
         
         if pmda_articles:
             # Get all current PDF links

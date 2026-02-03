@@ -8,10 +8,14 @@ import os
 import sys
 
 # 상위 디렉토리의 keywords 모듈 임포트
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
 from keywords import classify_article
 
-from .base_scraper import BaseScraper, NewsArticle
+try:
+    from .base_scraper import BaseScraper, NewsArticle
+except ImportError:
+    from base_scraper import BaseScraper, NewsArticle
 
 
 class FDAEnforcementScraper(BaseScraper):

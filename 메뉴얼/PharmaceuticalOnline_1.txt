@@ -1,0 +1,292 @@
+# Pharmaceutical Online 스크래퍼 상세 매뉴얼
+작성일: 2026-02-03
+버전: 2.0 (업데이트: 10개 카테고리)
+
+===============================================================================
+1. 개요
+===============================================================================
+
+Pharmaceutical Online 스크래퍼는 완제의약품 공장 실무(Finished Pharmaceutical
+Manufacturing Plant Operations) 관련 최신 정보를 자동으로 수집하는 도구입니다.
+
+주요 수집 대상:
+- 완제의약품 제조 공정 (Solid/Liquid Dose Manufacturing)
+- 제조 환경 관리 (Critical Environments, Cleanroom)
+- 검사 (Inspection)
+- 시리얼화/포장 (Serialization, Packaging)
+- 품질 보증/관리 (Quality Assurance, QA, QC)
+- 규제 준수 (Regulatory Compliance)
+
+파일 위치: scrapers/pharmaceutical_online_scraper.py
+
+===============================================================================
+2. 데이터 수집 소스 (10개 카테고리)
+===============================================================================
+
+2.1 Production 카테고리 (4개)
+────────────────────────────────────────────────────────────────────────────
+  /solution/critical-environments ✓
+  - 크리티컬 환경 (클린룸, 오염 관리, 환경 모니터링)
+  - 주요 키워드: cleanroom, HVAC, contamination control
+
+  /solution/solid-dose-manufacturing ✓
+  - 고형제 제조 (정제, 캡슐, 과립화, 코팅, 압축)
+  - 주요 키워드: tablet, capsule, granulation, coating
+
+  /solution/liquid-dose-manufacturing ✓ [신규 추가]
+  - 액제 제조 (현탁액, 시럽, 용액, 연고, 크림)
+  - 주요 키워드: liquid, suspension, emulsion, ointment
+
+  /solution/production ✓
+  - 일반 생산 공정 (제조, 공정 관리, 장비)
+  - 주요 키워드: manufacturing, production, processing
+
+2.2 Inspection & Packaging 카테고리 (3개) [신규 추가]
+────────────────────────────────────────────────────────────────────────────
+  /solution/inspection ✓ [신규 추가]
+  - 검사 (육안 검사, 자동화 검사, 이물 검사)
+  - 주요 키워드: visual inspection, automated inspection, defect detection
+
+  /solution/serialization ✓ [신규 추가]
+  - 시리얼화 (추적, DSCSA 규정 준수)
+  - 주요 키워드: serialization, track and trace, DSCSA
+
+  /solution/packaging ✓ [신규 추가]
+  - 포장 (1차/2차 포장, 라벨링)
+  - 주요 키워드: packaging, labeling, primary packaging
+
+2.3 Quality 카테고리 (3개)
+────────────────────────────────────────────────────────────────────────────
+  /solution/regulatory-compliance ✓
+  - 규제 준수 (GMP, cGMP, FDA, EMA, ICH)
+  - 주요 키워드: GMP, FDA, regulatory compliance
+
+  /solution/quality-assurance ✓
+  - 품질 보증 (QA, 밸리데이션, 데이터 무결성, 감사)
+  - 주요 키워드: QA, validation, data integrity
+
+  /solution/quality-control ✓
+  - 품질 관리 (QC, 시험, 규격 관리)
+  - 주요 키워드: QC, testing, specification
+
+수집 방식:
+- 각 카테고리 페이지에서 /doc/ 패턴을 가진 기사 링크 자동 추출
+- 카테고리당 최대 20개 기사 수집
+- 개별 기사 페이지 방문하여 전체 내용 추출 (최대 10,000자)
+
+===============================================================================
+3. 키워드 필터링 시스템 (70+ 키워드)
+===============================================================================
+
+3.1 제형 관련 - 고형제 (8개)
+────────────────────────────────────────────────────────────────────────────
+  tablet (정제), capsule (캡슐), pill (알약)
+  solid dose (고형제), oral solid (경구 고형제)
+  granulation (과립화), coating (코팅), compression (압축)
+
+3.2 제형 관련 - 액제 (10개) [신규 확장]
+────────────────────────────────────────────────────────────────────────────
+  liquid (액제), liquid dose (액상 제형)
+  suspension (현탁액), syrup (시럽), solution (용액)
+  emulsion (유제), oral liquid (경구 액제)
+  topical (국소), ointment (연고), cream (크림)
+
+3.3 제조 환경 관련 (10개)
+────────────────────────────────────────────────────────────────────────────
+  cleanroom (클린룸), clean room
+  critical environment (크리티컬 환경)
+  contamination control (오염 관리)
+  environmental monitoring (환경 모니터링)
+  air handling (공기 처리), HVAC (냉난방 공조)
+  particulate (미립자), microbial (미생물), bioburden (미생물 부하)
+
+3.4 제조 공정 관련 (10개)
+────────────────────────────────────────────────────────────────────────────
+  manufacturing (제조), production (생산), processing (가공)
+  blending (혼합), mixing (혼합), milling (분쇄), drying (건조)
+  tablet press (정제 프레스), encapsulation (캡슐화), filling (충전)
+
+3.5 검사 관련 (8개) [신규 추가]
+────────────────────────────────────────────────────────────────────────────
+  inspection (검사), visual inspection (육안 검사)
+  automated inspection (자동화 검사)
+  particle inspection (이물 검사)
+  container inspection (용기 검사)
+  defect detection (결함 탐지)
+  machine vision (머신 비전)
+  quality inspection (품질 검사)
+
+3.6 품질/규제 관련 (18개)
+────────────────────────────────────────────────────────────────────────────
+  GMP, cGMP, regulatory compliance
+  FDA, EMA, ICH
+  quality assurance (QA), quality control (QC)
+  validation, qualification
+  data integrity, ALCOA, audit
+
+3.7 포장/시리얼화 관련 (10개) [신규 확장]
+────────────────────────────────────────────────────────────────────────────
+  packaging (포장), labeling (라벨링)
+  serialization (직렬화), track and trace (추적)
+  aggregation (집합화), tamper evident (위변조 방지)
+  primary packaging (1차 포장)
+  secondary packaging (2차 포장)
+  DSCSA (Drug Supply Chain Security Act)
+
+3.8 장비/자동화 (6개)
+────────────────────────────────────────────────────────────────────────────
+  equipment (장비), automation (자동화)
+  process control (공정 관리)
+  pharmaceutical equipment (제약 장비)
+  manufacturing equipment (제조 장비)
+
+===============================================================================
+4. 스크래핑 프로세스 상세
+===============================================================================
+
+4.1 전체 흐름
+────────────────────────────────────────────────────────────────────────────
+  1단계: 날짜 기준 설정
+     - 월요일: 3일 전 (주말 포함)
+     - 평일: 1일 전
+
+  2단계: 10개 카테고리에서 순차 수집
+     Production:
+     → Critical Environments
+     → Solid Dose Manufacturing
+     → Liquid Dose Manufacturing [신규]
+     → Production
+
+     Inspection & Packaging:
+     → Inspection [신규]
+     → Serialization [신규]
+     → Packaging [신규]
+
+     Quality:
+     → Regulatory Compliance
+     → Quality Assurance
+     → Quality Control
+
+  3단계: 각 기사별 필터링
+     - 날짜 필터: 설정된 기간 내
+     - 키워드 필터: 70+ 키워드 중 1개 이상 매칭
+
+  4단계: 전체 콘텐츠 수집
+     - 개별 페이지에서 전체 내용 추출
+     - 최대 10,000자 저장 (AI 요약용)
+
+  5단계: 중복 제거
+     - seen_links로 중복 URL 제거
+
+4.2 Rate Limiting (서버 부하 방지)
+────────────────────────────────────────────────────────────────────────────
+  - 카테고리 페이지 접속: 2초 딜레이
+  - 개별 기사 접속: 1초 딜레이
+  - 5개 기사마다: 1초 추가 딜레이
+
+4.3 에러 처리
+────────────────────────────────────────────────────────────────────────────
+  - 403 Forbidden: 해당 카테고리 스킵
+  - 404 Not Found: 해당 카테고리 스킵
+  - Timeout (30초): 해당 기사 스킵
+
+===============================================================================
+5. 파이프라인 통합
+===============================================================================
+
+5.1 multi_source_scraper.py 설정
+────────────────────────────────────────────────────────────────────────────
+위치: src/multi_source_scraper.py (약 144-149번째 줄)
+
+"pharmaceutical_online": {
+    "class": PharmaceuticalOnlineScraper,
+    "enabled": True,
+    "description": "Pharmaceutical Online (완제의약품 10개 카테고리: 고형제/액제, 검사, 포장, 시리얼화, QA/QC)",
+    "args": {}
+},
+
+상태: ✓ 활성화 (enabled: True)
+
+5.2 수집 기간 규칙
+────────────────────────────────────────────────────────────────────────────
+월요일: 3일 (주말 포함)
+평일: 1일
+
+5.3 AI 요약 통합
+────────────────────────────────────────────────────────────────────────────
+- full_text: 최대 10,000자 저장
+- ai_summarizer_gemini.py에서 Gemini AI로 요약
+- 요약된 내용은 이메일 브리핑에 포함
+
+===============================================================================
+6. 출력 데이터 구조
+===============================================================================
+
+{
+  "title": "[Pharma Online - Inspection] Automated Visual Inspection Systems",
+  "link": "https://www.pharmaceuticalonline.com/doc/...",
+  "published": "2026-02-03T00:00:00",
+  "source": "Pharmaceutical Online",
+  "summary": "요약 (최대 300자)...",
+  "full_text": "전체 본문 (최대 10,000자)...",
+  "images": [],
+  "scrape_status": "success",
+  "classifications": ["Pharmaceutical Online", "Inspection", "Quality Control"],
+  "matched_keywords": ["inspection", "visual inspection", "defect detection", ...]
+}
+
+===============================================================================
+7. 테스트 명령어
+===============================================================================
+
+【기본 테스트 (30일)】
+python scrapers/pharmaceutical_online_scraper.py --days 30
+
+【짧은 기간 테스트 (7일)】
+python scrapers/pharmaceutical_online_scraper.py --days 7
+
+【파이프라인 통합 테스트】
+python src/multi_source_scraper.py --days 30
+
+===============================================================================
+8. 관련 파일
+===============================================================================
+
+【스크래퍼 관련】
+scrapers/pharmaceutical_online_scraper.py    메인 스크래퍼 파일
+scrapers/base_scraper.py                     BaseScraper 추상 클래스
+src/keywords.py                              키워드 및 분류 시스템
+
+【파이프라인 관련】
+src/multi_source_scraper.py                  통합 스크래퍼
+src/run_pipeline.py                          전체 파이프라인 실행
+src/ai_summarizer_gemini.py                  AI 요약 (Gemini)
+src/email_sender.py                          이메일 발송
+
+【출력 파일】
+data/news/multi_source_news_YYYYMMDD.json          원본 뉴스
+data/news/multi_source_summarized_YYYYMMDD.json    AI 요약본
+
+===============================================================================
+9. 버전 히스토리
+===============================================================================
+
+v2.0 (2026-02-03)
+- 10개 카테고리로 확장 (기존 6개 → 10개)
+- 신규 카테고리 추가:
+  * /solution/liquid-dose-manufacturing (액제 제조)
+  * /solution/inspection (검사)
+  * /solution/serialization (시리얼화)
+  * /solution/packaging (포장)
+- 액제 관련 키워드 추가 (emulsion, oral liquid, topical, ointment, cream)
+- 검사 관련 키워드 추가 (visual inspection, automated inspection 등)
+- 시리얼화 관련 키워드 추가 (DSCSA, primary/secondary packaging)
+
+v1.0 (2026-02-02)
+- 초기 버전 (6개 카테고리)
+- 제거된 404 카테고리: liquid-manufacturing, packaging-labeling,
+  track-trace-serialization, outsourcing-contract-services
+
+===============================================================================
+문서 끝
+===============================================================================
