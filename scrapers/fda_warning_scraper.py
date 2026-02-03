@@ -63,13 +63,13 @@ class FDAEnforcementScraper(BaseScraper):
     def _get_days_back(self) -> int:
         """
         요일에 따른 수집 기간 결정
-        FDA는 매일 업데이트되지 않으므로 더 긴 기간 조회
-        이미 보고된 항목은 AI 시스템이 자동으로 중복 제거
+        월요일: 3일 (주말 포함)
+        평일: 1일
         """
         today = datetime.now()
         if today.weekday() == 0:  # Monday
-            return 14  # 2주
-        return 14  # 평일도 2주 (FDA recalls are infrequent, dedupe handled by email system)
+            return 3
+        return 1
     
     def _build_api_url(self, endpoint: str, days_back: int, limit: int = 100) -> str:
         """API URL 생성"""

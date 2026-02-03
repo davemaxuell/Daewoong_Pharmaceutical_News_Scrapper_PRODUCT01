@@ -13,7 +13,7 @@ import re
 # 상위 디렉토리의 keywords 모듈 임포트
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
-from keywords import classify_article
+from keywords import classify_article, get_all_keywords
 
 try:
     from .base_scraper import BaseScraper, NewsArticle
@@ -32,12 +32,7 @@ class PDAScraper(BaseScraper):
     4. https://www.pda.org/pda-letter-portal/home/manufacturing-science (제조과학)
     5. https://www.pda.org/pda-letter-portal/home/quality-and-regulatory (품질/규제)
 
-    특화 키워드:
-    - 주사제 제조 (parenteral, aseptic, injectable)
-    - 멸균/무균 공정 (sterilization, sterile processing)
-    - 바이오의약품 (biopharmaceuticals, biotechnology)
-    - 품질 및 규제 (quality, regulatory, GMP)
-    - 제조 과학 (manufacturing science)
+    키워드: keywords.py의 공통 키워드 사용
     """
 
     BASE_URL = "https://www.pda.org"
@@ -49,29 +44,6 @@ class PDAScraper(BaseScraper):
         "/pda-letter-portal/home/aseptic-processing-sterilization",
         "/pda-letter-portal/home/manufacturing-science",
         "/pda-letter-portal/home/quality-and-regulatory",
-    ]
-
-    # PDA 특화 키워드 (주사제/무균 공정 중심)
-    TARGET_KEYWORDS = [
-        # 주사제 관련
-        "parenteral", "injectable", "aseptic", "sterile", "sterilization",
-        "vial", "ampoule", "ampule", "prefilled syringe", "cartridge",
-
-        # 무균/멸균 관련
-        "aseptic processing", "terminal sterilization", "sterility assurance",
-        "contamination control", "cleanroom", "isolator", "RABS",
-
-        # 품질/규제
-        "Annex 1", "cGMP", "validation", "qualification", "data integrity",
-        "quality assurance", "regulatory", "FDA", "EMA", "ICH",
-
-        # 바이오의약품
-        "biopharmaceutical", "biologics", "monoclonal antibody", "mAb",
-        "cell therapy", "gene therapy", "vaccine",
-
-        # 제조 공정
-        "lyophilization", "freeze-dry", "filtration", "bioburden",
-        "endotoxin", "depyrogenation", "process control"
     ]
 
     @property
@@ -435,7 +407,7 @@ class PDAScraper(BaseScraper):
                     classifications.append(category_tag)
 
             # Add target keywords
-            for keyword in self.TARGET_KEYWORDS:
+            for keyword in get_all_keywords():
                 if keyword.lower() in f"{title} {content}".lower():
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
@@ -514,7 +486,7 @@ class PDAScraper(BaseScraper):
         text = f"{title} {content}".lower()
 
         # Check target keywords
-        for keyword in self.TARGET_KEYWORDS:
+        for keyword in get_all_keywords():
             if keyword.lower() in text:
                 # Additional query check
                 if query:

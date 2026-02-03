@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 # 상위 디렉토리의 keywords 모듈 임포트
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
-from keywords import classify_article
+from keywords import classify_article, get_all_keywords
 
 try:
     from .base_scraper import BaseScraper, NewsArticle
@@ -33,42 +33,10 @@ class ISPEScraper(BaseScraper):
     2. https://ispe.org/rss.xml - ISPE RSS 피드
     3. https://www2.smartbrief.com/getLast.action?mode=last&b=ispe - ISPE SmartBrief 뉴스레터
 
-    특화 키워드:
-    - 주사제 제조 (injectable, parenteral, aseptic)
-    - 고형제 제조 (solid dosage, tablet, capsule)
-    - QA/품질 이슈 (quality assurance, GMP, validation)
-    - 제조 공정 (manufacturing process, process control)
+    키워드: keywords.py의 공통 키워드 사용
     """
 
     BASE_URL = "https://ispe.org"
-
-    # 타겟 키워드 (주사제/고형제/QA 중심)
-    TARGET_KEYWORDS = [
-        # 주사제 관련
-        "injectable", "parenteral", "aseptic", "sterile", "fill-finish",
-        "vial", "syringe", "ampoule", "lyophilization", "freeze-drying",
-        "cleanroom", "isolator", "RABS", "Grade A", "annex 1",
-
-        # 고형제 관련
-        "solid dosage", "tablet", "capsule", "coating", "granulation",
-        "compression", "blending", "milling", "powder", "API",
-        "excipient", "formulation",
-
-        # QA/품질 관련
-        "quality assurance", "QA", "QC", "quality control",
-        "GMP", "cGMP", "validation", "qualification", "IQ", "OQ", "PQ",
-        "deviation", "CAPA", "OOS", "OOT", "investigation",
-        "data integrity", "audit", "inspection", "compliance",
-        "contamination", "cleaning", "CCS", "media fill",
-
-        # 제조 공정
-        "manufacturing", "process control", "batch record", "SOP",
-        "equipment", "facility", "production", "scale-up",
-        "continuous manufacturing", "automation", "PAT",
-
-        # 한글 키워드
-        "주사제", "고형제", "품질", "제조", "공정", "밸리데이션"
-    ]
 
     @property
     def source_name(self) -> str:
@@ -79,11 +47,15 @@ class ISPEScraper(BaseScraper):
         return self.BASE_URL
 
     def _get_days_back(self) -> int:
-        """요일에 따른 수집 기간 결정"""
+        """
+        요일에 따른 수집 기간 결정
+        월요일: 3일 (주말 포함)
+        평일: 1일
+        """
         today = datetime.now()
         if today.weekday() == 0:  # Monday
-            return 7  # 일주일
-        return 3  # 평일 3일 (ISPE는 업데이트가 자주 안됨)
+            return 3
+        return 1
 
     def get_headers(self) -> dict:
         """Enhanced headers to bypass bot detection"""
@@ -379,7 +351,7 @@ class ISPEScraper(BaseScraper):
                         matched_keywords = ["ISPE"]
 
                     # Add target keywords
-                    for keyword in self.TARGET_KEYWORDS:
+                    for keyword in get_all_keywords():
                         if keyword.lower() in f"{title} {summary}".lower():
                             if keyword not in matched_keywords:
                                 matched_keywords.append(keyword)
@@ -524,7 +496,7 @@ class ISPEScraper(BaseScraper):
                 matched_keywords = ["ISPE"]
 
             # 타겟 키워드 추가
-            for keyword in self.TARGET_KEYWORDS:
+            for keyword in get_all_keywords():
                 if keyword.lower() in f"{title} {content}".lower():
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
@@ -547,15 +519,15 @@ class ISPEScraper(BaseScraper):
             return None
 
     def _matches_keywords(self, title: str, content: str, query: str = None) -> bool:
-        """키워드 매칭 확인"""
+        """키워드 매칭 확인 (keywords.py 공통 키워드 사용)"""
         text = f"{title} {content}".lower()
 
         # 추가 쿼리 확인
         if query and query.lower() not in text:
             return False
 
-        # 타겟 키워드 중 하나라도 있으면 True
-        for keyword in self.TARGET_KEYWORDS:
+        # 공통 키워드 중 하나라도 있으면 True
+        for keyword in get_all_keywords():
             if keyword.lower() in text:
                 return True
 

@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 # 상위 디렉토리의 keywords 모듈 임포트
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
-from keywords import classify_article
+from keywords import classify_article, get_all_keywords
 
 try:
     from .base_scraper import BaseScraper, NewsArticle
@@ -34,12 +34,7 @@ class BioProcessScraper(BaseScraper):
     3. https://www.bioprocessintl.com/manufacturing/fill-finish (충전/마감)
     4. https://www.bioprocessintl.com/analytical/qa-qc (QA/QC 분석)
 
-    특화 키워드:
-    - 바이오의약품 QA/QC (quality assurance, quality control)
-    - 분석법 (analytical methods, testing, assay)
-    - 바이오공정 (bioprocessing, upstream, downstream)
-    - 품질 검증 (validation, qualification, testing)
-    - Fill-Finish (충전, 마감, 무균 충전)
+    키워드: keywords.py의 공통 키워드 사용
     """
 
     BASE_URL = "https://www.bioprocessintl.com"
@@ -49,51 +44,6 @@ class BioProcessScraper(BaseScraper):
         "/manufacturing/validation",
         "/manufacturing/fill-finish",
         "/analytical/qa-qc",
-    ]
-
-    # 타겟 키워드 (바이오의약품 QA/QC 중심)
-    TARGET_KEYWORDS = [
-        # QA/QC 관련
-        "quality assurance", "quality control", "QA", "QC",
-        "quality management", "quality system", "quality issue",
-        "CAPA", "deviation", "OOS", "OOT", "investigation",
-        "audit", "inspection", "compliance", "regulatory",
-
-        # 분석법 관련
-        "analytical", "analysis", "testing", "assay", "method",
-        "HPLC", "LC-MS", "mass spectrometry", "chromatography",
-        "potency", "purity", "impurity", "stability",
-        "bioassay", "cell-based assay", "binding assay",
-
-        # 바이오공정 관련
-        "bioprocess", "bioreactor", "cell culture", "fermentation",
-        "upstream", "downstream", "purification", "filtration",
-        "chromatography", "formulation",
-
-        # Fill-Finish 관련
-        "fill-finish", "fill finish", "filling", "aseptic filling",
-        "vial filling", "syringe filling", "cartridge filling",
-        "lyophilization", "freeze-drying", "capping", "stoppering",
-        "isolator", "RABS", "sterile", "aseptic processing",
-        "container closure", "primary packaging",
-
-        # 품질 검증
-        "validation", "qualification", "verification",
-        "IQ", "OQ", "PQ", "process validation",
-        "method validation", "cleaning validation",
-        "data integrity", "21 CFR Part 11",
-
-        # 바이오의약품
-        "biopharmaceutical", "biologic", "biosimilar",
-        "monoclonal antibody", "mAb", "protein", "vaccine",
-        "cell therapy", "gene therapy", "AAV",
-
-        # GMP/규제
-        "GMP", "cGMP", "FDA", "EMA", "ICH",
-        "guideline", "regulation", "standard",
-
-        # 한글 키워드
-        "품질", "분석", "검증", "바이오", "의약품", "QA", "QC"
     ]
 
     @property
@@ -449,7 +399,7 @@ class BioProcessScraper(BaseScraper):
                     classifications.append(category_tag)
 
             # 타겟 키워드 추가
-            for keyword in self.TARGET_KEYWORDS:
+            for keyword in get_all_keywords():
                 if keyword.lower() in f"{title} {content}".lower():
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
@@ -485,7 +435,7 @@ class BioProcessScraper(BaseScraper):
             return False
 
         # 타겟 키워드 중 하나라도 있으면 True
-        for keyword in self.TARGET_KEYWORDS:
+        for keyword in get_all_keywords():
             if keyword.lower() in text:
                 return True
 

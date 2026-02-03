@@ -1,0 +1,16 @@
+﻿Fetching: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters
+Status: 200
+
+Found 1 tables
+
+Table 0: classes=['lcds-datatable', 'table', 'table-bordered', 'cols-8', 'responsive-enabled']
+  Rows: 11
+  Headers: ['Posted Date', 'Letter Issue Date', 'Company Name', 'Issuing Office', 'Subject', 'Response Letter', 'Closeout Letter', 'Excerpt']
+  First data row cells: 8
+    Cell 0: 01/27/2026 | Link: NO LINK
+    Cell 1: 12/22/2025 | Link: NO LINK
+    Cell 2: Meridian Bioscience, Inc | Link: /inspections-compliance-enforcement-and-criminal-i
+    Cell 3: Center for Devices and Radiological Health | Link: NO LINK
+    Cell 4: CGMP/QSR/Medical Devices/Adulterated | Link: NO LINK
+
+Found 2 view-content divs

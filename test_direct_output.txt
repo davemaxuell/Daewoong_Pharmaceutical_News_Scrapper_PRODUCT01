@@ -1,0 +1,3 @@
+﻿[TEST] Fetching: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters
+[TEST] Status: 404
+[TEST] Found table with lcds-datatable: False

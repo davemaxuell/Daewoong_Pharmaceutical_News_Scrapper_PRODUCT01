@@ -34,13 +34,29 @@ class GMPJournalScraper(BaseScraper):
     @property
     def search_url(self) -> str:
         return f"{self.base_url}/search-result.html"
-    
-    def fetch_news(self, query: str = None, days_back: int = 7) -> List[NewsArticle]:
+
+    def _get_days_back(self) -> int:
+        """
+        요일에 따른 수집 기간 결정
+        월요일: 3일 (주말 포함)
+        평일: 1일
+        """
+        today = datetime.now()
+        if today.weekday() == 0:  # Monday
+            return 3
+        return 1
+
+    def fetch_news(self, query: str = None, days_back: int = None) -> List[NewsArticle]:
         """
         GMP Journal에서 뉴스 수집
         - query가 None이면 메인 페이지에서 최신 뉴스 수집
-        - 기본 days_back을 7로 설정 (영문 사이트라 업데이트 빈도가 낮을 수 있음)
+        - days_back이 None이면 자동 계산 (월요일: 3일, 평일: 1일)
         """
+        if days_back is None:
+            days_back = self._get_days_back()
+
+        print(f"[GMP Journal] Days back: {days_back}")
+
         # query가 없으면 메인 페이지 수집
         if not query:
             url = self.base_url

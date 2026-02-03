@@ -14,7 +14,7 @@ import re
 # 상위 디렉토리의 keywords 모듈 임포트
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
-from keywords import classify_article
+from keywords import classify_article, get_all_keywords
 
 try:
     from .base_scraper import BaseScraper, NewsArticle
@@ -38,11 +38,7 @@ class PharmaceuticalOnlineScraper(BaseScraper):
     9. https://www.pharmaceuticalonline.com/solution/quality-control (QC)
     10. https://www.pharmaceuticalonline.com/solution/production (생산)
 
-    특화 키워드:
-    - 완제의약품 제조 (tablet, capsule, solid dose, liquid dose)
-    - 제조 환경 (cleanroom, critical environment, contamination control)
-    - 품질 및 규제 (GMP, validation, regulatory compliance)
-    - 검사/포장 (inspection, packaging, serialization)
+    키워드: keywords.py의 공통 키워드 사용
     """
 
     BASE_URL = "https://www.pharmaceuticalonline.com"
@@ -64,47 +60,6 @@ class PharmaceuticalOnlineScraper(BaseScraper):
         "/solution/regulatory-compliance",
         "/solution/quality-assurance",
         "/solution/quality-control",
-    ]
-
-    # 완제의약품 제조 특화 키워드
-    TARGET_KEYWORDS = [
-        # 제형 관련 - 고형제
-        "tablet", "capsule", "pill", "solid dose", "oral solid",
-        "granulation", "coating", "compression",
-
-        # 제형 관련 - 액제
-        "liquid", "liquid dose", "suspension", "syrup", "solution",
-        "emulsion", "oral liquid", "topical", "ointment", "cream",
-
-        # 제조 환경
-        "cleanroom", "clean room", "critical environment", "contamination control",
-        "environmental monitoring", "air handling", "HVAC",
-        "particulate", "microbial", "bioburden",
-
-        # 제조 공정
-        "manufacturing", "production", "processing",
-        "blending", "mixing", "milling", "drying",
-        "tablet press", "encapsulation", "filling",
-
-        # 검사 (Inspection)
-        "inspection", "visual inspection", "automated inspection",
-        "particle inspection", "container inspection", "defect detection",
-        "machine vision", "quality inspection",
-
-        # 품질/규제
-        "GMP", "cGMP", "validation", "qualification",
-        "regulatory compliance", "FDA", "EMA", "ICH",
-        "quality assurance", "QA", "quality control", "QC",
-        "data integrity", "ALCOA", "audit",
-
-        # 포장/시리얼화
-        "packaging", "labeling", "serialization",
-        "track and trace", "aggregation", "tamper evident",
-        "primary packaging", "secondary packaging", "DSCSA",
-
-        # 장비
-        "equipment", "automation", "process control",
-        "pharmaceutical equipment", "manufacturing equipment"
     ]
 
     @property
@@ -375,7 +330,7 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                 classifications = ["Pharmaceutical Manufacturing"]
 
             # Add target keywords
-            for keyword in self.TARGET_KEYWORDS:
+            for keyword in get_all_keywords():
                 if keyword.lower() in f"{title} {content}".lower():
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
@@ -447,7 +402,7 @@ class PharmaceuticalOnlineScraper(BaseScraper):
         text = f"{title} {content}".lower()
 
         # Check target keywords
-        for keyword in self.TARGET_KEYWORDS:
+        for keyword in get_all_keywords():
             if keyword.lower() in text:
                 # Additional query check
                 if query:
