@@ -146,17 +146,17 @@ class GMPJournalScraper(BaseScraper):
     
     def _parse_article_item(self, item, cutoff_date: datetime) -> NewsArticle | None:
         """개별 기사 아이템 파싱 + 본문 수집"""
-        # 제목과 링크 (h3 > a)
-        title_link = item.select_one('h3 > a')
+        # 제목과 링크 (h2 > a or h3 > a - site uses h2)
+        title_link = item.select_one('h2 > a') or item.select_one('h3 > a')
         if not title_link:
             return None
-        
+
         title = title_link.get_text(strip=True)
         href = title_link.get('href', '')
-        
+
         if not title or not href:
             return None
-        
+
         # 절대 URL 생성
         if href.startswith('/'):
             full_link = f"{self.base_url}{href}"
@@ -164,13 +164,34 @@ class GMPJournalScraper(BaseScraper):
             full_link = f"{self.base_url}/{href}"
         else:
             full_link = href
-        
-        # 요약 (p.context)
-        summary_elem = item.select_one('p.context')
+
+        # 요약 (p.context or general text)
+        summary_elem = item.select_one('p.context') or item.select_one('.newsbox-right p:not(.info)')
         summary = summary_elem.get_text(strip=True) if summary_elem else ''
-        
-        # 날짜 파싱 (요약 텍스트에서 DD.MM.YYYY 형식 추출)
-        published = self._extract_date_from_text(summary)
+
+        # 날짜 파싱 - 1) time[datetime] element, 2) p.info text, 3) DD.MM.YYYY in text
+        published = None
+
+        # Method 1: time element with datetime attribute
+        time_elem = item.select_one('time[datetime]')
+        if time_elem:
+            datetime_str = time_elem.get('datetime', '')
+            if datetime_str:
+                try:
+                    # Format: 2026-01-22T00:00:00+01:00
+                    published = datetime.fromisoformat(datetime_str.replace('+01:00', '').replace('+00:00', ''))
+                except:
+                    pass
+
+        # Method 2: p.info text
+        if not published:
+            info_elem = item.select_one('p.info')
+            if info_elem:
+                published = self._extract_date_from_text(info_elem.get_text())
+
+        # Method 3: From summary text (fallback)
+        if not published:
+            published = self._extract_date_from_text(summary)
         
         # 날짜 필터링
         if published and published >= cutoff_date:
