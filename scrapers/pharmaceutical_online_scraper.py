@@ -43,8 +43,18 @@ class PharmaceuticalOnlineScraper(BaseScraper):
 
     BASE_URL = "https://www.pharmaceuticalonline.com"
 
-    # 타겟 카테고리 (완제의약품 공장 실무 관련) - 10개
+    # 타겟 카테고리 (완제의약품 공장 실무 관련)
+    # Note: Homepage ("/") has the most recent articles with dates
+    # Category pages have mostly sponsored content without dates
     TARGET_CATEGORIES = [
+        # Homepage - has recent articles with dates
+        "/",
+
+        # Quality categories (most relevant)
+        "/solution/regulatory-compliance",
+        "/solution/quality-assurance",
+        "/solution/quality-control",
+
         # Production categories
         "/solution/critical-environments",
         "/solution/solid-dose-manufacturing",
@@ -55,11 +65,6 @@ class PharmaceuticalOnlineScraper(BaseScraper):
         "/solution/inspection",
         "/solution/serialization",
         "/solution/packaging",
-
-        # Quality categories
-        "/solution/regulatory-compliance",
-        "/solution/quality-assurance",
-        "/solution/quality-control",
     ]
 
     @property
@@ -245,6 +250,7 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                 '.publish-date',
                 '.article-date',
                 '.date',
+                '.vm-doc-top',  # Pharmaceutical Online specific - contains "| Month DD, YYYY"
                 'meta[property="article:published_time"]',
                 'meta[name="publishdate"]'
             ]
@@ -257,7 +263,15 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                     if published:
                         break
 
-            # Try to find date in text (MM/DD/YYYY format common on this site)
+            # Try "| Month DD, YYYY" format (common on this site)
+            if not published:
+                text_content = soup.get_text()
+                date_pattern = r'\|\s*([A-Z][a-z]+ \d{1,2},\s*\d{4})'
+                match = re.search(date_pattern, text_content)
+                if match:
+                    published = self._parse_date(match.group(1))
+
+            # Try MM/DD/YYYY format as fallback
             if not published:
                 text_content = soup.get_text()
                 date_pattern = r'(\d{1,2}/\d{1,2}/\d{4})'
