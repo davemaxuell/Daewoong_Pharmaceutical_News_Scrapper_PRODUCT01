@@ -12,6 +12,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from src.ich_monitor import ICHGuidelinesMonitor
 from src.eudralex_monitor import EudraLexMonitor
+from src.gmpjournal_annex1_monitor import GMPJournalAnnex1Monitor
 from src.ai_summarizer_gemini import get_gemini_client, analyze_pdf
 
 # config 디렉토리에서 .env 로드
@@ -279,7 +280,47 @@ def run_monitor_pipeline():
         import traceback
         traceback.print_exc()
 
-    # 5. Save Results
+    # 5. GMP Journal Annex 1 Monitor (EU GMP Annex 1 해석)
+    print("\n[5] Checking GMP Journal Annex 1 content...")
+    try:
+        annex1_monitor = GMPJournalAnnex1Monitor()
+        annex1_result = annex1_monitor.check()
+
+        if annex1_result.get("has_changes"):
+            print(f"  -> Changes detected: {annex1_result.get('summary')}")
+
+            # 새 기사 추가
+            for article in annex1_result.get("new_articles", []):
+                updates.append({
+                    "source": "GMP Journal (ECA)",
+                    "type": "New Annex 1 Article",
+                    "title": article.get("title", "Unknown"),
+                    "link": article.get("url", ""),
+                    "date": article.get("date", ""),
+                    "timestamp": datetime.now().isoformat()
+                })
+
+            # 페이지 변경 기록
+            for page in annex1_result.get("modified_pages", []):
+                updates.append({
+                    "source": "GMP Journal (ECA)",
+                    "type": "Annex 1 Page Modified",
+                    "title": f"Content changed: {page.get('path', '')}",
+                    "link": page.get("url", ""),
+                    "timestamp": datetime.now().isoformat()
+                })
+
+        elif annex1_result.get("status") == "first_check":
+            print(f"  -> First check - baseline saved ({annex1_result.get('article_count', 0)} articles, {annex1_result.get('monitored_pages', 0)} pages)")
+        else:
+            print("  -> No changes detected")
+
+    except Exception as e:
+        print(f"  -> GMP Journal Annex1 check error: {e}")
+        import traceback
+        traceback.print_exc()
+
+    # 6. Save Results
     if updates:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(updates, f, ensure_ascii=False, indent=2)
