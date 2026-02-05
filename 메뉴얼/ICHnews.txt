@@ -1,0 +1,179 @@
+================================================================================
+ICH NEWS SCRAPER MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: ICH (International Council for Harmonisation)
+- 웹사이트: https://www.ich.org/page/news
+- 수집 방식: RSS 피드 기반
+- RSS URL: https://admin.ich.org/rss/news
+- 파일 위치: scrapers/ich_news_scraper.py
+
+
+2. ICH 소개
+--------------------------------------------------------------------------------
+ICH는 의약품 규제 가이드라인을 조화시키는 국제기구입니다.
+
+주요 가이드라인 카테고리:
+  - Quality (Q1-Q14): 품질 관련
+  - Safety (S1-S11): 안전성 관련
+  - Efficacy (E1-E20): 유효성 관련
+  - Multidisciplinary (M1-M13): 다학제 관련
+
+
+3. 수집 내용
+--------------------------------------------------------------------------------
+RSS 피드에서 수집되는 뉴스 유형:
+
+  - 가이드라인 업데이트 (Step 변경)
+  - 회의 결과 및 회의록
+  - 교육 자료 공개
+  - 새 가이드라인 초안 발표
+  - ICH 총회 소식
+
+예시:
+  - "Final ICH51 Management Committee and Assembly Meeting Minutes"
+  - "Updated Technical Documents Issued by ICH Expert Working Groups"
+  - "ICH E6(R3) Module 1 Training Now Available"
+
+
+4. 수집 주기
+--------------------------------------------------------------------------------
+- 평일: 1일치 기사 수집
+- 월요일: 3일치 기사 수집 (주말 포함)
+
+자동 계산 로직:
+  if 월요일:
+      days_back = 3
+  else:
+      days_back = 1
+
+참고: ICH는 뉴스 발행 빈도가 낮음 (월 1-3회 정도)
+
+
+5. 사용 방법
+--------------------------------------------------------------------------------
+
+[파이프라인에서 자동 실행]
+- src/run_pipeline.py 실행 시 자동으로 수집됨
+- multi_source_scraper.py에서 "ich_news"로 등록됨
+
+[독립 실행 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  python -c "
+  from scrapers.ich_news_scraper import ICHScraper
+  scraper = ICHScraper()
+  articles = scraper.fetch_news(days_back=14)
+  print(f'Collected: {len(articles)} articles')
+  for a in articles:
+      print(f'  - [{a.published}] {a.title}')
+  "
+
+[명령줄 옵션]
+  python scrapers/ich_news_scraper.py --days 7   # 최근 7일
+  python scrapers/ich_news_scraper.py --days 30  # 최근 30일
+
+
+6. 출력 형식
+--------------------------------------------------------------------------------
+각 기사는 NewsArticle 객체로 반환:
+
+  - title: 기사 제목
+  - link: 기사 URL (https://ich.org/news/...)
+  - published: 발행일시
+  - source: "ICH"
+  - summary: 요약 (RSS에서 제공)
+  - classifications: 분류 (keywords.py 기반)
+  - matched_keywords: 매칭된 키워드
+
+
+7. 로그 메시지
+--------------------------------------------------------------------------------
+정상 실행:
+  [PROCESS] ICH RSS 피드에서 뉴스 수집 중...
+  [SUCCESS] 1개의 ICH 뉴스를 수집했습니다.
+
+0개 수집 (정상):
+  [PROCESS] ICH RSS 피드에서 뉴스 수집 중...
+  [SUCCESS] 0개의 ICH 뉴스를 수집했습니다.
+  → ICH는 발행 빈도가 낮으므로 0개도 정상
+
+오류 발생:
+  [ERROR] ICH 뉴스 수집 실패: <에러 메시지>
+
+
+8. 키워드 분류
+--------------------------------------------------------------------------------
+keywords.py 기반으로 자동 분류됨.
+
+ICH 관련 주요 키워드:
+  - ICH, guideline, Q-series, E-series, S-series
+  - GMP, validation, quality
+  - pharmaceutical, harmonisation
+
+분류 예시:
+  - "ICH Q3E Step 2" → 개정/변경, 품질시스템/QMS
+  - "ICH E6(R3) Training" → 밸리데이션
+
+
+9. 관련 모니터
+--------------------------------------------------------------------------------
+ICH 가이드라인 변경 모니터 (별도 시스템):
+  - 파일: src/ich_monitor.py
+  - 기능: 가이드라인 페이지 변경 감지
+  - 모니터링 대상:
+    - /page/quality-guidelines
+    - /page/safety-guidelines
+    - /page/efficacy-guidelines
+    - /page/multidisciplinary-guidelines
+
+
+10. 문제 해결
+--------------------------------------------------------------------------------
+
+[0개 수집되는 경우]
+1. ICH 발행 빈도 확인:
+   - ICH는 월 1-3회 정도만 뉴스 발행
+   - days_back을 늘려서 테스트 (예: 30일)
+
+2. RSS 피드 접근 확인:
+   curl https://admin.ich.org/rss/news
+
+3. 최근 뉴스 날짜 확인:
+   python -c "
+   import feedparser
+   feed = feedparser.parse('https://admin.ich.org/rss/news')
+   print(feed.entries[0].published)
+   "
+
+[날짜 파싱 오류]
+- RSS 피드 날짜 형식: "23 January 2026"
+- feedparser가 자동으로 파싱
+
+
+11. 변경 이력
+--------------------------------------------------------------------------------
+2026-02-05: import 경로 수정 (src/keywords.py)
+2025-XX-XX: 최초 버전 (RSS 피드 기반)
+
+
+12. 관련 파일
+--------------------------------------------------------------------------------
+- scrapers/ich_news_scraper.py  : 뉴스 스크래퍼 (RSS)
+- src/ich_monitor.py            : 가이드라인 변경 모니터
+- src/keywords.py               : 키워드 분류 로직
+- src/multi_source_scraper.py   : 통합 스크래퍼 (ICH 포함)
+
+
+13. 참고 링크
+--------------------------------------------------------------------------------
+- ICH 공식 뉴스: https://www.ich.org/page/news
+- ICH 가이드라인: https://www.ich.org/page/quality-guidelines
+- ICH RSS 피드: https://admin.ich.org/rss/news
+
+
+================================================================================
+END OF MANUAL
+================================================================================

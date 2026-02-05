@@ -32,6 +32,8 @@ from scrapers.pda_scraper import PDAScraper  # PDA Letter (주사제/무균공�
 from scrapers.pharmaceutical_online_scraper import PharmaceuticalOnlineScraper  # 완제의약품 제조 실무
 # from scrapers.usp_monograph_scraper import USPMonographScraper  # PDF parsing, optional
 
+import src.logger as logger  # Logging module
+
 
 class MultiSourceScraper:
     """
@@ -156,6 +158,7 @@ class MultiSourceScraper:
         """
         self.sources = sources
         self.results = []
+        self.source_stats = {}
     
     def _get_days_back(self) -> int:
         """
@@ -222,6 +225,7 @@ class MultiSourceScraper:
                     all_articles.append(article_dict)
                 
                 print(f"[{source_key.upper()}] Collected: {len(articles)} articles")
+                self.source_stats[config['description']] = len(articles)
                 
             except Exception as e:
                 print(f"[{source_key.upper()}] Error: {e}")
@@ -290,6 +294,22 @@ class MultiSourceScraper:
             json.dump(self.results, f, ensure_ascii=False, indent=2)
         
         print(f"\n[SAVED] {filepath} ({len(self.results)} articles)")
+        
+        # 분류별 통계 계산
+        classification_stats = {}
+        for article in self.results:
+            if "classifications" in article:
+                for cls in article["classifications"]:
+                    classification_stats[cls] = classification_stats.get(cls, 0) + 1
+                    
+        # 로그 기록
+        logger.log_execution(
+            total_articles=len(self.results),
+            source_stats=self.source_stats,
+            classification_stats=classification_stats,
+            output_file=os.path.basename(filepath)
+        )
+        
         return filepath
     
     @classmethod

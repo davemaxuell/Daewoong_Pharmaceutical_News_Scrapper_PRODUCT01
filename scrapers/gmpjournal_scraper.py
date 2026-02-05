@@ -10,7 +10,8 @@ import sys
 import os
 
 # 상위 디렉토리의 keywords 모듈 임포트
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
 from keywords import classify_article
 
 from .base_scraper import BaseScraper, NewsArticle
@@ -191,25 +192,10 @@ class GMPJournalScraper(BaseScraper):
                 matched_keywords=matched_keywords
             )
         elif not published:
-            # 날짜가 없는 경우에도 수집 (최근 기사일 가능성)
-            classifications, matched_keywords = classify_article(title, summary)
-            
-            # 본문 수집
-            content = self.fetch_article_content(full_link, self.CONTENT_SELECTORS)
-            
-            return NewsArticle(
-                title=title,
-                link=full_link,
-                published=None,
-                source=self.source_name,
-                summary=summary,
-                full_text=content.get("full_text", ""),
-                images=content.get("images", []),
-                scrape_status=content.get("status", "pending"),
-                classifications=classifications,
-                matched_keywords=matched_keywords
-            )
-        
+            # 날짜가 없는 기사는 스킵 (오래된 기사일 가능성)
+            print(f"[GMP Journal] No date found - skipping: {title[:50]}...")
+            return None
+
         return None
     
     def _extract_date_from_text(self, text: str) -> datetime | None:

@@ -1,0 +1,219 @@
+================================================================================
+EUDRALEX VOLUME 4 MONITOR MANUAL
+EU GMP 가이드라인 문서 변경 모니터링
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: EudraLex Volume 4 (EU GMP Guidelines)
+- 웹사이트: https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-4_en
+- 모니터링 방식: PDF 링크 변경 감지 (스냅샷 비교)
+- 파일 위치: src/eudralex_monitor.py
+
+
+2. EudraLex Volume 4 소개
+--------------------------------------------------------------------------------
+EudraLex Volume 4는 EU의 의약품 GMP(Good Manufacturing Practice)
+가이드라인을 담고 있습니다.
+
+주요 섹션:
+  - Part I   : 의약품 기본 요건 (Chapter 1-9)
+  - Part II  : 원료의약품 (Active Substances)
+  - Part III : GMP 관련 문서
+  - Part IV  : ATMP (첨단치료의약품)
+  - Annexes  : 부속서 1-21
+
+
+3. 모니터링 대상 문서
+--------------------------------------------------------------------------------
+
+Part I - Basic Requirements for Medicinal Products:
+  - Chapter 1: Pharmaceutical Quality System
+  - Chapter 2: Personnel
+  - Chapter 3: Premises and Equipment
+  - Chapter 4: Documentation
+  - Chapter 5: Production
+  - Chapter 6: Quality Control
+  - Chapter 7: Outsourced Activities
+  - Chapter 8: Complaints and Product Recall
+  - Chapter 9: Self Inspection
+
+Part II - Active Substances:
+  - 원료의약품 GMP 가이드라인
+
+Part III - GMP Related Documents:
+  - Site Master File 템플릿
+  - 품질 위험 관리 가이드
+  - 배치 인증서 양식
+
+Part IV - ATMPs:
+  - 첨단치료의약품 GMP 요건
+
+Annexes (부속서):
+  - Annex 1  : 무균 의약품 제조
+  - Annex 2  : 생물의약품
+  - Annex 3  : 방사성의약품
+  - Annex 4  : 동물용의약품
+  - Annex 5  : 면역학적 수의약품
+  - Annex 6  : 의료가스
+  - Annex 7  : 생약제제
+  - Annex 8  : 원료 및 포장재 샘플링
+  - Annex 9  : 액제, 크림, 연고
+  - Annex 10 : 정량흡입에어로졸
+  - Annex 11 : 전산화 시스템
+  - Annex 12 : 이온화 방사선 사용
+  - Annex 13 : 임상시험용의약품
+  - Annex 14 : 혈액/혈장 유래 의약품
+  - Annex 15 : 적격성평가 및 밸리데이션
+  - Annex 16 : QP 배치 인증 및 출하
+  - Annex 17 : 실시간 출하 시험
+  - Annex 18 : (Reserved)
+  - Annex 19 : 참조/보관 샘플
+  - Annex 20 : 품질 위험 관리
+  - Annex 21 : 원료의약품 수입
+
+
+4. 작동 방식
+--------------------------------------------------------------------------------
+
+[스냅샷 비교 방식]
+1. 페이지의 모든 PDF 링크 수집
+2. 이전 스냅샷과 비교
+3. 새로 추가/삭제된 PDF 감지
+4. 변경 시 새 스냅샷 저장
+
+[스냅샷 저장 위치]
+  src/.eudralex_snapshots/eudralex_vol4_snapshot.json
+
+[감지 항목]
+  - 새 PDF 문서 추가
+  - 기존 PDF 문서 삭제
+  - PDF URL 변경 (버전 업데이트)
+
+
+5. 사용 방법
+--------------------------------------------------------------------------------
+
+[파이프라인에서 자동 실행]
+- src/monitor_pipeline.py 실행 시 자동으로 체크됨
+- "[4] Checking EudraLex Volume 4 (EU GMP)..." 로그 확인
+
+[독립 실행]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  python -c "
+  from src.eudralex_monitor import EudraLexMonitor
+  monitor = EudraLexMonitor()
+  result = monitor.check()
+  print(monitor.generate_report(result))
+  "
+
+[직접 실행]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  python src/eudralex_monitor.py
+
+
+6. 출력 형식
+--------------------------------------------------------------------------------
+
+[변경 감지 시]
+{
+  "status": "checked",
+  "has_changes": true,
+  "new_pdfs": [
+    {"title": "Chapter 1 - Pharmaceutical Quality System", "url": "..."}
+  ],
+  "removed_pdfs": [],
+  "summary": "1 new PDF(s)"
+}
+
+[변경 없음]
+{
+  "status": "checked",
+  "has_changes": false,
+  "summary": "No changes detected"
+}
+
+[첫 실행]
+{
+  "status": "first_check",
+  "message": "First check - baseline saved",
+  "pdf_count": 39
+}
+
+
+7. 로그 메시지
+--------------------------------------------------------------------------------
+
+정상 실행 (변경 없음):
+  [4] Checking EudraLex Volume 4 (EU GMP)...
+  [EudraLex Monitor] Checking EudraLex Volume 4...
+    -> No changes detected
+
+변경 감지:
+  [4] Checking EudraLex Volume 4 (EU GMP)...
+  [EudraLex Monitor] Checking EudraLex Volume 4...
+  [EudraLex Monitor] Snapshot saved: ...
+    -> Changes detected: 2 new PDF(s), 1 removed PDF(s)
+    -> Analyzing: Chapter 1 - Pharmaceutical Quality System...
+
+첫 실행:
+  [4] Checking EudraLex Volume 4 (EU GMP)...
+  [EudraLex Monitor] Checking EudraLex Volume 4...
+  [EudraLex Monitor] Snapshot saved: ...
+    -> First check - baseline saved (39 PDFs)
+
+오류:
+  [4] Checking EudraLex Volume 4 (EU GMP)...
+    -> EudraLex check error: <에러 메시지>
+
+
+8. 문제 해결
+--------------------------------------------------------------------------------
+
+[페이지 접근 오류]
+1. URL 접근 확인:
+   curl -I https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-4_en
+
+2. 네트워크/방화벽 확인
+
+[스냅샷 초기화 필요 시]
+  rm -rf ~/pharma_news_agent/src/.eudralex_snapshots/
+
+  다음 실행 시 새 베이스라인 생성됨
+
+[PDF 개수가 0인 경우]
+- 페이지 구조 변경 가능성
+- HTML 선택자 확인 필요
+
+
+9. 관련 파일
+--------------------------------------------------------------------------------
+- src/eudralex_monitor.py     : 모니터 코드
+- src/monitor_pipeline.py     : 통합 파이프라인 (EudraLex 포함)
+- scrapers/eudralex_scraper.py: 뉴스 스크래퍼 (Latest updates)
+
+
+10. EudraLex 뉴스 vs 문서 모니터링 차이
+--------------------------------------------------------------------------------
+
+| 구분 | 뉴스 스크래퍼 | 문서 모니터 |
+|------|--------------|------------|
+| 파일 | eudralex_scraper.py | eudralex_monitor.py |
+| 대상 | Latest updates 섹션 | PDF 문서 링크 전체 |
+| 방식 | 날짜 기반 필터링 | 스냅샷 비교 |
+| 목적 | 새 소식 수집 | GMP 문서 변경 감지 |
+
+
+11. 참고 링크
+--------------------------------------------------------------------------------
+- EudraLex Volume 4:
+  https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-4_en
+- EU GMP 법적 근거:
+  https://eur-lex.europa.eu/
+
+
+================================================================================
+END OF MANUAL
+================================================================================

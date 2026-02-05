@@ -11,6 +11,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from src.ich_monitor import ICHGuidelinesMonitor
+from src.eudralex_monitor import EudraLexMonitor
 from src.ai_summarizer_gemini import get_gemini_client, analyze_pdf
 
 # config 디렉토리에서 .env 로드
@@ -225,7 +226,60 @@ def run_monitor_pipeline():
         import traceback
         traceback.print_exc()
     
-    # 4. Save Results
+    # 4. EudraLex Volume 4 Monitor (EU GMP Guidelines)
+    print("\n[4] Checking EudraLex Volume 4 (EU GMP)...")
+    try:
+        eudralex_monitor = EudraLexMonitor()
+        eudralex_result = eudralex_monitor.check()
+
+        if eudralex_result.get("has_changes"):
+            print(f"  -> Changes detected: {eudralex_result.get('summary')}")
+
+            # 새 PDF 추가
+            for pdf in eudralex_result.get("new_pdfs", []):
+                update = {
+                    "source": "EudraLex Volume 4",
+                    "type": "New/Updated GMP Document",
+                    "title": pdf.get("title", "Unknown"),
+                    "link": pdf.get("url", ""),
+                    "timestamp": datetime.now().isoformat()
+                }
+
+                # PDF 분석
+                if model and pdf.get("url", "").lower().endswith('.pdf'):
+                    full_url = pdf.get("url", "")
+                    if full_url.startswith('/'):
+                        full_url = f"https://health.ec.europa.eu{full_url}"
+                    print(f"    -> Analyzing: {pdf.get('title', '')[:50]}...")
+                    try:
+                        analysis = analyze_pdf(model, full_url, title=pdf.get("title", ""))
+                        update["ai_analysis"] = analysis
+                    except Exception as e:
+                        print(f"    -> PDF analysis failed: {e}")
+
+                updates.append(update)
+
+            # 삭제된 PDF 기록
+            for pdf in eudralex_result.get("removed_pdfs", []):
+                updates.append({
+                    "source": "EudraLex Volume 4",
+                    "type": "Removed Document",
+                    "title": pdf.get("title", "Unknown"),
+                    "link": pdf.get("url", ""),
+                    "timestamp": datetime.now().isoformat()
+                })
+
+        elif eudralex_result.get("status") == "first_check":
+            print(f"  -> First check - baseline saved ({eudralex_result.get('pdf_count', 0)} PDFs)")
+        else:
+            print("  -> No changes detected")
+
+    except Exception as e:
+        print(f"  -> EudraLex check error: {e}")
+        import traceback
+        traceback.print_exc()
+
+    # 5. Save Results
     if updates:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(updates, f, ensure_ascii=False, indent=2)

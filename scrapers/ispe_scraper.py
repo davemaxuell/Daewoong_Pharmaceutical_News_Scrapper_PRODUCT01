@@ -331,12 +331,13 @@ class ISPEScraper(BaseScraper):
                         date_str = date_elem.get('datetime') or date_elem.get_text()
                         published = self._parse_date(date_str)
 
-                    # Use current date if no date found (newsletter is today's)
+                    # Skip articles with no date (likely old articles)
                     if not published:
-                        published = datetime.now()
+                        print(f"[ISPE] No date found - skipping: {title[:50]}...")
+                        continue
 
                     # Date filter
-                    if published and published < cutoff_date:
+                    if published < cutoff_date:
                         continue
 
                     # Keyword filter

@@ -265,9 +265,10 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                 if match:
                     published = self._parse_date(match.group(1))
 
-            # Use current date if no date found
+            # Skip articles with no date (likely old articles)
             if not published:
-                published = datetime.now()
+                print(f"[Pharmaceutical Online] No date found - skipping: {title[:50]}...")
+                return None
 
             # Date filter
             if published < cutoff_date:
