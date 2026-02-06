@@ -8,9 +8,11 @@ from typing import List, Optional
 import re
 import sys
 import os
+import json
 
 # 상위 디렉토리의 keywords 모듈 임포트
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
 from keywords import classify_article
 
 from .base_scraper import BaseScraper, NewsArticle
@@ -19,31 +21,13 @@ from .base_scraper import BaseScraper, NewsArticle
 class KPBMAScraper(BaseScraper):
     """
     KPBMA (한국제약바이오협회) 뉴스레터 스크래퍼
-    
-    NOTE: KPBMA 뉴스레터 목록 페이지는 JavaScript로 렌더링됩니다.
-    따라서 알려진 뉴스레터 URL 목록을 사용하거나,
-    직접 URL을 제공받아 파싱합니다.
+
+    API 엔드포인트를 사용하여 뉴스레터 목록을 동적으로 가져옵니다.
+    API: https://www.kpbma.or.kr/api/multimedia/newsLetter/lists
     """
-    
-    # 알려진 뉴스레터 URL 목록 (최신순)
-    # 새 뉴스레터가 발행되면 이 목록을 업데이트
-    KNOWN_NEWSLETTERS = [
-        {
-            "title": "12월 4주 뉴스레터, 범산업계 약가제도 개편...",
-            "url": "https://stibee.com/api/v1.0/emails/share/2sAriUDbUicnvEpfQpkEk8F9XGprX58",
-            "date": "2025/12/24"
-        },
-        {
-            "title": "12월 2주 뉴스레터, 산업 발전을 위한 약가제도...",
-            "url": "https://kpbma-info.stibee.com/p/13",
-            "date": "2025/12/10"
-        },
-        {
-            "title": "12월 1주 뉴스레터[특별호], 정부의 약가제도...",
-            "url": "https://kpbma-info.stibee.com/p/11",
-            "date": "2025/12/05"
-        },
-    ]
+
+    # API 엔드포인트
+    NEWSLETTER_API = "https://www.kpbma.or.kr/api/multimedia/newsLetter/lists"
     
     @property
     def source_name(self) -> str:
@@ -114,21 +98,47 @@ class KPBMAScraper(BaseScraper):
     
     def _get_newsletters_in_range(self, cutoff_date: datetime) -> List[dict]:
         """
-        알려진 뉴스레터 목록에서 기간 내 뉴스레터 필터링
+        API에서 뉴스레터 목록을 가져와 기간 내 뉴스레터 필터링
         """
         newsletters = []
-        
-        for nl in self.KNOWN_NEWSLETTERS:
-            published_date = self._parse_date(nl['date'])
-            
-            if published_date and published_date >= cutoff_date:
-                newsletters.append({
-                    "title": nl['title'],
-                    "url": nl['url'],
-                    "date": published_date
-                })
-                print(f"[KPBMA] Newsletter in range: {nl['title'][:40]}... ({nl['date']})")
-        
+
+        try:
+            print(f"[KPBMA] Fetching newsletters from API...")
+            response = requests.get(
+                self.NEWSLETTER_API,
+                headers=self.get_headers(),
+                params={"start": 0},
+                timeout=30
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            for item in data.get("data", []):
+                title = item.get("b_subject", "")
+                # b_ext0 또는 b_ext5에 Stibee URL이 있음
+                url = item.get("b_ext0") or item.get("b_ext5") or ""
+                date_str = item.get("b_regdate", "")
+
+                if not title or not url:
+                    continue
+
+                published_date = self._parse_date(date_str)
+
+                if published_date and published_date >= cutoff_date:
+                    newsletters.append({
+                        "title": title,
+                        "url": url,
+                        "date": published_date
+                    })
+                    print(f"[KPBMA] Newsletter in range: {title[:40]}... ({date_str})")
+
+            print(f"[KPBMA] API returned {len(data.get('data', []))} newsletters total")
+
+        except Exception as e:
+            print(f"[KPBMA] Error fetching from API: {e}")
+            # API 실패 시 빈 목록 반환
+            return []
+
         return newsletters
     
     def _parse_date(self, date_text: str) -> Optional[datetime]:
@@ -253,22 +263,44 @@ class KPBMAScraper(BaseScraper):
         print(f"[KPBMA] Fetching from URL: {newsletter_url[:50]}...")
         return self._parse_newsletter_content(newsletter_url, title, datetime.now())
     
-    @classmethod
-    def add_newsletter(cls, title: str, url: str, date: str):
+    def fetch_all_newsletters(self) -> List[dict]:
         """
-        새 뉴스레터를 목록에 추가 (런타임)
-        
-        Args:
-            title: 뉴스레터 제목
-            url: Stibee URL
-            date: 발행일 (YYYY/MM/DD)
+        API에서 모든 뉴스레터 목록을 가져옴 (날짜 필터 없음)
+
+        Returns:
+            뉴스레터 정보 리스트 [{"title": ..., "url": ..., "date": ...}, ...]
         """
-        cls.KNOWN_NEWSLETTERS.insert(0, {
-            "title": title,
-            "url": url,
-            "date": date
-        })
-        print(f"[KPBMA] Added newsletter: {title}")
+        newsletters = []
+
+        try:
+            print(f"[KPBMA] Fetching all newsletters from API...")
+            response = requests.get(
+                self.NEWSLETTER_API,
+                headers=self.get_headers(),
+                params={"start": 0},
+                timeout=30
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            for item in data.get("data", []):
+                title = item.get("b_subject", "")
+                url = item.get("b_ext0") or item.get("b_ext5") or ""
+                date_str = item.get("b_regdate", "")
+
+                if title and url:
+                    newsletters.append({
+                        "title": title,
+                        "url": url,
+                        "date": date_str
+                    })
+
+            print(f"[KPBMA] Found {len(newsletters)} newsletters")
+
+        except Exception as e:
+            print(f"[KPBMA] Error fetching from API: {e}")
+
+        return newsletters
 
 
 # 독립 실행 테스트
