@@ -34,3 +34,6 @@ googlenewsdecoder
 tqdm
 colorama
 tenacity
+
+# Browser automation (for bot-protected sites like USP)
+playwright

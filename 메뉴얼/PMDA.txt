@@ -1,0 +1,209 @@
+================================================================================
+PMDA (일본 의약품의료기기종합기구) MONITORING MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: PMDA (Pharmaceuticals and Medical Devices Agency, Japan)
+- 웹사이트: https://www.pmda.go.jp
+- 모니터링 방식: 2가지 (PDF 수집 + 페이지 변경 감지)
+
+  1) PDF 뉴스레터 수집 (scrapers/pmda_scraper.py)
+  2) 일본약전 페이지 변경 감지 (src/html_change_monitor.py)
+
+
+2. PMDA란?
+--------------------------------------------------------------------------------
+PMDA (Pharmaceuticals and Medical Devices Agency)는 일본의 의약품 및
+의료기기 규제 기관입니다.
+
+주요 역할:
+  - 의약품/의료기기 승인 심사
+  - 안전성 모니터링 (부작용 감시)
+  - 일본약전 (JP) 관리
+  - GMP/QMS 인증
+  - 국제 규제 협력 (ICH 참여)
+
+
+3. 모니터링 대상
+--------------------------------------------------------------------------------
+
+[1] PMDA Newsletter (PDF 수집)
+    URL: https://www.pmda.go.jp/english/int-activities/outline/0006.html
+    파일: scrapers/pmda_scraper.py
+
+    수집 대상:
+      - PMDA Updates (계절별/월별 뉴스레터)
+      - 규제 동향, 승인 현황, 국제 협력 소식
+      - PDF 형식 (분기 4~5MB, 월간 700KB~1MB)
+
+[2] 일본약전 18판 (페이지 변경 감지)
+    URL: https://www.pmda.go.jp/english/rs-sb-std/standards-development/jp/0029.html
+    파일: src/html_change_monitor.py
+
+    감지 대상:
+      - 일본약전 (Japanese Pharmacopoeia) 업데이트
+      - 새 모노그래프 추가
+      - 기존 규격 변경
+
+
+4. PDF 수집 방식 (pmda_scraper.py)
+--------------------------------------------------------------------------------
+
+[수집 주기]
+- monitor_pipeline.py 에서 실행
+- 새 PDF 감지 시에만 수집 (스냅샷 비교)
+
+[작동 원리]
+1. 페이지에서 모든 PDF 링크 추출
+2. 이전 스냅샷과 비교
+3. 새 PDF 발견 시:
+   - PDF 다운로드 (메모리)
+   - PyMuPDF로 텍스트 추출
+   - Gemini AI로 내용 분석
+   - 결과 저장 + 이메일 발송
+
+[독립 실행 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  python -c "
+  from scrapers.pmda_scraper import PMDAScraper
+  scraper = PMDAScraper()
+  articles = scraper.fetch_news(days_back=365, max_pdfs=5)
+  print(f'Found: {len(articles)} PDFs')
+  for a in articles:
+      print(f'- {a.title}')
+  "
+
+[명령줄 옵션]
+  python scrapers/pmda_scraper.py --days 365 --max-pdfs 3
+
+
+5. 페이지 변경 감지 (html_change_monitor.py)
+--------------------------------------------------------------------------------
+
+[작동 원리]
+1. 페이지 HTML 다운로드
+2. 선택자(main.main)로 본문 추출
+3. 텍스트 해시 생성
+4. 이전 스냅샷과 비교
+5. 변경 시 새 스냅샷 저장 + 알림
+
+[스냅샷 저장 위치]
+  src/.page_snapshots/snapshot_XXXX.json
+
+[독립 실행 테스트]
+  python test_html_monitor.py
+
+
+6. 출력 형식
+--------------------------------------------------------------------------------
+
+[PDF 수집 결과 - NewsArticle]
+  - title: PDF 제목 (예: "PMDA Updates - 2025 Autumn")
+  - link: PDF URL
+  - published: 발행일
+  - source: "PMDA Newsletter"
+  - summary: 파일 크기 정보
+
+[변경 감지 결과]
+  - has_changes: True/False
+  - summary: 변경 요약 (추가/삭제된 줄 수, 링크 수)
+  - text_changes: 상세 변경 내용
+
+
+7. AI 분석
+--------------------------------------------------------------------------------
+
+새 PDF 발견 시 Gemini AI가 자동 분석:
+
+분석 항목:
+  - PDF 주요 내용 요약
+  - 규제 변경 사항
+  - 신약 승인 현황
+  - 안전성 정보
+  - 제약회사에 미치는 영향
+
+결과 저장:
+  data/monitors/monitor_updates_YYYYMMDD.json
+
+
+8. 이메일 알림
+--------------------------------------------------------------------------------
+
+새 업데이트 발견 시 자동 이메일 발송:
+
+포함 내용:
+  - PDF 제목 및 링크
+  - 발행일
+  - AI 분석 결과 (요약)
+
+발송 조건:
+  - 새 PDF 감지 시 (이전에 없던 것)
+  - 페이지 변경 감지 시
+
+
+9. 로그 메시지
+--------------------------------------------------------------------------------
+
+정상 실행:
+  [PMDA] Fetching updates from: https://www.pmda.go.jp/...
+  [PMDA] Found 183 PDF links on page (will process max 5)
+  [PMDA] Added: PMDA Updates - 2025 Autumn [4.36MB]
+  [PMDA] Successfully collected 5 updates
+
+변경 감지:
+  [Monitor] Checking PMDA_JP18...
+  [CHANGE DETECTED] 5 lines added, 2 lines removed
+
+오류:
+  [PMDA] Request error: <에러 메시지>
+  [PMDA] PDF extraction failed: <에러 메시지>
+
+
+10. 문제 해결
+--------------------------------------------------------------------------------
+
+[PDF 수집 안됨]
+1. 페이지 접근 확인:
+   curl -I https://www.pmda.go.jp/english/int-activities/outline/0006.html
+
+2. PDF 링크 확인:
+   - 페이지 구조 변경 여부 확인
+   - CSS 선택자 업데이트 필요할 수 있음
+
+[AI 분석 실패]
+1. API 키 확인:
+   - config/.env 에 GOOGLE_API_KEY 설정 확인
+
+2. PDF 크기 확인:
+   - 너무 큰 PDF는 텍스트 추출 시간이 오래 걸림
+   - max_pdfs 옵션으로 제한
+
+[변경 감지 오작동]
+1. 동적 콘텐츠:
+   - 날짜, 세션 ID 등이 매번 바뀌면 오탐지
+   - 선택자 조정으로 해결 가능
+
+
+11. 관련 파일
+--------------------------------------------------------------------------------
+- scrapers/pmda_scraper.py       : PDF 뉴스레터 수집
+- src/html_change_monitor.py     : 페이지 변경 감지 (PMDA_JP18)
+- src/monitor_pipeline.py        : 모니터 통합 실행
+- src/ai_summarizer_gemini.py    : PDF AI 분석
+- data/monitors/                 : 모니터 결과 저장
+- snapshots/pmda/                : PDF 스냅샷 저장
+
+
+12. 참고 링크
+--------------------------------------------------------------------------------
+- PMDA 영문 홈페이지: https://www.pmda.go.jp/english/
+- PMDA Newsletter: https://www.pmda.go.jp/english/int-activities/outline/0006.html
+- 일본약전 (JP18): https://www.pmda.go.jp/english/rs-sb-std/standards-development/jp/0029.html
+- PMDA 심사 가이드라인: https://www.pmda.go.jp/english/review-services/reviews/
+
+
+================================================================================
+END OF MANUAL
+================================================================================

@@ -33,6 +33,7 @@ class EDQMScraper(BaseScraper):
     
     # 지원하는 뉴스룸 URL 목록
     NEWSROOMS = {
+        "pheur": "https://www.edqm.eu/en/newsroom-pheur",
         "cep": "https://www.edqm.eu/en/newsroom-cep",
         "pharmaceuticals": "https://www.edqm.eu/en/newsroom-pharmaceuticals",
         "omcl": "https://www.edqm.eu/en/omcl-newsroom",

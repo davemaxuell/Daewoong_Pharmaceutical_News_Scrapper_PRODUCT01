@@ -1,0 +1,176 @@
+================================================================================
+MFDS (식품의약품안전처) SCRAPER MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: MFDS (식품의약품안전처, Korea FDA)
+- 웹사이트: https://www.mfds.go.kr
+- RSS 피드 목록: https://mfds.go.kr/www/rss/list.do
+- 수집 방식: RSS 피드 기반 (40개 피드)
+- 파일 위치: scrapers/mfds_scraper.py
+
+
+2. RSS 피드 카테고리 (40개)
+--------------------------------------------------------------------------------
+
+[알림 (4개)]
+  - notice: 공지사항
+  - announcement: 공고
+  - admin_notice: 입법/행정예고
+  - public_service: 공시송달
+
+[지방청 (6개)]
+  - local_busan: 부산청
+  - local_gyeongin: 경인청
+  - local_daegu: 대구청
+  - local_gwangju: 광주청
+  - local_daejeon: 대전청
+  - local_seoul: 서울청
+
+[언론홍보 (3개)]
+  - press_release: 보도자료
+  - press_explain: 언론보도 설명
+  - card_news: 카드뉴스
+
+[행정처분 (4개)]
+  - drug_sanction: 의약품 행정처분
+  - device_sanction: 의료기기 행정처분
+  - bio_sanction: 바이오 행정처분
+  - test_lab_sanction: 시험검사기관 행정처분
+
+[위해정보 (3개)]
+  - device_recall: 의료기기 회수/판매중지
+  - foreign_drug_risk: 외국 위해의약품
+  - safety_letter: 안전성 서한
+
+[법령 (7개)]
+  - recent_laws: 제개정고시등
+  - notification: 고시전문
+  - directive: 훈령전문
+  - regulation: 예규전문
+  - law_status: 법률 제·개정 현황
+  - law_decree: 법, 시행령, 시행규칙
+  - foreign_law: 식의약품 국외법령자료
+
+[가이드 (3개)]
+  - civil_guide: 민원인안내서
+  - guideline: 안내서/지침
+  - official_guide: 공무원지침서
+
+[기술 (2개)]
+  - test_method: 시험법공유
+  - discussion: 학술 토론회
+
+[자료 (6개)]
+  - forms: 민원서식
+  - edu_materials: 교육홍보물
+  - special_materials: 전문홍보물
+  - video_materials: 동영상홍보물
+  - general_materials: 일반홍보물
+  - personnel: 인사동정
+
+[기타 (2개)]
+  - ntc0056, ntc0063: 기타공지
+
+
+3. 피드 그룹
+--------------------------------------------------------------------------------
+
+사전 정의된 그룹:
+  - main: 공지, 공고, 입법예고, 보도자료 (4개)
+  - safety: 행정처분, 위해정보 (7개)
+  - local: 지방청 (6개)
+  - regulation: 법령 관련 (7개)
+  - guide: 가이드/지침 (3개)
+  - materials: 자료 (6개)
+  - all: 전체 (40개)
+
+
+4. 사용 방법
+--------------------------------------------------------------------------------
+
+[파이프라인에서 자동 실행]
+- src/multi_source_scraper.py 실행 시 자동으로 수집됨
+- 서버에서 매일 오전 7시에 자동 실행 (cron)
+
+[독립 실행 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+
+  # Main 피드만 수집
+  python scrapers/mfds_scraper.py --feeds main --days 7
+
+  # Safety 피드만 수집
+  python scrapers/mfds_scraper.py --feeds safety --days 7
+
+  # 전체 피드 수집
+  python scrapers/mfds_scraper.py --feeds all --days 7
+
+  # 피드 목록 확인
+  python scrapers/mfds_scraper.py --list
+
+
+5. 출력 형식
+--------------------------------------------------------------------------------
+각 기사는 NewsArticle 객체로 반환:
+
+  - title: 기사 제목
+  - link: 기사 URL
+  - published: 발행일시
+  - source: "MFDS-{피드명}" (예: MFDS-보도자료)
+  - summary: 요약 (최대 500자)
+  - full_text: 본문 전체
+  - classifications: 분류 (keywords.py 기반)
+  - matched_keywords: 매칭된 키워드
+
+
+6. 로그 메시지
+--------------------------------------------------------------------------------
+정상 실행:
+  [MFDS] Fetching: 보도자료 (press_release)
+  [MFDS] Found 11 items in 보도자료
+  [MFDS] Total collected: 27 articles
+
+오류 발생:
+  [MFDS] Error fetching {피드명}: <에러 메시지>
+  [MFDS] Error parsing RSS {URL}: <에러 메시지>
+
+
+7. 문제 해결
+--------------------------------------------------------------------------------
+
+[0개 수집되는 경우]
+1. RSS 피드 접근 확인:
+   curl -I http://www.mfds.go.kr/www/rss/brd.do?brdId=ntc0021
+
+2. 날짜 범위 확인:
+   - days_back 값이 너무 작으면 최근 기사가 없을 수 있음
+   - days_back=14 로 테스트
+
+3. 네트워크 문제:
+   - 방화벽/프록시 설정 확인
+   - ping www.mfds.go.kr
+
+[EMPTY 피드]
+- 일부 피드는 항목이 없을 수 있음 (정상)
+- bio_sanction, device_recall 등은 발생 시에만 항목 존재
+
+
+8. 관련 파일
+--------------------------------------------------------------------------------
+- scrapers/mfds_scraper.py       : 스크래퍼 메인 코드
+- src/keywords.py                : 키워드 분류 로직
+- src/multi_source_scraper.py    : 통합 스크래퍼 (MFDS 포함)
+
+
+9. 참고 링크
+--------------------------------------------------------------------------------
+- MFDS 홈페이지: https://www.mfds.go.kr
+- RSS 피드 목록: https://mfds.go.kr/www/rss/list.do
+- 보도자료: https://www.mfds.go.kr/brd/m_99/list.do
+
+
+================================================================================
+END OF MANUAL
+================================================================================

@@ -1,0 +1,195 @@
+================================================================================
+SERVER DEPLOYMENT GUIDE (서버 배포 가이드)
+================================================================================
+
+1. 시스템 요구사항
+--------------------------------------------------------------------------------
+- OS: Ubuntu 20.04+ / Debian 11+
+- Python: 3.10+
+- RAM: 2GB 이상 권장
+- Disk: 10GB 이상
+
+
+2. 서버 접속
+--------------------------------------------------------------------------------
+  ssh root@223.130.161.70
+  # 또는
+  ssh root@your-server-ip
+
+
+3. 시스템 패키지 설치
+--------------------------------------------------------------------------------
+  # 기본 패키지
+  apt update && apt upgrade -y
+  apt install -y python3 python3-pip python3-venv git curl
+
+  # Playwright 의존성 (USP 모니터링용)
+  apt install -y libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+                 libgbm1 libxcomposite1 libxdamage1 libxfixes3 \
+                 libxrandr2 libcups2 libpango-1.0-0 libcairo2 libasound2
+
+  # XML 파싱 (lxml)
+  apt install -y libxml2-dev libxslt1-dev
+
+
+4. 프로젝트 설치
+--------------------------------------------------------------------------------
+  # 1. 프로젝트 클론
+  cd ~
+  git clone https://github.com/davemaxuwell/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01.git pharma_news_agent
+  cd pharma_news_agent
+
+  # 2. 가상환경 생성
+  python3 -m venv venv
+  source venv/bin/activate
+
+  # 3. 패키지 설치
+  pip install --upgrade pip
+  pip install -r requirements.txt
+
+  # 4. Playwright 브라우저 설치
+  playwright install chromium
+
+
+5. 환경 설정
+--------------------------------------------------------------------------------
+  # config 디렉토리 생성
+  mkdir -p config
+
+  # .env 파일 생성
+  cat > config/.env << 'EOF'
+# Google Gemini API
+GOOGLE_API_KEY=your_gemini_api_key_here
+
+# Email Settings (Naver)
+SMTP_SERVER=smtp.naver.com
+SMTP_PORT=587
+SENDER_EMAIL=your_email@naver.com
+SENDER_PASSWORD=your_app_password
+
+# Optional: ISPE Login
+ISPE_USERNAME=daewoong02
+ISPE_PASSWORD=daewoong02
+EOF
+
+  # 팀 이메일 설정
+  cat > config/team_emails.json << 'EOF'
+{
+  "의약기술센터": {
+    "emails": ["team1@company.com"],
+    "categories": ["일반 정책/산업", "개정/변경", "무균/주사제"]
+  },
+  "QA팀": {
+    "emails": ["qa@company.com"],
+    "categories": ["품질시스템/QMS", "밸리데이션", "데이터 완전성"]
+  }
+}
+EOF
+
+
+6. 디렉토리 구조 생성
+--------------------------------------------------------------------------------
+  mkdir -p data/news
+  mkdir -p data/monitors
+  mkdir -p logs
+  mkdir -p snapshots/usp
+  mkdir -p snapshots/pmda
+
+
+7. 실행 테스트
+--------------------------------------------------------------------------------
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+
+  # 스크래퍼 테스트
+  python src/multi_source_scraper.py --days 1
+
+  # 모니터 테스트
+  python src/monitor_pipeline.py
+
+  # 이메일 테스트 (선택)
+  python src/email_sender.py -i data/news/multi_source_news_*.json --teams config/team_emails.json
+
+
+8. Cron 설정 (자동 실행)
+--------------------------------------------------------------------------------
+  # crontab 편집
+  crontab -e
+
+  # 매일 오전 7시에 실행
+  0 8 * * * cd ~/pharma_news_agent && /root/pharma_news_agent/venv/bin/python src/run_pipeline.py >> logs/cron.log 2>&1
+
+  # 또는 shell script 사용
+  cat > ~/pharma_news_agent/run_daily.sh << 'EOF'
+#!/bin/bash
+cd ~/pharma_news_agent
+source venv/bin/activate
+python src/run_pipeline.py >> logs/pipeline_$(date +\%Y\%m\%d).log 2>&1
+EOF
+
+  chmod +x ~/pharma_news_agent/run_daily.sh
+
+  # crontab에 등록
+  0 7 * * * ~/pharma_news_agent/run_daily.sh
+
+
+9. 로그 확인
+--------------------------------------------------------------------------------
+  # 최근 로그 확인
+  tail -f ~/pharma_news_agent/logs/cron.log
+
+  # 특정 날짜 로그
+  cat ~/pharma_news_agent/logs/log_20260206.txt
+
+
+10. 업데이트 방법
+--------------------------------------------------------------------------------
+  cd ~/pharma_news_agent
+
+  # 변경사항 가져오기
+  git pull origin main
+
+  # 패키지 업데이트 (필요시)
+  source venv/bin/activate
+  pip install -r requirements.txt
+
+
+11. 문제 해결
+--------------------------------------------------------------------------------
+
+[pip install 실패]
+  # lxml 컴파일 오류 시
+  apt install -y libxml2-dev libxslt1-dev python3-dev
+
+[Playwright 오류]
+  # 브라우저 재설치
+  playwright install chromium --with-deps
+
+[권한 오류]
+  # 디렉토리 권한 확인
+  chown -R root:root ~/pharma_news_agent
+
+[이메일 발송 실패]
+  # SMTP 설정 확인
+  # 네이버 앱 비밀번호 사용 필요
+
+[메모리 부족]
+  # 스왑 파일 추가
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+
+
+12. 모니터링 상태 확인
+--------------------------------------------------------------------------------
+  # 오늘 실행 결과
+  cat ~/pharma_news_agent/data/monitors/monitor_updates_$(date +%Y%m%d).json
+
+  # 수집된 뉴스 수
+  cat ~/pharma_news_agent/data/news/multi_source_news_$(date +%Y%m%d).json | python -c "import json,sys; print(len(json.load(sys.stdin)))"
+
+
+================================================================================
+END OF DEPLOYMENT GUIDE
+================================================================================

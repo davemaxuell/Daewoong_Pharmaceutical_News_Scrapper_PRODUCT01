@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-02-06T02:48:34.154449",
+  "articles": [
+    {
+      "title": "CONSEQUENCES OF ANNEX 1 REVISION FOR INDUSTRY",
+      "url": "https://www.gmp-journal.com/current-articles/details/consequences-of-annex-1-revision-for-industry.html?matches=1%2Cannex",
+      "date": "",
+      "hash": "184cdf62"
+    },
+    {
+      "title": "Annex 1 Revision",
+      "url": "https://www.gmp-journal.com/current-articles/details/annex-1-revision.html?matches=1%2Cannex",
+      "date": "",
+      "hash": "786044f3"
+    },
+    {
+      "title": "Cover story GMP Update 2022/2023",
+      "url": "https://www.gmp-journal.com/current-articles/details/cover-story-gmp-update-2022-2023.html?matches=1%2Cannex",
+      "date": "",
+      "hash": "7c739962"
+    },
+    {
+      "title": "Data flows, Data Lifecycle, and ALCOA+",
+      "url": "https://www.gmp-journal.com/current-articles/details/data-flows-data-lifecycle-and-alcoa.html?matches=annex%2C1",
+      "date": "",
+      "hash": "a2e8a502"
+    },
+    {
+      "title": "EVOLUTION: NEW ANNEX 11 SUPPORTS RISK-BASED APPROACH",
+      "url": "https://www.gmp-journal.com/current-articles/details/evolution-new-annex-11-supports-risk-based-approach.html?matches=annex%2C1",
+      "date": "",
+      "hash": "4087de15"
+    },
+    {
+      "title": "Conference report on the ECA GMP & GDP Forum",
+      "url": "https://www.gmp-journal.com/current-articles/details/conference-report-on-the-eca-gmp-gdp-forum.html?matches=1%2Cannex",
+      "date": "",
+      "hash": "5136031f"
+    },
+    {
+      "title": "Data flows, Data Lifecycle, and ALCOA+",
+      "url": "https://www.gmp-journal.com/current-articles/details/data-flows-data-lifecycle-and-alcoa.html?utm_source=chatgpt.com?matches=annex%2C1",
+      "date": "",
+      "hash": "70269804"
+    },
+    {
+      "title": "GMP TRENDS: ANNEX 1, CONTINUOUS PRODUCTION AND CONTROL OF PARENTERALS",
+      "url": "https://www.gmp-journal.com/current-articles/details/gmp-trends-annex-1-continuous-production-and-control-of-parenterals.html?matches=annex%2C1",
+      "date": "",
+      "hash": "1bb04954"
+    },
+    {
+      "title": "Product, Process, People",
+      "url": "https://www.gmp-journal.com/current-articles/details/product-process-people.html?matches=annex%2C1",
+      "date": "",
+      "hash": "fe7b484c"
+    },
+    {
+      "title": "Developments on GMP Classification of Fiscal Imports",
+      "url": "https://www.gmp-journal.com/current-articles/details/developments-on-gmp-classification-of-fiscal-imports.html?matches=annex%2C1",
+      "date": "",
+      "hash": "6178cdc4"
+    }
+  ],
+  "page_hashes": {
+    "/current-articles/details/annex-1-revision.html": "63b3dd33a5f177a664e941aac3f45527495c34df3ff1d2826c47a87a303762b2",
+    "/current-articles/details/consequences-of-annex-1-revision-for-industry.html": "3ed3799ebdc71843fd31b427e95b00bb0fc0099738dc886df58138a3950a1794",
+    "/current-articles/details/gmp-trends-annex-1-continuous-production-and-control-of-parenterals.html": "610afc5bcd6649d18397c6f0052e25083512d08c6b55c1e64fcab46a749215da"
+  },
+  "article_count": 10
+}

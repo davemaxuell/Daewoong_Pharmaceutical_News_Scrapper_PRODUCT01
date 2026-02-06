@@ -11,6 +11,13 @@ import os
 import difflib
 import re
 
+# Playwright import (optional - for sites with bot protection)
+try:
+    from playwright.sync_api import sync_playwright
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
+
 
 class HTMLChangeMonitor:
     """
@@ -105,7 +112,89 @@ class HTMLChangeMonitor:
                 "status": "error",
                 "error": str(e)
             }
-    
+
+    def fetch_page_with_playwright(self, url: str, content_selector: str = None) -> Dict[str, Any]:
+        """
+        Playwright를 사용한 페이지 콘텐츠 가져오기 (봇 방지 우회)
+
+        Args:
+            url: 모니터링할 URL
+            content_selector: 모니터링할 특정 요소 선택자
+
+        Returns:
+            페이지 콘텐츠 정보 딕셔너리
+        """
+        if not PLAYWRIGHT_AVAILABLE:
+            return {
+                "url": url,
+                "timestamp": datetime.now().isoformat(),
+                "status": "error",
+                "error": "Playwright not installed. Run: pip install playwright && playwright install chromium"
+            }
+
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+
+                # Navigate with timeout
+                page.goto(url, timeout=60000, wait_until="networkidle")
+
+                # Get page content
+                html = page.content()
+                browser.close()
+
+            soup = BeautifulSoup(html, 'html.parser')
+
+            # 특정 선택자가 있으면 해당 요소만 추출
+            if content_selector:
+                content_elem = soup.select_one(content_selector)
+                if not content_elem:
+                    print(f"[Monitor] Warning: Selector '{content_selector}' not found, using body")
+                    content_elem = soup.body
+            else:
+                content_elem = soup.body
+
+            # HTML 콘텐츠 추출
+            html_content = str(content_elem) if content_elem else ""
+
+            # 텍스트 콘텐츠 추출 (비교용)
+            text_content = content_elem.get_text(separator="\n", strip=True) if content_elem else ""
+
+            # 링크 추출
+            links = []
+            if content_elem:
+                for link in content_elem.select('a[href]'):
+                    href = link.get('href', '')
+                    text = link.get_text(strip=True)
+                    if href and text:
+                        links.append({
+                            "text": text,
+                            "href": href
+                        })
+
+            # 콘텐츠 해시 생성
+            content_hash = hashlib.sha256(text_content.encode()).hexdigest()
+
+            return {
+                "url": url,
+                "selector": content_selector,
+                "timestamp": datetime.now().isoformat(),
+                "html_content": html_content,
+                "text_content": text_content,
+                "links": links,
+                "content_hash": content_hash,
+                "status": "success"
+            }
+
+        except Exception as e:
+            return {
+                "url": url,
+                "timestamp": datetime.now().isoformat(),
+                "status": "error",
+                "error": str(e)
+            }
+
     def save_snapshot(self, url: str, content: Dict[str, Any]) -> None:
         """스냅샷 저장"""
         snapshot_path = self._get_snapshot_path(url)
@@ -202,21 +291,26 @@ class HTMLChangeMonitor:
         
         return changes
     
-    def check_for_changes(self, url: str, content_selector: str = None) -> Dict[str, Any]:
+    def check_for_changes(self, url: str, content_selector: str = None, use_playwright: bool = False) -> Dict[str, Any]:
         """
         페이지 변경 확인 (주요 메서드)
-        
+
         Args:
             url: 모니터링할 URL
             content_selector: 모니터링할 특정 요소 선택자
-            
+            use_playwright: Playwright 사용 여부 (봇 방지 사이트용)
+
         Returns:
             변경 사항 리포트 딕셔너리
         """
         print(f"[Monitor] Checking: {url}")
-        
+
         # 현재 콘텐츠 가져오기
-        current_content = self.fetch_page_content(url, content_selector)
+        if use_playwright:
+            print(f"[Monitor] Using Playwright for bot-protected site")
+            current_content = self.fetch_page_with_playwright(url, content_selector)
+        else:
+            current_content = self.fetch_page_content(url, content_selector)
         
         if current_content.get("status") == "error":
             return {
@@ -424,21 +518,34 @@ class RegulatoryPageMonitor(HTMLChangeMonitor):
             "selector": "main",
             "description": "FDA CGMP Regulations"
         },
+        "USP_Pending": {
+            "url": "https://www.uspnf.com/pending-monographs/pending-monograph-program",
+            "selector": "main",
+            "description": "USP Pending Monographs",
+            "use_playwright": True
+        },
+        "USP_Bulletins": {
+            "url": "https://www.uspnf.com/official-text/revision-bulletins",
+            "selector": "main",
+            "description": "USP Revision Bulletins",
+            "use_playwright": True
+        },
     }
     
     def check_all(self) -> List[Dict[str, Any]]:
         """모든 규제 페이지 변경 확인"""
         results = []
-        
+
         print("=" * 60)
         print("Regulatory Page Change Monitor")
         print("=" * 60)
-        
+
         for name, config in self.MONITORED_PAGES.items():
             print(f"\n[Monitor] Checking {name}...")
             print(f"  URL: {config['url']}")
-            
-            result = self.check_for_changes(config['url'], config['selector'])
+
+            use_playwright = config.get('use_playwright', False)
+            result = self.check_for_changes(config['url'], config['selector'], use_playwright=use_playwright)
             result["page_name"] = name
             result["description"] = config['description']
             results.append(result)

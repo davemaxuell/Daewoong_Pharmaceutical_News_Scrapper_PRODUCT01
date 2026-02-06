@@ -1,0 +1,157 @@
+================================================================================
+PHARMA NEWS AGENT - SYSTEM OVERVIEW (시스템 개요)
+================================================================================
+
+1. 시스템 구성
+--------------------------------------------------------------------------------
+
+[뉴스 스크래퍼] - scrapers/
+  뉴스 기사를 수집하고 키워드로 분류
+
+[모니터] - src/
+  규제 페이지 변경을 감지하고 AI로 분석
+
+[이메일 발송] - src/email_sender.py
+  수집된 뉴스와 변경 알림을 팀별로 발송
+
+
+2. 스크래퍼 목록 (17개)
+--------------------------------------------------------------------------------
+
+| 파일명 | 소스 | 방식 | 매뉴얼 |
+|--------|------|------|--------|
+| kpanews_scraper.py | 약사공론 | RSS | KPAnews.txt |
+| yakup_scraper.py | 약업신문 | RSS | KoreanPharmaNews_5Scrapers.txt |
+| dailypharm_scraper.py | 데일리팜 | RSS | KoreanPharmaNews_5Scrapers.txt |
+| kpbma_scraper.py | 제약바이오협회 | Web | KoreanPharmaNews_5Scrapers.txt |
+| mfds_scraper.py | 식약처 (40개 RSS) | RSS | MFDS.txt |
+| ich_news_scraper.py | ICH | RSS | ICHnews.txt |
+| pics_scraper.py | PIC/S | RSS+Web | PICSNews.txt |
+| pmda_scraper.py | PMDA | PDF | PMDA.txt |
+| edqm_scraper.py | EDQM (7개 뉴스룸) | Web | EDQM.txt |
+| ispe_scraper.py | ISPE | RSS+Web | ISPE_1.txt |
+| ispe_pe_scraper.py | ISPE PE Magazine | Playwright | - |
+| pda_scraper.py | PDA | Web | PDA_1.txt |
+| bioprocess_scraper.py | BioProcess | Web | BioProcess_1.txt |
+| pharmaceutical_online_scraper.py | Pharma Online | Web | PharmaceuticalOnline_1.txt |
+| gmpjournal_scraper.py | GMP Journal | Web | - |
+| fda_warning_scraper.py | FDA Recalls | API | - |
+| usp_monograph_scraper.py | USP | Web | USP.txt |
+
+
+3. 모니터 목록 (5개)
+--------------------------------------------------------------------------------
+
+| 파일명 | 대상 | 방식 | 매뉴얼 |
+|--------|------|------|--------|
+| html_change_monitor.py | USP, FDA CGMP, PMDA JP, EudraLex | Playwright/Web | USP.txt |
+| ich_monitor.py | ICH Guidelines | API Hash | ICHnews.txt |
+| eudralex_monitor.py | EudraLex V4 | Web Hash | EudraLex_Monitor_MANUAL.txt |
+| gmpjournal_annex1_monitor.py | GMP Journal Annex 1 | Web | GMPJournal_Annex1_Monitor_MANUAL.txt |
+
+
+4. 수집 규칙
+--------------------------------------------------------------------------------
+
+[날짜 기준]
+- 평일: 1일치 기사 수집
+- 월요일: 3일치 기사 수집 (주말 포함)
+
+[키워드 필터링]
+- src/keywords.py의 공통 키워드 사용
+- 키워드 미매칭 기사는 수집 안함
+
+[카테고리]
+- 일반 정책/산업
+- 개정/변경
+- 무균/주사제
+- 품질시스템/QMS
+- 밸리데이션
+- 데이터 완전성
+- 약전
+- 고형제
+- 교차오염
+
+
+5. 실행 순서
+--------------------------------------------------------------------------------
+
+[run_pipeline.py 실행 흐름]
+
+1. 뉴스 수집 (Phase 1)
+   └─ multi_source_scraper.py → data/news/multi_source_news_YYYYMMDD.json
+
+2. AI 요약 (Phase 1)
+   └─ ai_summarizer_gemini.py → data/news/multi_source_summarized_YYYYMMDD.json
+
+3. 모니터링 (Phase 2)
+   └─ monitor_pipeline.py → data/monitors/monitor_updates_YYYYMMDD.json
+
+4. 이메일 발송 (Phase 3)
+   └─ email_sender.py → 팀별 이메일 발송
+
+
+6. 디렉토리 구조
+--------------------------------------------------------------------------------
+pharma_news_agent/
+├── scrapers/              # 스크래퍼 모듈
+├── src/                   # 코어 모듈
+│   ├── keywords.py        # 키워드 정의
+│   ├── run_pipeline.py    # 메인 파이프라인
+│   ├── multi_source_scraper.py
+│   ├── monitor_pipeline.py
+│   ├── ai_summarizer_gemini.py
+│   ├── email_sender.py
+│   └── html_change_monitor.py
+├── config/                # 설정 파일
+│   ├── .env               # API 키, SMTP 설정
+│   └── team_emails.json   # 팀별 이메일
+├── data/                  # 데이터 저장
+│   ├── news/              # 수집된 뉴스
+│   └── monitors/          # 모니터 결과
+├── logs/                  # 로그 파일
+├── snapshots/             # 변경 감지용 스냅샷
+├── 메뉴얼/                # 매뉴얼 문서
+└── requirements.txt       # 패키지 목록
+
+
+7. 필수 패키지
+--------------------------------------------------------------------------------
+- requests, beautifulsoup4, lxml    # 웹 스크래핑
+- feedparser                         # RSS 파싱
+- playwright                         # 브라우저 자동화 (USP용)
+- google-generativeai               # Gemini AI
+- python-dotenv                     # 환경변수
+- PyMuPDF                           # PDF 텍스트 추출
+
+
+8. 서버 Cron 설정
+--------------------------------------------------------------------------------
+  # 매일 오전 7시 실행
+  0 7 * * * cd ~/pharma_news_agent && venv/bin/python src/run_pipeline.py
+
+
+9. 매뉴얼 목록
+--------------------------------------------------------------------------------
+메뉴얼/
+├── SYSTEM_OVERVIEW.txt          # 시스템 개요 (이 파일)
+├── SERVER_DEPLOYMENT.txt        # 서버 배포 가이드
+├── KPAnews.txt                  # 약사공론
+├── KoreanPharmaNews_5Scrapers.txt # 한국 제약 뉴스
+├── ICHnews.txt                  # ICH
+├── PICSNews.txt                 # PIC/S
+├── PMDA.txt                     # PMDA
+├── USP.txt                      # USP
+├── MFDS.txt                     # 식약처
+├── EDQM.txt                     # EDQM
+├── EudraLex_Monitor_MANUAL.txt  # EudraLex 모니터
+├── GMPJournal_Annex1_Monitor_MANUAL.txt # GMP Journal Annex 1
+├── ISPE_1.txt                   # ISPE
+├── PDA_1.txt                    # PDA
+├── BioProcess_1.txt             # BioProcess
+└── PharmaceuticalOnline_1.txt   # Pharmaceutical Online
+
+
+================================================================================
+END OF SYSTEM OVERVIEW
+================================================================================

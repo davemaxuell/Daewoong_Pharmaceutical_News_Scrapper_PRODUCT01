@@ -1,0 +1,129 @@
+================================================================================
+EDQM (유럽의약품품질기구) SCRAPER MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: EDQM (European Directorate for the Quality of Medicines)
+- 웹사이트: https://www.edqm.eu
+- 수집 방식: 웹 스크래핑 (7개 뉴스룸)
+- 파일 위치: scrapers/edqm_scraper.py
+
+
+2. EDQM이란?
+--------------------------------------------------------------------------------
+EDQM (European Directorate for the Quality of Medicines & HealthCare)은
+유럽의약품품질기구로, 유럽약전(PhEur)을 관리합니다.
+
+주요 역할:
+  - 유럽약전 (European Pharmacopoeia, PhEur) 발행
+  - CEP (Certificate of Suitability) 발급
+  - OMCL (Official Medicines Control Laboratories) 네트워크 운영
+  - 의약품 위조 방지
+
+
+3. 지원 뉴스룸 (7개)
+--------------------------------------------------------------------------------
+
+| 뉴스룸 | URL | 내용 |
+|--------|-----|------|
+| pheur | /en/newsroom-pheur | 유럽약전 뉴스 |
+| cep | /en/newsroom-cep | CEP 인증 관련 |
+| pharmaceuticals | /en/newsroom-pharmaceuticals | 의약품 분류 |
+| omcl | /en/omcl-newsroom | 시험기관 네트워크 |
+| pharmaceutical-care | /en/pharmaceutical-care-newsroom | 약료 서비스 |
+| nitrosamine | /en/newsroom-nitrosamine | 니트로사민 불순물 |
+| anti-falsification | /en/newsroom-anti-falsification | 위조 방지 |
+
+
+4. 사용 방법
+--------------------------------------------------------------------------------
+
+[파이프라인에서 자동 실행]
+- src/multi_source_scraper.py 실행 시 자동으로 수집됨
+
+[독립 실행 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+
+  # 전체 뉴스룸 수집
+  python scrapers/edqm_scraper.py --newsroom all --days 30
+
+  # PhEur 뉴스룸만 수집
+  python scrapers/edqm_scraper.py --newsroom pheur --days 30
+
+  # CEP 뉴스룸만 수집
+  python scrapers/edqm_scraper.py --newsroom cep --days 30
+
+
+5. 수집 주기
+--------------------------------------------------------------------------------
+- 기본 수집 기간: 7일 (EDQM은 발행 빈도가 낮음)
+- days_back 파라미터로 조정 가능
+
+
+6. 출력 형식
+--------------------------------------------------------------------------------
+각 기사는 NewsArticle 객체로 반환:
+
+  - title: 기사 제목
+  - link: 기사 URL
+  - published: 발행일 (DD/MM/YYYY 형식에서 파싱)
+  - source: "EDQM {뉴스룸명}" (예: EDQM PHEUR)
+  - summary: 요약 (최대 500자)
+  - full_text: 본문 전체
+  - classifications: 분류 (keywords.py 기반)
+  - matched_keywords: 매칭된 키워드
+
+
+7. 로그 메시지
+--------------------------------------------------------------------------------
+정상 실행:
+  [EDQM] Days back: 30 (cutoff: 2025-12-08)
+  [EDQM] Fetching from: pheur (https://www.edqm.eu/en/newsroom-pheur)
+  [EDQM] Found 20 items in pheur
+  [EDQM] Successfully collected 5 articles
+
+오류 발생:
+  [EDQM] Request error for {뉴스룸명}: <에러 메시지>
+  [EDQM] Error parsing item: <에러 메시지>
+
+
+8. 문제 해결
+--------------------------------------------------------------------------------
+
+[0개 수집되는 경우]
+1. 웹사이트 접근 확인:
+   curl -I https://www.edqm.eu/en/newsroom-pheur
+
+2. 날짜 범위 확인:
+   - EDQM은 발행 빈도가 낮음
+   - days_back=60 이상으로 테스트
+
+3. 선택자 확인:
+   - EDQM 웹사이트 구조 변경 시 CSS 선택자 업데이트 필요
+   - div.element.itemCat 선택자 확인
+
+[날짜 파싱 오류]
+- DD/MM/YYYY 형식 (유럽 형식)
+- 08/12/2025 = 2025년 12월 8일
+
+
+9. 관련 파일
+--------------------------------------------------------------------------------
+- scrapers/edqm_scraper.py       : 스크래퍼 메인 코드
+- src/keywords.py                : 키워드 분류 로직
+- src/multi_source_scraper.py    : 통합 스크래퍼 (EDQM 포함)
+
+
+10. 참고 링크
+--------------------------------------------------------------------------------
+- EDQM 공식 사이트: https://www.edqm.eu
+- PhEur 뉴스룸: https://www.edqm.eu/en/newsroom-pheur
+- CEP 뉴스룸: https://www.edqm.eu/en/newsroom-cep
+- 유럽약전: https://www.edqm.eu/en/european-pharmacopoeia-ph-eur-11th-edition
+
+
+================================================================================
+END OF MANUAL
+================================================================================

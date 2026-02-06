@@ -1,0 +1,135 @@
+================================================================================
+USP (미국약전) MONITORING MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: USP (United States Pharmacopeia)
+- 웹사이트: https://www.uspnf.com
+- 모니터링 방식: 2가지
+  1) PDF 스크래퍼 (scrapers/usp_monograph_scraper.py)
+  2) 페이지 변경 감지 (src/html_change_monitor.py - Playwright 사용)
+
+
+2. USP란?
+--------------------------------------------------------------------------------
+USP (United States Pharmacopeia)는 미국약전으로, 의약품의 품질 기준을
+제정하는 비영리 기관입니다.
+
+주요 역할:
+  - 의약품 품질 표준 제정
+  - 모노그래프 (시험법, 규격) 발행
+  - Reference Standards 제공
+  - General Chapters 발행
+
+
+3. 모니터링 대상
+--------------------------------------------------------------------------------
+
+[1] Pending Monographs (페이지 변경 감지)
+    URL: https://www.uspnf.com/pending-monographs/pending-monograph-program
+    파일: src/html_change_monitor.py
+    방식: Playwright (봇 방지 우회)
+
+[2] Revision Bulletins (페이지 변경 감지)
+    URL: https://www.uspnf.com/official-text/revision-bulletins
+    파일: src/html_change_monitor.py
+    방식: Playwright (봇 방지 우회)
+
+[3] PDF 스크래퍼 (현재 403 차단됨)
+    파일: scrapers/usp_monograph_scraper.py
+    상태: USP 사이트 봇 방지로 직접 요청 차단됨
+
+
+4. 봇 방지 우회
+--------------------------------------------------------------------------------
+
+USP 사이트는 Cloudflare 등 봇 방지를 사용하여 일반 requests가 차단됩니다.
+Playwright를 사용하여 브라우저처럼 접속합니다.
+
+필요 패키지:
+  pip install playwright
+  playwright install chromium
+
+서버(Ubuntu) 의존성:
+  apt install libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 libgbm1
+
+
+5. 사용 방법
+--------------------------------------------------------------------------------
+
+[페이지 변경 감지 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  python -c "
+  from src.html_change_monitor import RegulatoryPageMonitor
+  monitor = RegulatoryPageMonitor()
+
+  # USP Pending Monographs 체크
+  result = monitor.check_for_changes(
+      'https://www.uspnf.com/pending-monographs/pending-monograph-program',
+      'main',
+      use_playwright=True
+  )
+  print(result)
+  "
+
+[모니터 파이프라인에서 실행]
+  python src/monitor_pipeline.py
+
+
+6. 출력 형식
+--------------------------------------------------------------------------------
+
+변경 감지 결과:
+  - has_changes: True/False
+  - summary: 변경 요약 (추가/삭제된 줄, 링크 수)
+  - text_changes: 상세 변경 내용
+  - new_timestamp: 체크 시간
+  - previous_check: 이전 체크 시간
+
+
+7. 스냅샷 저장 위치
+--------------------------------------------------------------------------------
+  src/.page_snapshots/snapshot_XXXX.json
+
+각 URL마다 MD5 해시로 파일명 생성:
+  - USP_Pending: snapshot_73bed914f097.json
+  - USP_Bulletins: snapshot_3b44dff47ae5.json
+
+
+8. 문제 해결
+--------------------------------------------------------------------------------
+
+[403 Forbidden 오류]
+- 원인: USP 사이트 봇 방지
+- 해결: Playwright 사용 (use_playwright=True)
+
+[Playwright 설치 오류]
+- 브라우저 바이너리 설치 필요:
+  playwright install chromium
+
+[서버에서 Playwright 실패]
+- 의존성 패키지 설치:
+  apt install libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 libgbm1 \
+              libxcomposite1 libxdamage1 libxfixes3 libxrandr2
+
+
+9. 관련 파일
+--------------------------------------------------------------------------------
+- src/html_change_monitor.py     : 페이지 변경 감지 (Playwright)
+- scrapers/usp_monograph_scraper.py : PDF 스크래퍼 (현재 미사용)
+- src/monitor_pipeline.py        : 모니터 통합 실행
+- src/.page_snapshots/           : 스냅샷 저장
+
+
+10. 참고 링크
+--------------------------------------------------------------------------------
+- USP 공식 사이트: https://www.uspnf.com
+- Pending Monographs: https://www.uspnf.com/pending-monographs/pending-monograph-program
+- Revision Bulletins: https://www.uspnf.com/official-text/revision-bulletins
+
+
+================================================================================
+END OF MANUAL
+================================================================================
