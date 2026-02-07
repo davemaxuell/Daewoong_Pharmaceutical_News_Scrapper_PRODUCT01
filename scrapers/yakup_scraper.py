@@ -208,10 +208,8 @@ class YakupScraper(BaseScraper):
             # 본문 수집
             content = self.fetch_article_content(full_link, self.CONTENT_SELECTORS)
 
-            # Build title with category prefix
+            # Build title with main source name only (no category suffix)
             title_prefix = "[약업신문]"
-            if category_name and category_name != "Main":
-                title_prefix = f"[약업신문 - {category_name}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",
@@ -236,10 +234,8 @@ class YakupScraper(BaseScraper):
             # 본문 수집
             content = self.fetch_article_content(full_link, self.CONTENT_SELECTORS)
 
-            # Build title with category prefix
+            # Build title with main source name only (no category suffix)
             title_prefix = "[약업신문]"
-            if category_name and category_name != "Main":
-                title_prefix = f"[약업신문 - {category_name}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",

@@ -321,10 +321,8 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                     author = author_elem.get('content') or author_elem.get_text(strip=True)
                     break
 
-            # Build title prefix
+            # Build title with main source name only (no author suffix)
             title_prefix = "[Pharmaceutical Online]"
-            if author:
-                title_prefix = f"[Pharmaceutical Online - {author}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",

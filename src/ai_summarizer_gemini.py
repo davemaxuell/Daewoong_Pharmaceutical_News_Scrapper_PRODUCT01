@@ -154,7 +154,7 @@ def summarize_article(client, title: str, content: str, images: list = None) -> 
             "key_points": result.get("key_points", []),
             "industry_impact": result.get("industry_impact", ""),
             "ai_categories": result.get("categories", []),
-            "ai_keywords": result.get("keywords", []),
+            "ai_keywords": [],  # 스크래퍼의 규칙 기반 matched_keywords로 채워짐
             "target_teams": result.get("target_teams", []),
             "model_used": MODEL_NAME
         }
@@ -286,6 +286,10 @@ def summarize_all_articles(input_json: str, output_json: str = None):
             print(f"    {result.get('ai_summary', '')[:80]}...")
         
         article["ai_analysis"] = result
+        
+        # 규칙 기반 키워드만 사용 (스크래퍼의 matched_keywords)
+        # AI 생성 키워드는 사용하지 않음
+        article["ai_analysis"]["ai_keywords"] = article.get("matched_keywords", [])
     
     if output_json is None:
         output_json = input_json.replace("content_", "summarized_")

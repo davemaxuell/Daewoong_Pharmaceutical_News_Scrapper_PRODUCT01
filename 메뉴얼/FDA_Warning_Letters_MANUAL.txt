@@ -1,0 +1,105 @@
+================================================================================
+FDA WARNING LETTERS SCRAPER MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: FDA Warning Letters (경고장)
+- 웹사이트: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters
+- 수집 방식: 웹 스크래핑 (HTML 테이블 파싱)
+- 파일 위치: scrapers/fda_warning_letters_scraper.py
+
+
+2. FDA Warning Letters란?
+--------------------------------------------------------------------------------
+FDA 경고장(Warning Letters)은 FDA가 규제 위반 사항을 발견했을 때
+해당 기업에 발송하는 공식 서한입니다.
+
+경고장 유형:
+- CDER (의약품 평가연구센터) - 의약품 관련
+- CBER (생물의약품 평가연구센터) - 생물의약품 관련
+- CDRH (의료기기 방사선건강센터) - 의료기기 관련
+- 기타 FDA 센터
+
+
+3. 수집 대상
+--------------------------------------------------------------------------------
+- 발행일 기준 최근 경고장
+- 회사명, 경고장 제목, 발행일
+- 경고장 전체 본문 (full_text)
+
+
+4. 사용 방법
+--------------------------------------------------------------------------------
+[파이프라인에서 자동 실행]
+- src/multi_source_scraper.py 실행 시 자동 수집
+
+[독립 실행 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  
+  # 전체 센터 경고장 수집
+  python scrapers/fda_warning_letters_scraper.py --days 30
+  
+  # CDER (의약품) + CBER (생물의약품)만
+  python scrapers/fda_warning_letters_scraper.py --centers CDER CBER --days 30
+
+
+5. 기본 설정
+--------------------------------------------------------------------------------
+- days_back: 자동 계산 (월요일: 3일, 평일: 1일)
+- 기본 센터: ALL (모든 FDA 부서)
+
+
+6. 파이프라인 설정
+--------------------------------------------------------------------------------
+src/multi_source_scraper.py:
+
+"fda_warning_letters": {
+    "class": FDAWarningLettersScraper,
+    "enabled": True,
+    "description": "FDA Warning Letters",
+    "args": {"centers": ["CDER", "CBER"]}
+}
+
+
+7. 출력 형식
+--------------------------------------------------------------------------------
+- 제목: "[FDA Warning Letter] 회사명 - 경고장 제목"
+- 소스: "FDA Warning Letters"
+- full_text: 경고장 전체 본문
+
+
+8. 문제 해결
+--------------------------------------------------------------------------------
+[수집이 0개일 때]
+1. days_back 값 증가 (30일 이상)
+2. FDA 웹사이트 접근 확인
+3. 테이블 구조 변경 확인
+
+[403 에러]
+- FDA 서버 접근 제한
+- 서버에서 실행 시 정상 작동 가능
+
+
+9. 관련 파일
+--------------------------------------------------------------------------------
+- scrapers/fda_warning_letters_scraper.py  : 메인 스크래퍼
+- scrapers/fda_warning_scraper.py          : FDA Recalls (리콜) 스크래퍼
+- scrapers/base_scraper.py                 : 베이스 클래스
+- src/multi_source_scraper.py              : 통합 스크래퍼
+
+
+10. FDA Warning Letters vs FDA Recalls 차이
+--------------------------------------------------------------------------------
+| 구분 | Warning Letters | Recalls |
+|------|-----------------|---------|
+| 파일 | fda_warning_letters_scraper.py | fda_warning_scraper.py |
+| 대상 | 규제 위반 경고장 | 제품 리콜 정보 |
+| 소스 | FDA 웹사이트 | openFDA API |
+| 방식 | HTML 테이블 파싱 | API 호출 |
+
+
+================================================================================
+END OF MANUAL
+================================================================================

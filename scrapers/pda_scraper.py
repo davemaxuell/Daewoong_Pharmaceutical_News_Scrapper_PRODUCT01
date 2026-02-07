@@ -413,17 +413,8 @@ class PDAScraper(BaseScraper):
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
 
-            # Add author and category to title
+            # Build title with main source name only (no category/author suffix)
             title_prefix = "[PDA Letter]"
-            if category:
-                # Shorten category name for title
-                short_category = category.replace("Biotechnology", "").replace("Processing", "").strip()
-                title_prefix = f"[PDA - {short_category}]"
-            if author:
-                if category:
-                    title_prefix = f"[PDA - {short_category}] [{author}]"
-                else:
-                    title_prefix = f"[PDA Letter - {author}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",

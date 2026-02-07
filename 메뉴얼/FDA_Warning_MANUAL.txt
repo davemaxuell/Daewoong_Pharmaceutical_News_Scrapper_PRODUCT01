@@ -1,0 +1,109 @@
+================================================================================
+FDA WARNING (RECALLS) SCRAPER MANUAL
+================================================================================
+
+1. 개요
+--------------------------------------------------------------------------------
+- 소스: FDA Enforcement (Recalls) - 리콜 정보
+- API: openFDA API
+- 수집 방식: API 호출 (웹 스크래핑 아님)
+- 파일 위치: scrapers/fda_warning_scraper.py
+
+
+2. openFDA API란?
+--------------------------------------------------------------------------------
+openFDA는 FDA가 제공하는 공개 API로, 다음 데이터에 접근할 수 있습니다:
+- Drug Recalls (의약품 리콜)
+- Device Recalls (의료기기 리콜)
+- Food Recalls (식품 리콜)
+
+
+3. 수집 대상
+--------------------------------------------------------------------------------
+기본: Drug (의약품) 리콜 정보
+
+카테고리:
+- drug: 의약품 리콜
+- device: 의료기기 리콜
+- food: 식품 리콜
+
+
+4. 사용 방법
+--------------------------------------------------------------------------------
+[파이프라인에서 자동 실행]
+- src/multi_source_scraper.py 실행 시 자동 수집
+
+[독립 실행 테스트]
+  cd ~/pharma_news_agent
+  source venv/bin/activate
+  
+  # 의약품 리콜 수집
+  python scrapers/fda_warning_scraper.py --category drug --days 30
+  
+  # 의료기기 리콜 수집
+  python scrapers/fda_warning_scraper.py --category device --days 30
+
+
+5. 기본 설정
+--------------------------------------------------------------------------------
+- days_back: 자동 계산 (월요일: 3일, 평일: 1일)
+- 기본 카테고리: drug
+
+
+6. 파이프라인 설정
+--------------------------------------------------------------------------------
+src/multi_source_scraper.py:
+
+"fda_enforcement": {
+    "class": FDAEnforcementScraper,
+    "enabled": True,
+    "description": "FDA Drug Recalls (openFDA API)",
+    "args": {"category": "drug"}
+}
+
+
+7. API 엔드포인트
+--------------------------------------------------------------------------------
+기본 URL: https://api.fda.gov/
+
+- 의약품: /drug/enforcement.json
+- 의료기기: /device/enforcement.json
+- 식품: /food/enforcement.json
+
+
+8. 출력 형식
+--------------------------------------------------------------------------------
+- 제목: "[FDA Recall] 제품명 - 회사명"
+- 소스: "FDA Drug Recalls" 또는 "FDA Device Recalls"
+- full_text: 리콜 상세 정보
+
+
+9. 문제 해결
+--------------------------------------------------------------------------------
+[수집이 0개일 때]
+1. days_back 값 증가
+2. openFDA API 상태 확인: https://open.fda.gov/
+3. API 응답 확인
+
+[API 에러]
+- Rate limit 확인 (1000 requests/day)
+- API 키 등록 고려 (더 많은 요청 필요 시)
+
+
+10. 관련 파일
+--------------------------------------------------------------------------------
+- scrapers/fda_warning_scraper.py          : 메인 스크래퍼
+- scrapers/fda_warning_letters_scraper.py  : FDA 경고장 스크래퍼
+- scrapers/base_scraper.py                 : 베이스 클래스
+- src/multi_source_scraper.py              : 통합 스크래퍼
+
+
+11. 참고 링크
+--------------------------------------------------------------------------------
+- openFDA: https://open.fda.gov/
+- FDA Drug Recalls: https://www.fda.gov/drugs/drug-safety-and-availability/drug-recalls
+
+
+================================================================================
+END OF MANUAL
+================================================================================

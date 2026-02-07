@@ -224,10 +224,8 @@ class DailyPharmScraper(BaseScraper):
             # 본문 수집
             content = self.fetch_article_content(full_link, self.CONTENT_SELECTORS)
 
-            # Build title with category prefix
+            # Build title with main source name only (no category suffix)
             title_prefix = "[데일리팜]"
-            if category_name and category_name != "Main":
-                title_prefix = f"[데일리팜 - {category_name}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",
@@ -252,10 +250,8 @@ class DailyPharmScraper(BaseScraper):
             # 본문 수집
             content = self.fetch_article_content(full_link, self.CONTENT_SELECTORS)
 
-            # Build title with category prefix
+            # Build title with main source name only (no category suffix)
             title_prefix = "[데일리팜]"
-            if category_name and category_name != "Main":
-                title_prefix = f"[데일리팜 - {category_name}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",

@@ -404,10 +404,8 @@ class BioProcessScraper(BaseScraper):
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
 
-            # Build title with category prefix
+            # Build title with main source name only (no category suffix)
             title_prefix = "[BioProcess]"
-            if category:
-                title_prefix = f"[BioProcess - {category}]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",
