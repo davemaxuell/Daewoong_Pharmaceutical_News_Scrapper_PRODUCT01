@@ -90,7 +90,7 @@ def create_email_html(team_name: str, articles: list) -> str:
                 <table cellpadding="0" cellspacing="0" border="0" width="900" style="max-width: 900px; background-color: #ffffff;">
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: #ED7D31; padding: 25px 20px; border-radius: 10px 10px 0 0;">
+                        <td style="background-color: #fef0d5; padding: 25px 20px; border-radius: 10px 10px 0 0;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td style="vertical-align: middle; color: #ffffff;">
@@ -106,7 +106,7 @@ def create_email_html(team_name: str, articles: list) -> str:
                     </tr>
                     <!-- Orange Divider Line -->
                     <tr>
-                        <td style="height: 3px; background-color: #ED7D31; font-size: 0; line-height: 0;">&nbsp;</td>
+                        <td style="height: 3px; background-color: #fef0d5; font-size: 0; line-height: 0;">&nbsp;</td>
                     </tr>
                     <!-- Content -->
                     <tr>
@@ -126,10 +126,10 @@ def create_email_html(team_name: str, articles: list) -> str:
         keywords = ai.get("ai_keywords", [])
         
         html += f'''
-                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FAFAFA; margin-bottom: 15px; border-left: 4px solid #ED7D31; border-radius: 8px;">
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FAFAFA; margin-bottom: 15px; border-left: 4px solid #fef0d5; border-radius: 8px;">
                                 <tr>
                                     <td style="padding: 20px;">
-                                        <div style="font-size: 17px; color: #333333; font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #ED7D31;">{title}</div>
+                                        <div style="font-size: 17px; color: #333333; font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #fef0d5;">{title}</div>
                                         <div style="font-size: 12px; color: #888888; margin-bottom: 10px;">{source} | {published}</div>
                                         <div style="color: #555555; line-height: 1.7;">{summary}</div>
 '''
@@ -144,7 +144,7 @@ def create_email_html(team_name: str, articles: list) -> str:
             html += f'''
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 12px;">
                                             <tr>
-                                                <td style="background-color: #FFF3E8; padding: 12px; border-radius: 6px; border-left: 3px solid #ED7D31; font-size: 14px;">
+                                                <td style="background-color: #FFF3E8; padding: 12px; border-radius: 6px; border-left: 3px solid #fef0d5; font-size: 14px;">
                                                     💡 <strong>업계 영향:</strong> {impact}
                                                 </td>
                                             </tr>
@@ -154,12 +154,12 @@ def create_email_html(team_name: str, articles: list) -> str:
         if keywords:
             html += '<div style="margin-top: 12px;">'
             for kw in keywords:
-                html += f'<span style="display: inline-block; background-color: #ED7D31; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px;">{kw}</span>'
+                html += f'<span style="display: inline-block; background-color: #fef0d5; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px;">{kw}</span>'
             html += '</div>'
         
         html += f'''
                                         <div style="margin-top: 12px;">
-                                            <a href="{link}" target="_blank" style="color: #ED7D31; text-decoration: none; font-weight: 500;">🔗 원문 보기</a>
+                                            <a href="{link}" target="_blank" style="color: #fef0d5; text-decoration: none; font-weight: 500;">🔗 원문 보기</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -206,7 +206,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
                 <table cellpadding="0" cellspacing="0" border="0" width="900" style="max-width: 900px; background-color: #ffffff;">
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: #ED7D31; padding: 25px 20px; border-radius: 10px 10px 0 0;">
+                        <td style="background-color: #fef0d5; padding: 25px 20px; border-radius: 10px 10px 0 0;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td style="vertical-align: middle; color: #ffffff;">
@@ -222,7 +222,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
                     </tr>
                     <!-- Orange Divider Line -->
                     <tr>
-                        <td style="height: 3px; background-color: #ED7D31; font-size: 0; line-height: 0;">&nbsp;</td>
+                        <td style="height: 3px; background-color: #fef0d5; font-size: 0; line-height: 0;">&nbsp;</td>
                     </tr>
                     <!-- Content -->
                     <tr>
@@ -244,10 +244,10 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
         title = f"[{source}] {category.upper()} 업데이트"
         
         html += f'''
-                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FFF3E8; margin-bottom: 15px; border-left: 4px solid #ED7D31; border-radius: 8px;">
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FFF3E8; margin-bottom: 15px; border-left: 4px solid #fef0d5; border-radius: 8px;">
                                 <tr>
                                     <td style="padding: 20px;">
-                                        <div style="font-size: 17px; color: #ED7D31; font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #ED7D31;">{title}</div>
+                                        <div style="font-size: 17px; color: #fef0d5; font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #fef0d5;">{title}</div>
                                         <div style="font-size: 12px; color: #888888; margin-bottom: 10px;">{timestamp} | {source} &gt; {category}</div>
                                         <div style="color: #555555; font-weight: 500; line-height: 1.7;">{summary}</div>
 '''
@@ -271,7 +271,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
             html += f'''
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 12px;">
                                             <tr>
-                                                <td style="background-color: #FFF3E8; padding: 12px; border-radius: 6px; border-left: 3px solid #ED7D31; font-size: 14px;">
+                                                <td style="background-color: #FFF3E8; padding: 12px; border-radius: 6px; border-left: 3px solid #fef0d5; font-size: 14px;">
                                                     ⚠️ <strong>영향 및 대응:</strong> {implications}
                                                 </td>
                                             </tr>
@@ -280,7 +280,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
         
         html += f'''
                                         <div style="margin-top: 12px;">
-                                            <a href="{link}" target="_blank" style="color: #ED7D31; text-decoration: none; font-weight: 600;">📄 원문 문서 보기</a>
+                                            <a href="{link}" target="_blank" style="color: #fef0d5; text-decoration: none; font-weight: 600;">📄 원문 문서 보기</a>
                                         </div>
                                     </td>
                                 </tr>

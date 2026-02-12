@@ -41,11 +41,11 @@ class PICSScraper(BaseScraper):
     def _get_days_back(self) -> int:
         """
         요일에 따른 수집 기간 결정
-        - 월요일: 3일 (금~일 포함)
+        - 금요일: 3일 (수~금 포함)
         - 그 외: 1일
         """
         today = datetime.now()
-        if today.weekday() == 0:  # Monday
+        if today.weekday() == 4:  # Friday
             return 3
         return 1
     
