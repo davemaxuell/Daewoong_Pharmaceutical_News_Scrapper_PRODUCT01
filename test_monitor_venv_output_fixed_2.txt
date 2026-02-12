@@ -1,0 +1,83 @@
+﻿============================================================
+MONITOR PIPELINE START
+============================================================
+[INFO] AI Model initialized (Gemini)
+
+[1] Checking ICH Guidelines...
+============================================================
+ICH Guidelines Change Monitor
+============================================================
+[ICH Monitor] Checking quality guidelines...
+  [QUALITY] No changes
+[ICH Monitor] Checking safety guidelines...
+  [SAFETY] No changes
+[ICH Monitor] Checking efficacy guidelines...
+  [EFFICACY] No changes
+[ICH Monitor] Checking multidisciplinary guidelines...
+  [MULTIDISCIPLINARY] No changes
+
+[2] Checking PMDA Newsletter...
+[PMDA] Fetching updates from: https://www.pmda.go.jp/english/int-activities/outline/0006.html
+[PMDA] Found 184 PDF links on page (will process max 2)
+[PMDA] Limited to 2 most recent updates
+[PMDA] Added: PMDA Updates - 2025 Autumn [4.36MB]
+[PMDA] Added: PMDA Updates - 2025 Summer [2.35MB]
+[PMDA] Successfully collected 2 updates
+  -> No NEW PMDA updates (already seen 2 PDFs)
+
+[3] Checking USP Pending Monographs...
+[USP] Fetching pending monographs from: https://www.uspnf.com/pending-monographs/pending-monograph-program
+[USP] Request error: 403 Client Error: Forbidden for url: https://www.uspnf.com/pending-monographs/pending-monograph-program
+  -> No new USP updates (tracking 0 PDFs)
+
+[4] Checking EudraLex Volume 4 (EU GMP)...
+[EudraLex Monitor] Checking EudraLex Volume 4...
+  -> No changes detected
+
+[5] Checking GMP Journal Annex 1 content...
+[GMP Journal Annex1] Checking EU GMP Annex 1 content...
+[GMP Journal Annex1] Fetching Annex 1 articles...
+  -> Found 10 Annex 1 articles
+[GMP Journal Annex1] Checking monitored pages...
+  -> Monitored 3 pages
+[GMP Journal Annex1] Snapshot saved: C:\Users\user\Desktop\?쒖빟 ?댁뒪 ?먯씠?꾪듃\src\.gmpjournal_snapshots\annex1_snapshot.json
+  -> Changes detected: 5 new article(s), 5 removed article(s)
+
+[6] Checking General Regulatory HTML Pages...
+============================================================
+Regulatory Page Change Monitor
+============================================================
+
+[Monitor] Checking PMDA_JP18...
+  URL: https://www.pmda.go.jp/english/rs-sb-std/standards-development/jp/0029.html
+[Monitor] Checking: https://www.pmda.go.jp/english/rs-sb-std/standards-development/jp/0029.html
+  [NO CHANGES]
+
+[Monitor] Checking EudraLex_V4...
+  URL: https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-4_en
+[Monitor] Checking: https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-4_en
+[Monitor] Snapshot saved: C:\Users\user\Desktop\?쒖빟 ?댁뒪 ?먯씠?꾪듃\src\.page_snapshots\snapshot_bacadc272149.json
+  [CHANGE DETECTED] 2 lines added, 2 lines removed, 1 links added, 1 links removed
+
+[Monitor] Checking FDA_CGMP...
+  URL: https://www.fda.gov/drugs/pharmaceutical-quality-resources/current-good-manufacturing-practice-cgmp-regulations
+[Monitor] Checking: https://www.fda.gov/drugs/pharmaceutical-quality-resources/current-good-manufacturing-practice-cgmp-regulations
+  [NO CHANGES]
+
+[Monitor] Checking USP_Pending...
+  URL: https://www.uspnf.com/pending-monographs/pending-monograph-program
+[Monitor] Checking: https://www.uspnf.com/pending-monographs/pending-monograph-program
+[Monitor] Using Playwright for bot-protected site
+[Monitor] Warning: Selector 'main' not found, using body
+[Monitor] Snapshot saved: C:\Users\user\Desktop\?쒖빟 ?댁뒪 ?먯씠?꾪듃\src\.page_snapshots\snapshot_73bed914f097.json
+  [CHANGE DETECTED] 2 lines added, 2 lines removed
+
+[Monitor] Checking USP_Bulletins...
+  URL: https://www.uspnf.com/official-text/revision-bulletins
+[Monitor] Checking: https://www.uspnf.com/official-text/revision-bulletins
+[Monitor] Using Playwright for bot-protected site
+[Monitor] Warning: Selector 'main' not found, using body
+[Monitor] Snapshot saved: C:\Users\user\Desktop\?쒖빟 ?댁뒪 ?먯씠?꾪듃\src\.page_snapshots\snapshot_3b44dff47ae5.json
+  [CHANGE DETECTED] 2 lines added, 2 lines removed
+
+[SUCCESS] Saved 8 updates to C:\Users\user\Desktop\?쒖빟 ?댁뒪 ?먯씠?꾪듃\data\monitors\monitor_updates_20260212.json

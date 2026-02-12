@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-06T10:34:37.358395",
+  "timestamp": "2026-02-12T20:07:28.661814",
   "articles": [
     {
       "title": "CONSEQUENCES OF ANNEX 1 REVISION FOR INDUSTRY",
@@ -9,9 +9,9 @@
     },
     {
       "title": "Annex 1 Revision",
-      "url": "https://www.gmp-journal.com/current-articles/details/annex-1-revision.html?matches=annex%2C1",
+      "url": "https://www.gmp-journal.com/current-articles/details/annex-1-revision.html?matches=1%2Cannex",
       "date": "",
-      "hash": "0378973f"
+      "hash": "786044f3"
     },
     {
       "title": "Cover story GMP Update 2022/2023",
@@ -21,15 +21,15 @@
     },
     {
       "title": "Data flows, Data Lifecycle, and ALCOA+",
-      "url": "https://www.gmp-journal.com/current-articles/details/data-flows-data-lifecycle-and-alcoa.html?matches=annex%2C1",
+      "url": "https://www.gmp-journal.com/current-articles/details/data-flows-data-lifecycle-and-alcoa.html?matches=1%2Cannex",
       "date": "",
-      "hash": "a2e8a502"
+      "hash": "bd0c8976"
     },
     {
       "title": "EVOLUTION: NEW ANNEX 11 SUPPORTS RISK-BASED APPROACH",
-      "url": "https://www.gmp-journal.com/current-articles/details/evolution-new-annex-11-supports-risk-based-approach.html?matches=annex%2C1",
+      "url": "https://www.gmp-journal.com/current-articles/details/evolution-new-annex-11-supports-risk-based-approach.html?matches=1%2Cannex",
       "date": "",
-      "hash": "4087de15"
+      "hash": "7183002d"
     },
     {
       "title": "Conference report on the ECA GMP & GDP Forum",
@@ -51,15 +51,15 @@
     },
     {
       "title": "Product, Process, People",
-      "url": "https://www.gmp-journal.com/current-articles/details/product-process-people.html?matches=1%2Cannex",
+      "url": "https://www.gmp-journal.com/current-articles/details/product-process-people.html?matches=annex%2C1",
       "date": "",
-      "hash": "d47d1353"
+      "hash": "fe7b484c"
     },
     {
       "title": "Developments on GMP Classification of Fiscal Imports",
-      "url": "https://www.gmp-journal.com/current-articles/details/developments-on-gmp-classification-of-fiscal-imports.html?matches=annex%2C1",
+      "url": "https://www.gmp-journal.com/current-articles/details/developments-on-gmp-classification-of-fiscal-imports.html?matches=1%2Cannex",
       "date": "",
-      "hash": "6178cdc4"
+      "hash": "466d93b3"
     }
   ],
   "page_hashes": {

@@ -1,11 +1,15 @@
 # Pharmaceutical Online Scraper
-# Uses snapshot-based change detection (like PMDA/USP monitors)
+# Uses hub pages with date-based filtering for reliable article detection
 # https://www.pharmaceuticalonline.com/
+#
+# Previous approach (rotating category pages) caused false positives because
+# the site randomly rotates content on each page load. The hub pages provide
+# stable, chronological article listings WITH publication dates.
 
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Dict
 import os
 import sys
 import time
@@ -28,45 +32,32 @@ SNAPSHOT_DIR = os.path.join(PROJECT_ROOT, "snapshots", "pharmaceutical_online")
 
 class PharmaceuticalOnlineScraper(BaseScraper):
     """
-    Pharmaceutical Online 스크래퍼 (스냅샷 기반 변경 감지)
+    Pharmaceutical Online 스크래퍼 (허브 페이지 기반 + 날짜 필터링)
 
     작동 방식:
-    1. 모든 카테고리에서 기사 링크 수집
-    2. 이전 스냅샷과 비교하여 새 기사만 식별
-    3. 새 기사만 상세 정보 수집
-    4. 스냅샷 업데이트
+    1. 허브 페이지에서 기사 목록을 날짜와 함께 수집
+    2. 날짜 기반 필터링 (최근 N일 이내 기사만)
+    3. 이전 스냅샷과 비교하여 새 기사만 식별
+    4. 새 기사만 상세 정보 수집
+    5. 스냅샷 업데이트
 
-    수집 소스 (10개):
-    1. https://www.pharmaceuticalonline.com/ (메인)
-    2. https://www.pharmaceuticalonline.com/solution/critical-environments (클린룸/제조환경)
-    3. https://www.pharmaceuticalonline.com/solution/solid-dose-manufacturing (고형제 제조)
-    4. https://www.pharmaceuticalonline.com/solution/liquid-dose-manufacturing (액제 제조)
-    5. https://www.pharmaceuticalonline.com/solution/inspection (검사)
-    6. https://www.pharmaceuticalonline.com/solution/serialization (시리얼화)
-    7. https://www.pharmaceuticalonline.com/solution/packaging (포장)
-    8. https://www.pharmaceuticalonline.com/solution/regulatory-compliance (규제 준수)
-    9. https://www.pharmaceuticalonline.com/solution/quality-assurance (QA)
-    10. https://www.pharmaceuticalonline.com/solution/quality-control (QC)
+    수집 소스 (2개 허브 페이지):
+    1. /hub/bucket/industry-news (업계 뉴스 - FDA, M&A, 시장 보고서)
+    2. /hub/bucket/pharma-contributing-editors (편집 기사 - GMP, CDMO, AI, 밸리데이션)
 
     키워드: keywords.py의 공통 키워드 사용
     """
 
     BASE_URL = "https://www.pharmaceuticalonline.com"
 
-    # 타겟 카테고리 (완제의약품 공장 실무 관련)
-    TARGET_CATEGORIES = [
-        "/",  # Homepage - has recent articles
-        "/solution/regulatory-compliance",
-        "/solution/quality-assurance",
-        "/solution/quality-control",
-        "/solution/critical-environments",
-        "/solution/solid-dose-manufacturing",
-        "/solution/liquid-dose-manufacturing",
-        "/solution/production",
-        "/solution/inspection",
-        "/solution/serialization",
-        "/solution/packaging",
+    # Stable hub pages with chronological listings and dates
+    HUB_PAGES = [
+        "/hub/bucket/industry-news",
+        "/hub/bucket/pharma-contributing-editors",
     ]
+
+    # Maximum number of hub pages to paginate through
+    MAX_HUB_PAGINATION = 3
 
     @property
     def source_name(self) -> str:
@@ -113,79 +104,154 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                 print(f"[Pharmaceutical Online] Error loading snapshot: {e}")
         return set()
 
-    def _save_snapshot(self, links: Set[str]):
-        """Save current article links snapshot"""
+    def _save_snapshot(self, current_links: Set[str], previous_links: Set[str] = None):
+        """Save cumulative article links snapshot.
+        
+        The snapshot stores ALL links ever seen (union of current + previous).
+        This prevents articles from being falsely reported as 'new'.
+        """
         os.makedirs(SNAPSHOT_DIR, exist_ok=True)
         snapshot_file = os.path.join(SNAPSHOT_DIR, "article_links.json")
 
+        # Cumulative: merge current links with all previously seen links
+        if previous_links:
+            all_seen_links = current_links | previous_links
+        else:
+            all_seen_links = current_links
+
         data = {
             "updated": datetime.now().isoformat(),
-            "count": len(links),
-            "links": list(links)
+            "count": len(all_seen_links),
+            "links": list(all_seen_links)
         }
 
         with open(snapshot_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        print(f"[Pharmaceutical Online] Snapshot updated: {len(links)} links")
+        print(f"[Pharmaceutical Online] Snapshot updated: {len(all_seen_links)} total links (cumulative)")
 
-    def _collect_all_links(self) -> Set[str]:
-        """Collect all article links from all categories"""
-        all_links = set()
+    def _parse_date(self, date_str: str) -> Optional[datetime]:
+        """Parse date string from hub page (e.g., '1/29/2026', '12/4/2025')"""
+        try:
+            return datetime.strptime(date_str.strip(), "%m/%d/%Y")
+        except ValueError:
+            try:
+                return datetime.strptime(date_str.strip(), "%m/%d/%y")
+            except ValueError:
+                print(f"[Pharmaceutical Online] Could not parse date: '{date_str}'")
+                return None
 
-        # Create session for cookie persistence
+    def _collect_hub_articles(self, days_back: int = None) -> Dict[str, datetime]:
+        """Collect article links and dates from hub pages.
+        
+        Returns:
+            Dict mapping article URL -> publication date
+        """
+        if days_back is None:
+            days_back = self._get_days_back()
+        
+        cutoff_date = datetime.now() - timedelta(days=days_back)
+        articles = {}  # url -> date
+
         session = requests.Session()
         session.headers.update(self.get_headers())
 
-        for category in self.TARGET_CATEGORIES:
-            try:
-                url = f"{self.BASE_URL}{category}"
-                print(f"[Pharmaceutical Online] Scanning: {url}")
+        for hub_path in self.HUB_PAGES:
+            # Paginate through hub pages
+            for page_num in range(1, self.MAX_HUB_PAGINATION + 1):
+                try:
+                    if page_num == 1:
+                        url = f"{self.BASE_URL}{hub_path}"
+                    else:
+                        url = f"{self.BASE_URL}{hub_path}?page={page_num}"
 
-                time.sleep(1)  # Polite delay
-                response = session.get(url, timeout=30)
+                    print(f"[Pharmaceutical Online] Scanning hub: {url}")
+                    time.sleep(1)
+                    response = session.get(url, timeout=30)
 
-                if response.status_code != 200:
-                    print(f"[Pharmaceutical Online] HTTP {response.status_code} for {category}")
-                    continue
+                    if response.status_code != 200:
+                        print(f"[Pharmaceutical Online] HTTP {response.status_code} for {url}")
+                        break
 
-                soup = BeautifulSoup(response.content, 'html.parser')
+                    soup = BeautifulSoup(response.content, 'html.parser')
 
-                # Find all /doc/ links
-                for link in soup.find_all('a', href=True):
-                    href = link.get('href', '')
-                    if '/doc/' in href:
-                        # Normalize URL
+                    # Parse article listings from hub page
+                    # Structure: <li class="mb-2 vm-summary-link">
+                    #              <a class="d-block" href="/doc/...">Title</a>
+                    #              <em class="vm-hub-date">1/29/2026</em>
+                    #              <div class="pt-1"><p>Summary</p></div>
+                    #            </li>
+                    items = soup.select('li.vm-summary-link')
+                    
+                    if not items:
+                        print(f"[Pharmaceutical Online] No articles found on page {page_num}")
+                        break
+                    
+                    found_old = False
+                    page_count = 0
+                    
+                    for item in items:
+                        # Extract link
+                        link_elem = item.select_one('a[href*="/doc/"]')
+                        if not link_elem:
+                            continue
+                        
+                        href = link_elem.get('href', '')
                         if href.startswith('/'):
                             href = f"{self.BASE_URL}{href}"
-                        elif not href.startswith('http'):
-                            href = f"{self.BASE_URL}/{href}"
-
-                        # Only include pharmaceuticalonline.com links
+                        
+                        # Extract date
+                        date_elem = item.select_one('em.vm-hub-date')
+                        if date_elem:
+                            pub_date = self._parse_date(date_elem.get_text(strip=True))
+                        else:
+                            pub_date = None
+                        
+                        # Date-based filtering
+                        if pub_date and pub_date < cutoff_date:
+                            found_old = True
+                            continue
+                        
                         if 'pharmaceuticalonline.com' in href:
-                            all_links.add(href)
+                            articles[href] = pub_date or datetime.now()
+                            page_count += 1
+                    
+                    print(f"[Pharmaceutical Online]   Found {page_count} recent articles on page {page_num}")
+                    
+                    # If we found old articles, no need to check further pages
+                    if found_old:
+                        print(f"[Pharmaceutical Online]   Reached articles older than {days_back} day(s), stopping pagination")
+                        break
+                    
+                    # Check if there's a next page
+                    next_link = soup.select_one(f'a[href*="page={page_num + 1}"]')
+                    if not next_link:
+                        break
+                    
+                    time.sleep(1)
 
-                time.sleep(1)  # Rate limiting
+                except Exception as e:
+                    print(f"[Pharmaceutical Online] Error scanning hub {hub_path} page {page_num}: {e}")
+                    break
 
-            except Exception as e:
-                print(f"[Pharmaceutical Online] Error scanning {category}: {e}")
-                continue
-
-        print(f"[Pharmaceutical Online] Total links found: {len(all_links)}")
-        return all_links
+        print(f"[Pharmaceutical Online] Total recent articles found: {len(articles)}")
+        return articles
 
     def fetch_news(self, query: str = None, days_back: int = None) -> List[NewsArticle]:
         """
-        Pharmaceutical Online에서 새 기사 수집 (스냅샷 기반)
+        Pharmaceutical Online에서 새 기사 수집 (허브 페이지 + 날짜 기반)
 
         Args:
             query: 추가 검색 키워드 (선택)
-            days_back: 사용하지 않음 (스냅샷 기반)
+            days_back: 며칠 이내 기사만 수집 (기본: 평일 1일, 월요일 3일)
 
         Returns:
             NewsArticle 리스트 (새 기사만)
         """
-        print(f"[Pharmaceutical Online] Starting snapshot-based scrape...")
+        if days_back is None:
+            days_back = self._get_days_back()
+        
+        print(f"[Pharmaceutical Online] Starting hub-based scrape (last {days_back} day(s))...")
 
         # Load previous snapshot
         previous_links = self._load_snapshot()
@@ -196,8 +262,9 @@ class PharmaceuticalOnlineScraper(BaseScraper):
         else:
             print(f"[Pharmaceutical Online] Previous snapshot: {len(previous_links)} links")
 
-        # Collect current links from all categories
-        current_links = self._collect_all_links()
+        # Collect recent articles from hub pages (with dates)
+        recent_articles = self._collect_hub_articles(days_back)
+        current_links = set(recent_articles.keys())
 
         # Find new links (not in previous snapshot)
         new_links = current_links - previous_links
@@ -211,8 +278,7 @@ class PharmaceuticalOnlineScraper(BaseScraper):
 
         if not new_links:
             print(f"[Pharmaceutical Online] No new articles found")
-            # Update snapshot anyway (in case some links were removed)
-            self._save_snapshot(current_links)
+            self._save_snapshot(current_links, previous_links)
             return []
 
         print(f"[Pharmaceutical Online] Found {len(new_links)} NEW articles!")
@@ -224,8 +290,9 @@ class PharmaceuticalOnlineScraper(BaseScraper):
 
         for i, link in enumerate(new_links, 1):
             try:
+                pub_date = recent_articles.get(link, datetime.now())
                 print(f"[Pharmaceutical Online] [{i}/{len(new_links)}] Fetching: {link[:60]}...")
-                article = self._parse_article(session, link, query)
+                article = self._parse_article(session, link, query, pub_date)
                 if article:
                     articles.append(article)
                     print(f"[Pharmaceutical Online] ✓ Added: {article.title[:50]}...")
@@ -239,13 +306,13 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                 print(f"[Pharmaceutical Online] Error parsing {link}: {e}")
                 continue
 
-        # Update snapshot with all current links
-        self._save_snapshot(current_links)
+        # Save cumulative snapshot
+        self._save_snapshot(current_links, previous_links)
 
         print(f"[Pharmaceutical Online] Total collected: {len(articles)} new articles")
         return articles
 
-    def _parse_article(self, session: requests.Session, link: str, query: str = None) -> Optional[NewsArticle]:
+    def _parse_article(self, session: requests.Session, link: str, query: str = None, pub_date: datetime = None) -> Optional[NewsArticle]:
         """개별 기사 파싱"""
         try:
             response = session.get(link, timeout=30)
@@ -313,21 +380,13 @@ class PharmaceuticalOnlineScraper(BaseScraper):
                     if keyword not in matched_keywords:
                         matched_keywords.append(keyword)
 
-            # Extract author/source
-            author = None
-            for selector in ['.author', '.byline', 'meta[name="author"]']:
-                author_elem = soup.select_one(selector)
-                if author_elem:
-                    author = author_elem.get('content') or author_elem.get_text(strip=True)
-                    break
-
             # Build title with main source name only (no author suffix)
             title_prefix = "[Pharmaceutical Online]"
 
             return NewsArticle(
                 title=f"{title_prefix} {title}",
                 link=link,
-                published=datetime.now(),  # Use current time as "discovered" time
+                published=pub_date or datetime.now(),
                 source=self.source_name,
                 summary=summary[:300] if summary else title,
                 full_text=content[:10000] if content else summary,
@@ -365,8 +424,9 @@ def main():
     """테스트 실행"""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Pharmaceutical Online Scraper (Snapshot-based)')
+    parser = argparse.ArgumentParser(description='Pharmaceutical Online Scraper (Hub-based)')
     parser.add_argument('--reset', action='store_true', help='Reset snapshot and create new baseline')
+    parser.add_argument('--days', type=int, default=None, help='Override days_back (default: auto)')
     args = parser.parse_args()
 
     if args.reset:
@@ -376,12 +436,13 @@ def main():
             print("Snapshot reset. Next run will create new baseline.")
 
     scraper = PharmaceuticalOnlineScraper()
-    articles = scraper.fetch_news()
+    articles = scraper.fetch_news(days_back=args.days)
 
     print(f"\nTotal collected: {len(articles)} new articles\n")
 
     for i, article in enumerate(articles[:10], 1):
         print(f"{i}. {article.title[:80]}...")
+        print(f"   Published: {article.published}")
         print(f"   Keywords: {', '.join(article.matched_keywords[:5])}")
         print(f"   {article.link}")
         print()

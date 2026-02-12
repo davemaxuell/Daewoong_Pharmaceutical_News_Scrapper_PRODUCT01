@@ -100,6 +100,50 @@ def log_execution(
     return entry
 
 
+def log_monitor_execution(
+    monitor_results: dict,
+    total_updates: int,
+    output_file: str,
+    error: Optional[str] = None
+):
+    """
+    모니터링 파이프라인 실행 결과 기록
+
+    Args:
+        monitor_results: 모니터별 결과 {monitor_name: {"status": ..., "updates": ..., "error": ...}}
+        total_updates: 총 업데이트 수
+        output_file: 저장된 JSON 파일명
+        error: 오류 메시지 (있을 경우)
+    """
+    ensure_log_dir()
+
+    daily_log_file = os.path.join(LOG_DIR, f"log_{datetime.now().strftime('%Y%m%d')}.txt")
+    with open(daily_log_file, 'a', encoding='utf-8') as f:
+        f.write(f"\n{'='*60}\n")
+        f.write(f"모니터링 실행 시간: {datetime.now().isoformat()}\n")
+        f.write(f"출력 파일: {output_file}\n")
+
+        f.write("\n[모니터링 결과]\n")
+        for name, result in monitor_results.items():
+            status = result.get("status", "unknown")
+            updates = result.get("updates", 0)
+            err = result.get("error")
+
+            if err:
+                f.write(f"  - {name}: ⚠️ 오류: {err}\n")
+            elif updates > 0:
+                f.write(f"  - {name}: 🔔 변경 감지 ({updates}건)\n")
+            else:
+                f.write(f"  - {name}: ✅ 변경 없음\n")
+
+        f.write(f"\n총 모니터링 업데이트: {total_updates}건\n")
+
+        if error:
+            f.write(f"\n[오류] {error}\n")
+
+        f.write(f"{'='*60}\n")
+
+
 def get_recent_executions(days: int = 7) -> list:
     """최근 N일간 실행 기록 조회"""
     history = load_history()

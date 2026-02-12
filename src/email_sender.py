@@ -3,8 +3,10 @@
 
 import json
 import smtplib
+import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from datetime import datetime
 import os
 from dotenv import load_dotenv
@@ -19,6 +21,19 @@ SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SENDER_EMAIL = os.getenv("SENDER_EMAIL", "")
 SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "")
+
+# 로고 파일 경로
+LOGO_PATH = os.path.join(PROJECT_ROOT, "assets", "LOGO.png")
+
+
+def get_logo_base64() -> str:
+    """로고를 Base64로 인코딩하여 반환"""
+    try:
+        with open(LOGO_PATH, 'rb') as f:
+            return base64.b64encode(f.read()).decode('utf-8')
+    except FileNotFoundError:
+        print(f"[WARN] 로고 파일을 찾을 수 없습니다: {LOGO_PATH}")
+        return ""
 
 
 def load_team_emails(filepath: str = "team_emails.json") -> dict:
@@ -75,20 +90,23 @@ def create_email_html(team_name: str, articles: list) -> str:
                 <table cellpadding="0" cellspacing="0" border="0" width="900" style="max-width: 900px; background-color: #ffffff;">
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: #F7941D; padding: 25px 20px; border-radius: 10px 10px 0 0;">
+                        <td style="background-color: #ED7D31; padding: 25px 20px; border-radius: 10px 10px 0 0;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td style="vertical-align: middle; color: #ffffff;">
                                         <div style="font-size: 20px; font-weight: 600; color: #ffffff;">📰 {team_name} 뉴스 브리핑</div>
                                         <div style="font-size: 13px; color: #ffffff; opacity: 0.95; margin-top: 4px;">{today} | {len(articles)}건의 관련 뉴스</div>
                                     </td>
-                                    <td style="vertical-align: middle; text-align: right; color: #ffffff;">
-                                        <div style="font-size: 18px; font-weight: 700; letter-spacing: 2px; color: #ffffff;">DAEWOONG</div>
-                                        <div style="font-size: 10px; color: #ffffff; opacity: 0.8; margin-top: 2px;">PHARMACEUTICAL</div>
+                                    <td style="vertical-align: middle; text-align: right;">
+                                        <img src="cid:company_logo" alt="Daewoong Pharmaceutical" style="height: 40px; width: auto;" />
                                     </td>
                                 </tr>
                             </table>
                         </td>
+                    </tr>
+                    <!-- Orange Divider Line -->
+                    <tr>
+                        <td style="height: 3px; background-color: #ED7D31; font-size: 0; line-height: 0;">&nbsp;</td>
                     </tr>
                     <!-- Content -->
                     <tr>
@@ -108,10 +126,10 @@ def create_email_html(team_name: str, articles: list) -> str:
         keywords = ai.get("ai_keywords", [])
         
         html += f'''
-                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FAFAFA; margin-bottom: 15px; border-left: 4px solid #F7941D; border-radius: 8px;">
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FAFAFA; margin-bottom: 15px; border-left: 4px solid #ED7D31; border-radius: 8px;">
                                 <tr>
                                     <td style="padding: 20px;">
-                                        <div style="font-size: 17px; color: #333333; font-weight: 600; margin-bottom: 10px;">{title}</div>
+                                        <div style="font-size: 17px; color: #333333; font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #ED7D31;">{title}</div>
                                         <div style="font-size: 12px; color: #888888; margin-bottom: 10px;">{source} | {published}</div>
                                         <div style="color: #555555; line-height: 1.7;">{summary}</div>
 '''
@@ -126,7 +144,7 @@ def create_email_html(team_name: str, articles: list) -> str:
             html += f'''
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 12px;">
                                             <tr>
-                                                <td style="background-color: #FEF4E8; padding: 12px; border-radius: 6px; border-left: 3px solid #F7941D; font-size: 14px;">
+                                                <td style="background-color: #FFF3E8; padding: 12px; border-radius: 6px; border-left: 3px solid #ED7D31; font-size: 14px;">
                                                     💡 <strong>업계 영향:</strong> {impact}
                                                 </td>
                                             </tr>
@@ -136,12 +154,12 @@ def create_email_html(team_name: str, articles: list) -> str:
         if keywords:
             html += '<div style="margin-top: 12px;">'
             for kw in keywords:
-                html += f'<span style="display: inline-block; background-color: #F7941D; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px;">{kw}</span>'
+                html += f'<span style="display: inline-block; background-color: #ED7D31; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px;">{kw}</span>'
             html += '</div>'
         
         html += f'''
                                         <div style="margin-top: 12px;">
-                                            <a href="{link}" target="_blank" style="color: #F7941D; text-decoration: none; font-weight: 500;">🔗 원문 보기</a>
+                                            <a href="{link}" target="_blank" style="color: #ED7D31; text-decoration: none; font-weight: 500;">🔗 원문 보기</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -154,7 +172,7 @@ def create_email_html(team_name: str, articles: list) -> str:
                     <!-- Footer -->
                     <tr>
                         <td style="text-align: center; padding: 25px 20px; color: #888888; font-size: 12px; border-top: 1px solid #eeeeee;">
-                            <p style="color: #F7941D; font-weight: 500; margin: 0 0 10px 0;">DAEWOONG PHARMACEUTICAL</p>
+                            <img src="cid:company_logo" alt="Daewoong Pharmaceutical" style="height: 30px; margin-bottom: 10px;" />
                             <p style="margin: 0;">이 이메일은 제약 뉴스 에이전트에 의해 자동으로 발송되었습니다.</p>
                         </td>
                     </tr>
@@ -188,20 +206,23 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
                 <table cellpadding="0" cellspacing="0" border="0" width="900" style="max-width: 900px; background-color: #ffffff;">
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: #E67E22; padding: 25px 20px; border-radius: 10px 10px 0 0;">
+                        <td style="background-color: #ED7D31; padding: 25px 20px; border-radius: 10px 10px 0 0;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td style="vertical-align: middle; color: #ffffff;">
                                         <div style="font-size: 20px; font-weight: 600; color: #ffffff;">🚨 {team_name} 규제 모니터링 알림</div>
                                         <div style="font-size: 13px; color: #ffffff; opacity: 0.95; margin-top: 4px;">{today} | {len(updates)}건의 규제 업데이트</div>
                                     </td>
-                                    <td style="vertical-align: middle; text-align: right; color: #ffffff;">
-                                        <div style="font-size: 18px; font-weight: 700; letter-spacing: 2px; color: #ffffff;">DAEWOONG</div>
-                                        <div style="font-size: 10px; color: #ffffff; opacity: 0.8; margin-top: 2px;">PHARMACEUTICAL</div>
+                                    <td style="vertical-align: middle; text-align: right;">
+                                        <img src="cid:company_logo" alt="Daewoong Pharmaceutical" style="height: 40px; width: auto;" />
                                     </td>
                                 </tr>
                             </table>
                         </td>
+                    </tr>
+                    <!-- Orange Divider Line -->
+                    <tr>
+                        <td style="height: 3px; background-color: #ED7D31; font-size: 0; line-height: 0;">&nbsp;</td>
                     </tr>
                     <!-- Content -->
                     <tr>
@@ -223,10 +244,10 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
         title = f"[{source}] {category.upper()} 업데이트"
         
         html += f'''
-                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FEF9F3; margin-bottom: 15px; border-left: 4px solid #E67E22; border-radius: 8px;">
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FFF3E8; margin-bottom: 15px; border-left: 4px solid #ED7D31; border-radius: 8px;">
                                 <tr>
                                     <td style="padding: 20px;">
-                                        <div style="font-size: 17px; color: #D35400; font-weight: 600; margin-bottom: 10px;">{title}</div>
+                                        <div style="font-size: 17px; color: #ED7D31; font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #ED7D31;">{title}</div>
                                         <div style="font-size: 12px; color: #888888; margin-bottom: 10px;">{timestamp} | {source} &gt; {category}</div>
                                         <div style="color: #555555; font-weight: 500; line-height: 1.7;">{summary}</div>
 '''
@@ -235,7 +256,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
             html += '''
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 12px;">
                                             <tr>
-                                                <td style="background-color: #ffffff; padding: 12px; border: 1px solid #F5DCC3; border-radius: 6px;">
+                                                <td style="background-color: #ffffff; padding: 12px; border: 1px solid #FDDCB5; border-radius: 6px;">
                                                     <strong>📋 주요 변경사항:</strong>
                                                     <ul style="margin: 8px 0 0 0; padding-left: 20px;">'''
             for change in key_changes:
@@ -250,7 +271,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
             html += f'''
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 12px;">
                                             <tr>
-                                                <td style="background-color: #FEF4E8; padding: 12px; border-radius: 6px; border-left: 3px solid #E67E22; font-size: 14px;">
+                                                <td style="background-color: #FFF3E8; padding: 12px; border-radius: 6px; border-left: 3px solid #ED7D31; font-size: 14px;">
                                                     ⚠️ <strong>영향 및 대응:</strong> {implications}
                                                 </td>
                                             </tr>
@@ -259,7 +280,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
         
         html += f'''
                                         <div style="margin-top: 12px;">
-                                            <a href="{link}" target="_blank" style="color: #D35400; text-decoration: none; font-weight: 600;">📄 원문 문서 보기</a>
+                                            <a href="{link}" target="_blank" style="color: #ED7D31; text-decoration: none; font-weight: 600;">📄 원문 문서 보기</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -272,7 +293,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
                     <!-- Footer -->
                     <tr>
                         <td style="text-align: center; padding: 25px 20px; color: #888888; font-size: 12px; border-top: 1px solid #eeeeee;">
-                            <p style="color: #E67E22; font-weight: 500; margin: 0 0 10px 0;">DAEWOONG PHARMACEUTICAL</p>
+                            <img src="cid:company_logo" alt="Daewoong Pharmaceutical" style="height: 30px; margin-bottom: 10px;" />
                             <p style="margin: 0;">이 알림은 규제 모니터링 시스템에 의해 감지된 중요 변경사항입니다.</p>
                         </td>
                     </tr>
@@ -287,19 +308,28 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
 
 
 def send_email(to_emails: list, subject: str, html_content: str) -> bool:
-    """이메일 발송"""
+    """이메일 발송 (로고 인라인 첨부 포함)"""
     if not SENDER_EMAIL or not SENDER_PASSWORD:
         print("[ERROR] 이메일 설정이 없습니다. .env 파일에 SENDER_EMAIL, SENDER_PASSWORD를 설정하세요.")
         return False
     
     try:
-        msg = MIMEMultipart('alternative')
+        msg = MIMEMultipart('related')
         msg['Subject'] = subject
         msg['From'] = SENDER_EMAIL
         msg['To'] = ', '.join(to_emails)
         
+        # HTML 파트 추가
         html_part = MIMEText(html_content, 'html', 'utf-8')
         msg.attach(html_part)
+        
+        # 로고 이미지 인라인 첨부 (CID)
+        if os.path.exists(LOGO_PATH):
+            with open(LOGO_PATH, 'rb') as f:
+                logo_img = MIMEImage(f.read(), _subtype='png')
+                logo_img.add_header('Content-ID', '<company_logo>')
+                logo_img.add_header('Content-Disposition', 'inline', filename='LOGO.png')
+                msg.attach(logo_img)
         
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()

@@ -14,6 +14,7 @@ from src.ich_monitor import ICHGuidelinesMonitor
 from src.eudralex_monitor import EudraLexMonitor
 from src.gmpjournal_annex1_monitor import GMPJournalAnnex1Monitor
 from src.ai_summarizer_gemini import get_gemini_client, analyze_pdf
+import src.logger as logger
 
 # config 디렉토리에서 .env 로드
 from dotenv import load_dotenv
@@ -66,7 +67,8 @@ def run_monitor_pipeline():
     output_file = os.path.join(DATA_MONITORS_DIR, f"monitor_updates_{today}.json")
     
     updates = []
-    
+    monitor_results = {}  # Track results for logging
+
     # Initialize AI
     try:
         model = get_gemini_client()
@@ -109,7 +111,10 @@ def run_monitor_pipeline():
                             "note": "AI Analysis Skipped (No Model)",
                             "timestamp": datetime.now().isoformat()
                         })
-    
+
+    ich_update_count = sum(1 for u in updates if u.get("source") == "ICH Guidelines")
+    monitor_results["ICH Guidelines"] = {"status": "ok", "updates": ich_update_count}
+
     # 2. PMDA Newsletter Monitor (with Change Detection)
     print("\n[2] Checking PMDA Newsletter...")
     try:
@@ -161,9 +166,16 @@ def run_monitor_pipeline():
                     print(f"  -> Initialized PMDA snapshot with {len(current_pmda_pdfs)} PDFs")
         else:
             print("  -> No PMDA updates found")
+            monitor_results["PMDA Newsletter"] = {"status": "ok", "updates": 0}
     except Exception as e:
         print(f"  -> PMDA check error: {e}")
-    
+        monitor_results["PMDA Newsletter"] = {"status": "error", "updates": 0, "error": str(e)}
+
+    # Count PMDA updates if not already set
+    if "PMDA Newsletter" not in monitor_results:
+        pmda_count = sum(1 for u in updates if u.get("source") == "PMDA Newsletter")
+        monitor_results["PMDA Newsletter"] = {"status": "ok", "updates": pmda_count}
+
     # 3. USP Pending Monographs Monitor (Change Detection)
     print("\n[3] Checking USP Pending Monographs...")
     try:
@@ -220,13 +232,19 @@ def run_monitor_pipeline():
             if current_pdfs:
                 save_usp_snapshot(current_pdfs)
                 
+        # Count USP updates
+        usp_count = sum(1 for u in updates if u.get("source") == "USP Pending Monographs")
+        monitor_results["USP Pending Monographs"] = {"status": "ok", "updates": usp_count}
+
     except ImportError:
         print("  -> USP scraper not available (missing dependencies)")
+        monitor_results["USP Pending Monographs"] = {"status": "error", "updates": 0, "error": "missing dependencies"}
     except Exception as e:
         print(f"  -> USP check error: {e}")
+        monitor_results["USP Pending Monographs"] = {"status": "error", "updates": 0, "error": str(e)}
         import traceback
         traceback.print_exc()
-    
+
     # 4. EudraLex Volume 4 Monitor (EU GMP Guidelines)
     print("\n[4] Checking EudraLex Volume 4 (EU GMP)...")
     try:
@@ -275,8 +293,12 @@ def run_monitor_pipeline():
         else:
             print("  -> No changes detected")
 
+        eudralex_count = sum(1 for u in updates if u.get("source") == "EudraLex Volume 4")
+        monitor_results["EudraLex Volume 4"] = {"status": "ok", "updates": eudralex_count}
+
     except Exception as e:
         print(f"  -> EudraLex check error: {e}")
+        monitor_results["EudraLex Volume 4"] = {"status": "error", "updates": 0, "error": str(e)}
         import traceback
         traceback.print_exc()
 
@@ -315,12 +337,41 @@ def run_monitor_pipeline():
         else:
             print("  -> No changes detected")
 
+        annex1_count = sum(1 for u in updates if u.get("source") == "GMP Journal (ECA)")
+        monitor_results["GMP Journal Annex 1"] = {"status": "ok", "updates": annex1_count}
+
     except Exception as e:
         print(f"  -> GMP Journal Annex1 check error: {e}")
+        monitor_results["GMP Journal Annex 1"] = {"status": "error", "updates": 0, "error": str(e)}
         import traceback
         traceback.print_exc()
 
-    # 6. Save Results
+    # 6. General Regulatory HTML Pages
+    print("\n[6] Checking General Regulatory HTML Pages...")
+    try:
+        from src.html_change_monitor import RegulatoryPageMonitor
+        html_monitor = RegulatoryPageMonitor()
+        html_results = html_monitor.check_all()
+        
+        for res in html_results:
+            if res.get("has_changes"):
+                # Convert to update format
+                updates.append({
+                    "source": f"HTML Monitor: {res.get('page_name')}",
+                    "type": "Content Change Detected",
+                    "title": res.get('description'),
+                    "link": res.get('url'),
+                    "summary": res.get('summary'),
+                    "timestamp": datetime.now().isoformat()
+                })
+        html_count = sum(1 for r in html_results if r.get("has_changes"))
+        monitor_results["HTML Page Monitor"] = {"status": "ok", "updates": html_count}
+
+    except Exception as e:
+        print(f"  -> HTML Monitor error: {e}")
+        monitor_results["HTML Page Monitor"] = {"status": "error", "updates": 0, "error": str(e)}
+
+    # 7. Save Results
     if updates:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(updates, f, ensure_ascii=False, indent=2)
@@ -330,6 +381,13 @@ def run_monitor_pipeline():
         # Create empty list file to indicate run happened
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump([], f, ensure_ascii=False, indent=2)
+
+    # 8. Log monitor results to daily log file
+    logger.log_monitor_execution(
+        monitor_results=monitor_results,
+        total_updates=len(updates),
+        output_file=output_file
+    )
 
 if __name__ == "__main__":
     run_monitor_pipeline()

@@ -11,7 +11,8 @@ import os
 from email.utils import parsedate_to_datetime
 
 # 상위 디렉토리의 keywords 모듈 임포트
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
 from keywords import classify_article
 
 from .base_scraper import BaseScraper, NewsArticle
