@@ -487,6 +487,78 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
     print("=" * 60)
 
 
+def send_log_email(log_file: str = None):
+    """
+    일일 실행 로그를 관리자(발신자) 이메일로 발송
+    파이프라인 실행 결과를 모니터링하기 위함
+    """
+    if not SENDER_EMAIL or not SENDER_PASSWORD:
+        print("[LOG EMAIL] 이메일 설정이 없습니다.")
+        return False
+
+    # 로그 파일 경로 결정
+    if log_file is None:
+        today = datetime.now().strftime('%Y%m%d')
+        log_file = os.path.join(PROJECT_ROOT, "logs", f"log_{today}.txt")
+
+    if not os.path.exists(log_file):
+        print(f"[LOG EMAIL] 로그 파일을 찾을 수 없습니다: {log_file}")
+        return False
+
+    # 로그 내용 읽기
+    with open(log_file, 'r', encoding='utf-8') as f:
+        log_content = f.read()
+
+    if not log_content.strip():
+        print("[LOG EMAIL] 로그 내용이 비어있습니다.")
+        return False
+
+    today_str = datetime.now().strftime('%Y-%m-%d %H:%M')
+    subject = f"[시스템 로그] 제약 뉴스 에이전트 실행 결과 - {today_str}"
+
+    # 간단한 HTML 포맷
+    html = f'''<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin: 0; padding: 20px; font-family: 'Malgun Gothic', monospace; background-color: #f5f5f5;">
+    <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #333333; color: #ffffff; padding: 20px;">
+            <div style="font-size: 18px; font-weight: 600;">System Log - 제약 뉴스 에이전트</div>
+            <div style="font-size: 12px; margin-top: 4px; opacity: 0.8;">{today_str}</div>
+        </div>
+        <div style="padding: 20px;">
+            <pre style="background: #f8f8f8; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;">{log_content}</pre>
+        </div>
+        <div style="text-align: center; padding: 15px; color: #888; font-size: 11px; border-top: 1px solid #eee;">
+            자동 발송 - 제약 뉴스 에이전트 시스템 로그
+        </div>
+    </div>
+</body>
+</html>'''
+
+    # 발신자 이메일로 전송 (자기 자신에게)
+    try:
+        msg = MIMEMultipart()
+        msg['Subject'] = subject
+        msg['From'] = SENDER_EMAIL
+        msg['To'] = SENDER_EMAIL
+
+        html_part = MIMEText(html, 'html', 'utf-8')
+        msg.attach(html_part)
+
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.sendmail(SENDER_EMAIL, [SENDER_EMAIL], msg.as_string())
+
+        print(f"[LOG EMAIL] 로그 이메일 발송 완료 -> {SENDER_EMAIL}")
+        return True
+
+    except Exception as e:
+        print(f"[LOG EMAIL] 발송 실패: {e}")
+        return False
+
+
 # 단독 실행 시
 if __name__ == "__main__":
     import argparse

@@ -178,6 +178,16 @@ def main():
         except Exception as e:
             print(f"[ERROR] Failed to check monitor file: {e}")
         
+    # ---------------------------------------------------------
+    # PART 4: SEND LOG EMAIL
+    # ---------------------------------------------------------
+    print("\n[PHASE 4] System Log Email")
+    try:
+        from src.email_sender import send_log_email
+        send_log_email()
+    except Exception as e:
+        print(f"[ERROR] Log email failed: {e}")
+
     print("\nAll tasks completed.")
 
 if __name__ == "__main__":
