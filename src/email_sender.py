@@ -93,9 +93,9 @@ def create_email_html(team_name: str, articles: list) -> str:
                         <td style="background-color: #fef0d5; padding: 25px 20px; border-radius: 10px 10px 0 0;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
-                                    <td style="vertical-align: middle; color: #ffffff;">
-                                        <div style="font-size: 20px; font-weight: 600; color: #ffffff;">📰 {team_name} 뉴스 브리핑</div>
-                                        <div style="font-size: 13px; color: #ffffff; opacity: 0.95; margin-top: 4px;">{today} | {len(articles)}건의 관련 뉴스</div>
+                                    <td style="vertical-align: middle; color: #000000;">
+                                        <div style="font-size: 20px; font-weight: 600; color: #000000;">📰 {team_name} 뉴스 브리핑</div>
+                                        <div style="font-size: 13px; color: #000000; margin-top: 4px;">{today} | {len(articles)}건의 관련 뉴스</div>
                                     </td>
                                     <td style="vertical-align: middle; text-align: right;">
                                         <img src="cid:company_logo" alt="Daewoong Pharmaceutical" style="height: 40px; width: auto;" />
@@ -209,9 +209,9 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
                         <td style="background-color: #fef0d5; padding: 25px 20px; border-radius: 10px 10px 0 0;">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
-                                    <td style="vertical-align: middle; color: #ffffff;">
-                                        <div style="font-size: 20px; font-weight: 600; color: #ffffff;">🚨 {team_name} 규제 모니터링 알림</div>
-                                        <div style="font-size: 13px; color: #ffffff; opacity: 0.95; margin-top: 4px;">{today} | {len(updates)}건의 규제 업데이트</div>
+                                    <td style="vertical-align: middle; color: #000000;">
+                                        <div style="font-size: 20px; font-weight: 600; color: #000000;">🚨 {team_name} 규제 모니터링 알림</div>
+                                        <div style="font-size: 13px; color: #000000; margin-top: 4px;">{today} | {len(updates)}건의 규제 업데이트</div>
                                     </td>
                                     <td style="vertical-align: middle; text-align: right;">
                                         <img src="cid:company_logo" alt="Daewoong Pharmaceutical" style="height: 40px; width: auto;" />
