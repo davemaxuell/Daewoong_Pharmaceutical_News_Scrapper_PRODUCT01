@@ -154,12 +154,12 @@ def create_email_html(team_name: str, articles: list) -> str:
         if keywords:
             html += '<div style="margin-top: 12px;">'
             for kw in keywords:
-                html += f'<span style="display: inline-block; background-color: #fef0d5; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px;">{kw}</span>'
+                html += f'<span style="display: inline-block; background-color: #fef0d5; color: #000000; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin: 2px;">{kw}</span>'
             html += '</div>'
         
         html += f'''
                                         <div style="margin-top: 12px;">
-                                            <a href="{link}" target="_blank" style="color: #fef0d5; text-decoration: none; font-weight: 500;">🔗 원문 보기</a>
+                                            <a href="{link}" target="_blank" style="color: #000000; text-decoration: none; font-weight: 500;">🔗 원문 보기</a>
                                         </div>
                                     </td>
                                 </tr>

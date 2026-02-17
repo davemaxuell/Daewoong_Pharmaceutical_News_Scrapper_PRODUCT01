@@ -102,6 +102,7 @@ def main():
     """)
     
     today = datetime.now().strftime('%Y%m%d')
+    failed_steps = []
     is_monday = datetime.now().weekday() == 0
     days_back = 3 if is_monday else 1
     
@@ -130,13 +131,16 @@ def main():
     scraper_script = os.path.join(SRC_DIR, "multi_source_scraper.py")
     if not run_step("Multi-Source Scraper", [python_exe, scraper_script, "--days", str(days_back), "-o", news_file], cwd=PROJECT_ROOT):
         print("[WARNING] Scraping failed. Continuing potentially with partial data...")
+        failed_steps.append("Multi-Source Scraper")
 
     # 2. AI Summarization (Gemini) - directly on news file (now has full_text)
     summarizer_script = os.path.join(SRC_DIR, "ai_summarizer_gemini.py")
     if os.path.exists(news_file):
-        run_step("AI Summarizer (Gemini)", [python_exe, summarizer_script, "-i", news_file, "-o", summarized_file], cwd=PROJECT_ROOT)
+        if not run_step("AI Summarizer (Gemini)", [python_exe, summarizer_script, "-i", news_file, "-o", summarized_file], cwd=PROJECT_ROOT):
+            failed_steps.append("AI Summarizer (Gemini)")
     else:
         print(f"[ERROR] News file {news_file} not found. Skipping AI summarization.")
+        failed_steps.append("AI Summarizer (Gemini) - input missing")
 
     # ---------------------------------------------------------
     # PART 2: MONITOR PIPELINE
@@ -145,7 +149,8 @@ def main():
     
     # ICH & PDF Monitor Pipeline
     monitor_script = os.path.join(SRC_DIR, "monitor_pipeline.py")
-    run_step("ICH & PDF Monitor", [python_exe, monitor_script], cwd=PROJECT_ROOT)
+    if not run_step("ICH & PDF Monitor", [python_exe, monitor_script], cwd=PROJECT_ROOT):
+        failed_steps.append("ICH & PDF Monitor")
 
     # ---------------------------------------------------------
     # PART 3: REPORTING
@@ -156,7 +161,8 @@ def main():
     
     # 1. Send News Briefing (Always)
     if os.path.exists(summarized_file):
-        run_step("Email Distributor (News)", [python_exe, email_script, "-i", summarized_file, "--teams", team_emails_file], cwd=PROJECT_ROOT)
+        if not run_step("Email Distributor (News)", [python_exe, email_script, "-i", summarized_file, "--teams", team_emails_file], cwd=PROJECT_ROOT):
+            failed_steps.append("Email Distributor (News)")
     
     # 2. Send Monitor Updates (Only if changes detected)
     if os.path.exists(monitor_file):
@@ -166,12 +172,13 @@ def main():
             
             if updates and len(updates) > 0:
                 print(f"\n[INFO] {len(updates)} regulatory updates found. Sending alerts...")
-                run_step("Email Distributor (Monitor)", [
+                if not run_step("Email Distributor (Monitor)", [
                     python_exe, email_script, 
                     "-i", monitor_file, 
                     "--teams", team_emails_file,
                     "--monitor"
-                ], cwd=PROJECT_ROOT)
+                ], cwd=PROJECT_ROOT):
+                    failed_steps.append("Email Distributor (Monitor)")
             else:
                 print("\n[INFO] No regulatory updates to report. Email skipped.")
                 
@@ -184,11 +191,21 @@ def main():
     print("\n[PHASE 4] System Log Email")
     try:
         from src.email_sender import send_log_email
-        send_log_email()
+        if not send_log_email():
+            failed_steps.append("System Log Email")
     except Exception as e:
         print(f"[ERROR] Log email failed: {e}")
+        failed_steps.append("System Log Email")
 
-    print("\nAll tasks completed.")
+    if failed_steps:
+        print("\n[FINAL] Pipeline completed with failures.")
+        print("[FINAL] Failed steps:")
+        for step in failed_steps:
+            print(f"  - {step}")
+        return 1
+
+    print("\n[FINAL] All tasks completed successfully.")
+    return 0
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
