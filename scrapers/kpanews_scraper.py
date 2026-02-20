@@ -142,7 +142,7 @@ class KPANewsScraper(BaseScraper):
         classifications, matched_keywords = classify_article(title, summary)
         if not classifications:
             classifications = ["업계뉴스"]
-            matched_keywords = ["약사공론"]
+            matched_keywords = []
 
         # 본문 수집
         content = self.fetch_article_content(link, self.CONTENT_SELECTORS)

@@ -29,6 +29,8 @@ multi_source_*.json
 monitor_updates_*.json
 *_test.json
 test_*.json
+test_*.txt
+test_*.py
 *_output.json
 *_sample.json
 
