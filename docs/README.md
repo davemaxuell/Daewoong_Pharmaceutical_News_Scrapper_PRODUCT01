@@ -209,3 +209,15 @@ MIT License
 ## 👥 Contributors
 
 - Daewoong Pharmaceutical IT Team
+
+## Pipeline Maintenance Tools
+
+```bash
+# Validate pipeline consistency before deploy
+python scripts/validate_pipeline.py
+
+# Generate new scraper skeleton
+python scripts/new_scraper.py --key my_source --display-name "My Source" --base-url "https://example.com"
+```
+
+See `docs/PIPELINE_IMPROVEMENT_GUIDE.md` for details.

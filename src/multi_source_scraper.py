@@ -4,12 +4,14 @@
 import json
 import os
 import sys
+import copy
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
 # 프로젝트 루트 설정 (src/ 상위 디렉토리)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
+SCRAPER_SOURCES_PATH = os.path.join(PROJECT_ROOT, "config", "scraper_sources.json")
 
 
 from scrapers.base_scraper import NewsArticle
@@ -157,8 +159,44 @@ class MultiSourceScraper:
             sources: 활성화할 소스 목록 (None이면 모두 활성화)
         """
         self.sources = sources
+        self.scrapers_config = self._load_scrapers_config()
         self.results = []
         self.source_stats = {}
+
+    def _load_scrapers_config(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Load runtime scraper config.
+        - Base: hardcoded SCRAPERS_CONFIG (class-level)
+        - Optional overrides: config/scraper_sources.json
+        """
+        merged = copy.deepcopy(self.SCRAPERS_CONFIG)
+        if not os.path.exists(SCRAPER_SOURCES_PATH):
+            return merged
+
+        try:
+            with open(SCRAPER_SOURCES_PATH, "r", encoding="utf-8") as f:
+                overrides = json.load(f)
+        except Exception as e:
+            print(f"[WARN] Failed to load {SCRAPER_SOURCES_PATH}: {e}")
+            return merged
+
+        if not isinstance(overrides, dict):
+            print(f"[WARN] Invalid format in {SCRAPER_SOURCES_PATH}: expected object")
+            return merged
+
+        for source_key, patch in overrides.items():
+            if source_key not in merged:
+                print(f"[WARN] Unknown source in override: {source_key}")
+                continue
+            if not isinstance(patch, dict):
+                print(f"[WARN] Invalid override for {source_key}: expected object")
+                continue
+
+            for field in ("enabled", "description", "args", "use_internal_days_back"):
+                if field in patch:
+                    merged[source_key][field] = patch[field]
+
+        return merged
     
     def _get_days_back(self) -> int:
         """
@@ -193,7 +231,7 @@ class MultiSourceScraper:
         print(f"Days back: {days_back}")
         print("=" * 60)
         
-        for source_key, config in self.SCRAPERS_CONFIG.items():
+        for source_key, config in self.scrapers_config.items():
             # 비활성화된 소스 건너뛰기
             if not config.get("enabled", True):
                 continue
@@ -317,7 +355,8 @@ class MultiSourceScraper:
         """사용 가능한 소스 목록 출력"""
         print("\nAvailable Sources:")
         print("-" * 40)
-        for key, config in cls.SCRAPERS_CONFIG.items():
+        scraper = cls()
+        for key, config in scraper.scrapers_config.items():
             status = "✓" if config.get("enabled", True) else "✗"
             print(f"  [{status}] {key}: {config['description']}")
 
