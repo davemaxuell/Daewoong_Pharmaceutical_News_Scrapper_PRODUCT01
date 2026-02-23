@@ -190,7 +190,7 @@ def main():
     # ---------------------------------------------------------
     print("\n[PHASE 4] System Log Email")
     try:
-        from src.email_sender import send_log_email
+        from email_sender import send_log_email
         if not send_log_email():
             failed_steps.append("System Log Email")
     except Exception as e:
