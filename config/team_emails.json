@@ -1,0 +1,126 @@
+{
+  "루피어QC팀": {
+    "team_name": "루피어QC팀",
+    "categories": [
+      "무균/주사제",
+      "약전"
+    ],
+    "members": [
+      {
+        "name": "루피어QC 담당자",
+        "email": "qc@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "루피어생산팀": {
+    "team_name": "루피어생산팀",
+    "categories": [
+      "무균/주사제"
+    ],
+    "members": [
+      {
+        "name": "루피어생산 담당자",
+        "email": "aseptic@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "오송 QA팀": {
+    "team_name": "오송 QA팀",
+    "categories": [
+      "개정/변경",
+      "무균/주사제",
+      "품질 시스템(QMS)",
+      "Data integrity",
+      "약전",
+      "교차 오염"
+    ],
+    "members": [
+      {
+        "name": "Dave",
+        "email": "davemaxuell@naver.com",
+        "role": "관리자"
+      },
+      {
+        "name": "오송 QA 담당자",
+        "email": "2220090@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "오송QC1팀": {
+    "team_name": "오송QC1팀",
+    "categories": [
+      "약전"
+    ],
+    "members": [
+      {
+        "name": "오송QC1 담당자",
+        "email": "qc@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "오송QC2팀": {
+    "team_name": "오송QC2팀",
+    "categories": [
+      "약전"
+    ],
+    "members": [
+      {
+        "name": "오송QC2 담당자",
+        "email": "qc@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "오송고형제생산1팀": {
+    "team_name": "오송고형제생산1팀",
+    "categories": [
+      "고형제 - 칭량",
+      "고형제 - 과립 & 건조",
+      "고형제 - 타정",
+      "고형제 - 코팅",
+      "교차 오염"
+    ],
+    "members": [
+      {
+        "name": "오송고형제생산1 담당자",
+        "email": "solid-dosage@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "오송고형제생산2팀": {
+    "team_name": "오송고형제생산2팀",
+    "categories": [
+      "고형제 - 칭량",
+      "고형제 - 과립 & 건조",
+      "고형제 - 타정",
+      "고형제 - 코팅",
+      "교차 오염"
+    ],
+    "members": [
+      {
+        "name": "오송고형제생산2 담당자",
+        "email": "solid-dosage@daewoong.co.kr",
+        "role": "담당자"
+      }
+    ]
+  },
+  "오송제제기술팀": {
+    "team_name": "오송제제기술팀",
+    "categories": [
+      "Validation",
+      "교차 오염"
+    ],
+    "members": [
+      {
+        "name": "오송제제기술 담당자",
+        "email": "davemaxuellkr@gmail.com",
+        "role": "담당자"
+      }
+    ]
+  }
+}
