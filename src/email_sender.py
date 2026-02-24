@@ -113,13 +113,16 @@ def create_email_html(team_name: str, articles: list) -> str:
                         <td style="padding: 20px;">
 '''
     
+    # 키워드가 없는 기사는 제외
+    articles = [a for a in articles if a.get("ai_analysis", {}).get("ai_keywords")]
+
     for article in articles:
         ai = article.get("ai_analysis", {})
         title = article.get("title", "제목 없음")
         source = article.get("source", "출처 미상")
         published = article.get("published", "")[:10] if article.get("published") else ""
         link = article.get("link", "#")
-        
+
         summary = ai.get("ai_summary", "요약 없음")
         key_points = ai.get("key_points", [])
         impact = ai.get("industry_impact", "")
@@ -466,9 +469,16 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
             skip_count += 1
             continue
         
+        # 키워드 없는 기사 제외
+        tagged_news = [a for a in news_list if a.get("ai_analysis", {}).get("ai_keywords")]
+        if not tagged_news:
+            print(f"[SKIP] {team_name}: 키워드 태그된 뉴스 없음")
+            skip_count += 1
+            continue
+
         # 이메일 내용 생성
-        subject = f"{team_name} 뉴스 브리핑: {today} ({len(news_list)}건)"
-        html_content = create_email_html(team_name, news_list)
+        subject = f"{team_name} 뉴스 브리핑: {today} ({len(tagged_news)}건)"
+        html_content = create_email_html(team_name, tagged_news)
         
         # 이메일 발송
         print(f"\n[{team_name}] {len(news_list)}건의 뉴스를 {len(to_emails)}명에게 발송 중...")
