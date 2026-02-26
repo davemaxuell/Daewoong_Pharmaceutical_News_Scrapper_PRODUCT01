@@ -136,12 +136,7 @@ class ICHScraper(BaseScraper):
             # 키워드 분류
             classifications, matched_keywords = classify_article(title, summary)
             
-            # ICH 관련 기사에 규제행정 분류 추가
-            if not classifications:
-                # ICH 뉴스는 기본적으로 규제/가이드라인 관련
-                classifications = ["규제행정"]
-                matched_keywords = ["ICH", "가이드라인"]
-            
+
             return NewsArticle(
                 title=title,
                 link=link,

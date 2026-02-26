@@ -387,10 +387,6 @@ class BioProcessScraper(BaseScraper):
             # 분류
             classifications, matched_keywords = classify_article(title, summary)
 
-            # BioProcess 특화 분류 추가
-            if not classifications:
-                classifications = ["BioProcess", "바이오의약품"]
-                matched_keywords = ["BioProcess"]
 
             # Add category to classifications
             if category:

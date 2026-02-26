@@ -229,10 +229,7 @@ class KPBMAScraper(BaseScraper):
         # 분류 수행
         classifications, matched_keywords = classify_article(title, "")
         
-        if not classifications:
-            classifications = ["업계뉴스"]
-            matched_keywords = ["KPBMA", "제약"]
-        
+
         # 본문 수집 (외부 링크에서)
         content = self.fetch_article_content(link, self.CONTENT_SELECTORS)
         

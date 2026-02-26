@@ -146,9 +146,6 @@ class PICSScraper(BaseScraper):
             
             # 분류
             classifications, matched_keywords = classify_article(title, summary)
-            if not classifications:
-                classifications = ["GMP", "규제"]
-                matched_keywords = ["PIC/S", "GMP"]
             
             # 본문 수집
             content = self.fetch_article_content(link, self.CONTENT_SELECTORS)

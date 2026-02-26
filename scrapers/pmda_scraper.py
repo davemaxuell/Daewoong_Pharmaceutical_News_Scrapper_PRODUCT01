@@ -144,10 +144,7 @@ class PMDAScraper(BaseScraper):
         # 분류 수행
         classifications, matched_keywords = classify_article(title, "PMDA Updates Newsletter")
         
-        if not classifications:
-            classifications = ["규제행정"]
-            matched_keywords = ["PMDA", "Japan"]
-        
+
         return NewsArticle(
             title=f"PMDA Updates - {title}",
             link=pdf_url,

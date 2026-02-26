@@ -194,10 +194,7 @@ class FDAEnforcementScraper(BaseScraper):
             
             # 분류
             classifications, matched_keywords = classify_article(title, summary)
-            if not classifications:
-                classifications = ["FDA", "규제", "리콜", category]
-                matched_keywords = ["FDA", classification, category]
-            
+
             return NewsArticle(
                 title=title,
                 link=link,

@@ -347,9 +347,6 @@ class ISPEScraper(BaseScraper):
                     # Classify
                     classifications, matched_keywords = classify_article(title, summary)
 
-                    if not classifications:
-                        classifications = ["ISPE", "SmartBrief"]
-                        matched_keywords = ["ISPE"]
 
                     # Add target keywords
                     for keyword in get_all_keywords():
@@ -491,10 +488,6 @@ class ISPEScraper(BaseScraper):
             # 분류
             classifications, matched_keywords = classify_article(title, summary)
 
-            # ISPE 특화 분류 추가
-            if not classifications:
-                classifications = ["ISPE", "제약엔지니어링"]
-                matched_keywords = ["ISPE"]
 
             # 타겟 키워드 추가
             for keyword in get_all_keywords():

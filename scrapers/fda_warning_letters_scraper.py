@@ -169,10 +169,6 @@ class FDAWarningLettersScraper(BaseScraper):
 
             # 분류
             classifications, matched_keywords = classify_article(title, summary)
-            if not classifications:
-                # 기본 분류
-                classifications = ["FDA", "규제", "경고장"]
-                matched_keywords = ["FDA", "Warning Letter", issuing_office]
 
             return NewsArticle(
                 title=title,
@@ -431,10 +427,7 @@ class FDAWarningLettersScraper(BaseScraper):
                     
                     # 분류
                     classifications, matched_keywords = classify_article(title, summary)
-                    if not classifications:
-                        classifications = ["FDA", "규제", "경고장"]
-                        matched_keywords = ["FDA", "Warning Letter", issuing_office]
-                    
+
                     # 전체 내용 가져오기 (AI 요약용)
                     full_text = self._fetch_letter_content(link, headers)
                     if not full_text:

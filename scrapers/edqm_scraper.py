@@ -230,10 +230,6 @@ class EDQMScraper(BaseScraper):
         # 분류 수행
         classifications, matched_keywords = classify_article(title, summary)
         
-        # EDQM 기본 분류 추가
-        if not classifications:
-            classifications = ["규제행정"]
-            matched_keywords = ["EDQM", newsroom_name]
         
         # 본문 수집
         content = self.fetch_article_content(full_link, self.CONTENT_SELECTORS)

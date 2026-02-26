@@ -418,11 +418,7 @@ class MFDSScraper(BaseScraper):
             # 분류 수행
             classifications, matched_keywords = classify_article(title, summary)
             
-            # 기본 분류 추가
-            if not classifications:
-                classifications = [category]
-                matched_keywords = ["MFDS", feed_name]
-            
+
             # 본문 수집 (링크에서 전체 내용)
             content = self.fetch_article_content(link, self.CONTENT_SELECTORS)
             
