@@ -52,23 +52,24 @@ def load_summarized_news(filepath: str) -> list:
         return json.load(f)
 
 
-def organize_news_by_team(articles: list) -> dict:
-    """뉴스를 팀별로 분류"""
+def organize_news_by_team(articles: list, team_emails: dict) -> dict:
+    """뉴스를 팀별로 분류 (keywords.py 카테고리 기반 라우팅)"""
     team_news = {}
-    
-    for article in articles:
-        ai_analysis = article.get("ai_analysis", {})
-        target_teams = ai_analysis.get("target_teams", [])
-        
-        # 타겟 팀이 없으면 건너뜀
-        if not target_teams:
+
+    for team_name, team_info in team_emails.items():
+        team_categories = set(team_info.get("categories", []))
+        if not team_categories:
             continue
-        
-        for team in target_teams:
-            if team not in team_news:
-                team_news[team] = []
-            team_news[team].append(article)
-    
+
+        matching = [
+            a for a in articles
+            if set(a.get("classifications", [])) & team_categories
+            and a.get("ai_analysis", {}).get("ai_keywords")
+        ]
+
+        if matching:
+            team_news[team_name] = matching
+
     return team_news
 
 
@@ -436,7 +437,7 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
         return
     
     articles = load_summarized_news(summarized_json)
-    team_news = organize_news_by_team(articles)
+    team_news = organize_news_by_team(articles, team_emails)
     
     if not team_news:
         print("[SKIP] 발송할 뉴스가 없습니다.")
