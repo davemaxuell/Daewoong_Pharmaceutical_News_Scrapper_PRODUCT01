@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>제약 뉴스 관리자</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <main class="app-shell">
+    <section id="login-view" class="panel login-panel">
+      <div class="brand-wrap">
+        <img src="/static/LOGO.png" alt="Daewoong Logo" class="brand-logo">
+      </div>
+      <h1>제약 뉴스 관리자</h1>
+      <p class="muted">키워드, 수신자, 스크래퍼 설정을 한 곳에서 관리하세요.</p>
+      <form id="login-form" class="form-stack">
+        <label>아이디</label>
+        <input id="login-username" type="text" required placeholder="osongqa111">
+        <label>비밀번호</label>
+        <input id="login-password" type="password" required placeholder="********">
+        <button type="submit">로그인</button>
+      </form>
+      <p id="login-error" class="error"></p>
+    </section>
+
+    <section id="dashboard-view" class="dashboard hidden">
+      <header class="topbar panel">
+        <div class="topbar-left">
+          <h2>관리자 대시보드</h2>
+          <p id="user-meta" class="muted"></p>
+          <p id="server-time" class="muted"></p>
+        </div>
+        <div class="topbar-right">
+          <img src="/static/LOGO.png" alt="Daewoong Logo" class="brand-logo topbar-logo">
+          <div class="topbar-actions">
+            <button id="refresh-btn" class="secondary">새로고침</button>
+            <button id="logout-btn" class="danger">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="panel nav-tabs">
+        <button class="tab-btn active" data-view="manage">키워드/수신자</button>
+        <button class="tab-btn" data-view="control">스크래퍼/설정</button>
+        <button class="tab-btn" data-view="monitor">실행/로그</button>
+        <button class="tab-btn" data-view="result">결과</button>
+        <button class="tab-btn" data-view="history">이메일 히스토리</button>
+      </nav>
+
+      <section class="grid-two content-section active" data-section="manage">
+        <article class="panel">
+          <h3>키워드 관리</h3>
+          <form id="keyword-form" class="form-stack compact">
+            <input id="kw-name" type="text" placeholder="키워드" required>
+            <input id="kw-categories" type="text" placeholder="그룹(카테고리, 쉼표 구분)">
+            <div class="row keyword-category-row">
+              <select id="kw-category-pick">
+                <option value="">기존 카테고리 선택</option>
+              </select>
+              <button id="kw-category-add-btn" type="button" class="secondary">카테고리 추가</button>
+            </div>
+            <div class="row">
+              <input id="kw-language" type="text" placeholder="언어" value="ko">
+              <label class="checkline" title="체크하면 이 키워드는 활성 상태로 저장되어 사용됩니다.">
+                <input
+                  id="kw-active"
+                  type="checkbox"
+                  checked
+                  title="체크하면 이 키워드는 활성 상태로 저장되어 사용됩니다."
+                >
+                활성
+              </label>
+            </div>
+            <button type="submit">키워드 추가</button>
+          </form>
+          <div class="list-toolbar filter-inline">
+            <input id="kw-search" type="text" placeholder="키워드 검색...">
+            <select id="kw-group-filter">
+              <option value="">전체 그룹</option>
+            </select>
+            <select id="kw-language-filter">
+              <option value="">전체 언어</option>
+            </select>
+          </div>
+          <div id="keyword-list" class="list-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>수신자 관리 (팀 이메일)</h3>
+          <form id="recipient-form" class="form-stack compact">
+            <input id="rc-email" type="email" placeholder="이메일" required>
+            <input id="rc-name" type="text" placeholder="이름">
+            <input id="rc-teams" type="text" placeholder="팀 이름(쉼표 구분)">
+            <div class="row recipient-team-row">
+              <select id="rc-team-pick">
+                <option value="">기존 팀 선택</option>
+              </select>
+              <button id="rc-team-add-btn" type="button" class="secondary">팀 추가</button>
+            </div>
+            <div class="row">
+              <label class="checkline"><input id="rc-active" type="checkbox" checked> 활성</label>
+              <label class="checkline"><input id="rc-test" type="checkbox"> 테스트 메일 수신</label>
+            </div>
+            <button type="submit">수신자 추가</button>
+          </form>
+          <div class="list-toolbar filter-inline">
+            <input id="rc-search" type="text" placeholder="수신자 검색 (이메일 또는 이름)">
+            <select id="rc-team-filter">
+              <option value="">전체 팀</option>
+            </select>
+          </div>
+          <div id="recipient-list" class="list-box"></div>
+        </article>
+      </section>
+
+      <section class="grid-two content-section" data-section="monitor">
+        <article class="panel">
+          <h3>Admin Report</h3>
+          <div class="row">
+            <button id="admin-report-export-btn" type="button" class="secondary">Admin Report CSV</button>
+            <button id="email-history-export-btn" type="button" class="secondary">Email History CSV</button>
+          </div>
+          <div id="admin-report-summary" class="muted">최근 운영 리포트를 불러오는 중입니다.</div>
+          <h4>Team Delivery Status</h4>
+          <div id="admin-report-teams" class="list-box"></div>
+          <h4>Recent Campaigns</h4>
+          <div id="admin-report-campaigns" class="list-box"></div>
+          <h3>실행 모니터</h3>
+          <div class="list-toolbar row">
+            <select id="run-status-filter">
+              <option value="">전체 상태</option>
+              <option value="running">running</option>
+              <option value="success">success</option>
+              <option value="failed">failed</option>
+              <option value="queued">queued</option>
+            </select>
+            <button id="run-refresh-btn" class="secondary" type="button">실행 내역 불러오기</button>
+          </div>
+          <div id="run-list" class="list-box"></div>
+          <h4>선택 실행 소스 상세</h4>
+          <div id="run-source-list" class="list-box"></div>
+          <h4>Source Health</h4>
+          <div id="source-health-summary" class="muted">理쒖떊 吏꾨떒 ?곹깭瑜?遺덈윭?ㅺ굅 ?덉뒿?덈떎.</div>
+          <div id="source-health-list" class="list-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>로그 뷰어</h3>
+          <div class="list-toolbar row">
+            <select id="log-level-filter">
+              <option value="">전체 레벨</option>
+              <option value="ERROR">ERROR</option>
+              <option value="WARNING">WARNING</option>
+              <option value="INFO">INFO</option>
+              <option value="DEBUG">DEBUG</option>
+            </select>
+            <input id="log-search" type="text" placeholder="로그 메시지 검색...">
+            <button id="log-refresh-btn" class="secondary" type="button">로그 불러오기</button>
+          </div>
+          <div id="log-list" class="list-box"></div>
+        </article>
+      </section>
+
+      <section class="grid-two content-section" data-section="control">
+        <article class="panel">
+          <h3>스크래퍼 제어</h3>
+          <h4>실행 선택</h4>
+          <div class="run-actions grouped run-selector">
+            <select id="run-mode-select">
+              <option value="pipeline_full">전체 파이프라인</option>
+              <option value="news_only">뉴스 스크래퍼만</option>
+              <option value="html_only">HTML 모니터만</option>
+              <option value="source_health">Source health diagnostics</option>
+              <option value="single_source">개별 스크래퍼 1개</option>
+            </select>
+            <select id="run-source-select">
+              <option value="">소스 선택 (개별 실행용)</option>
+            </select>
+            <button id="run-execute-btn" type="button">실행</button>
+          </div>
+          <div class="row scraper-job-row">
+            <input id="scraper-job-id" type="text" placeholder="중지/재시도 대상 Job ID">
+            <button id="scraper-stop-btn" class="danger" type="button">실행 중지</button>
+            <button id="scraper-retry-btn" class="secondary" type="button">실패 소스 재시도</button>
+          </div>
+          <p id="scraper-msg" class="muted"></p>
+        </article>
+
+        <article class="panel">
+          <h3>설정</h3>
+          <form id="general-settings-form" class="form-stack compact">
+            <label>스크랩 주기 (분)</label>
+            <label>최대 기사 수</label>
+            <input id="set-max-articles" type="number" min="1" max="100000">
+            <button type="submit">일반 설정 저장</button>
+          </form>
+
+          <form id="schedule-form" class="form-stack compact">
+            <label>Cron 표현식</label>
+            <input id="set-cron" type="time" value="08:00">
+            <label>타임존</label>
+            <label class="checkline"><input id="set-schedule-enabled" type="checkbox"> 스케줄 활성화</label>
+            <button type="submit">스케줄 저장</button>
+          </form>
+
+          <h4>소스 활성화 설정</h4>
+          <div id="source-settings-list" class="list-box"></div>
+        </article>
+      </section>
+
+      <section class="content-section result-section" data-section="result">
+        <article class="panel">
+          <h3>실행 결과</h3>
+          <div class="list-toolbar row">
+            <select id="result-job-select"></select>
+            <button id="result-load-btn" class="secondary" type="button">결과 불러오기</button>
+          </div>
+          <div id="result-summary" class="muted result-summary-card">성공한 실행을 선택해 결과를 확인하세요.</div>
+          <div class="result-grid">
+            <section class="result-panel">
+              <h4>Result Data</h4>
+              <div id="result-articles" class="list-box"></div>
+            </section>
+            <section class="result-panel">
+              <h4>Run Logs</h4>
+              <div id="result-logs" class="list-box"></div>
+            </section>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid-two content-section" data-section="history">
+        <article class="panel">
+          <h3>발송 이메일 히스토리</h3>
+          <div class="list-toolbar row">
+            <input id="email-history-search" type="text" placeholder="제목 검색...">
+            <input id="email-history-team" type="text" placeholder="팀명 포함 검색...">
+            <select id="email-history-status">
+              <option value="">전체 상태</option>
+              <option value="sent">sent</option>
+              <option value="failed">failed</option>
+              <option value="sending">sending</option>
+              <option value="draft">draft</option>
+            </select>
+            <button id="email-history-refresh" class="secondary" type="button">히스토리 불러오기</button>
+          </div>
+          <div id="email-history-list" class="list-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>이메일 상세</h3>
+          <div id="email-detail-meta" class="muted">왼쪽 목록에서 항목을 선택하세요.</div>
+          <div id="email-detail-deliveries" class="list-box"></div>
+          <h4>이메일 본문 미리보기</h4>
+          <div id="email-detail-body" class="email-body-preview"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>

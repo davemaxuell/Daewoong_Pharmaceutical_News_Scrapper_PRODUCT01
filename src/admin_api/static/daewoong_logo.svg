@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1900 328" role="img" aria-label="DAEWOONG PHARMACEUTICAL CO., LTD.">
+  <defs>
+    <style>
+      .wordmark {
+        fill: #5f636b;
+        font-family: "Segoe UI", "Arial", sans-serif;
+      }
+      .title {
+        font-size: 245px;
+        font-weight: 600;
+        letter-spacing: 3px;
+      }
+      .subtitle {
+        font-size: 108px;
+        font-weight: 500;
+        letter-spacing: 1px;
+      }
+    </style>
+  </defs>
+
+  <g transform="translate(0,4)">
+    <path fill="#f39800" d="M36 11h116c17 0 25 21 13 33L70 130h64c17 0 25 20 13 33l-89 89c-12 12-33 4-33-13v-53H3c-4-11-4-22 0-33h61l84-84H23c-5-8-8-16-8-25 0-18 10-33 21-33z"/>
+    <path fill="#f39800" d="M165 97c-17 0-31-13-31-30s14-31 31-31 31 14 31 31-14 30-31 30zm0-46c-9 0-16 7-16 16s7 15 16 15 16-6 16-15-7-16-16-16z"/>
+    <circle cx="212" cy="20" r="6" fill="#fff"/>
+    <path fill="#f39800" d="M215 64c12 0 24 9 24 21s-12 22-24 22c-13 0-24-10-24-22s11-21 24-21z"/>
+    <path fill="#f39800" d="M41 202c26 8 43 29 45 59l-1 53H26l6-41c3-26-4-51-20-71 10-3 19-3 29 0z"/>
+    <path fill="#f39800" d="M111 220c27 2 49 20 56 45l15 49H97l4-38c3-22-4-42-20-56 9-1 20-1 30 0z"/>
+    <path fill="#f39800" d="M181 230c29 0 55 15 67 39l29 45h-92l-1-31c-1-19-7-35-19-50 5-2 10-3 16-3z"/>
+  </g>
+
+  <text class="wordmark title" x="388" y="224">DAEWOONG</text>
+  <text class="wordmark subtitle" x="392" y="310">PHARMACEUTICAL CO., LTD.</text>
+</svg>
