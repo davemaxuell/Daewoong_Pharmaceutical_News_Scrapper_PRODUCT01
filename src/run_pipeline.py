@@ -15,11 +15,13 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(PROJECT_ROOT, "src")
 DATA_NEWS_DIR = os.path.join(PROJECT_ROOT, "data", "news")
 DATA_MONITORS_DIR = os.path.join(PROJECT_ROOT, "data", "monitors")
+DATA_DIAGNOSTICS_DIR = os.path.join(PROJECT_ROOT, "data", "diagnostics")
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
 
 # Ensure data directories exist
 os.makedirs(DATA_NEWS_DIR, exist_ok=True)
 os.makedirs(DATA_MONITORS_DIR, exist_ok=True)
+os.makedirs(DATA_DIAGNOSTICS_DIR, exist_ok=True)
 
 # Load .env from config directory
 from dotenv import load_dotenv
@@ -41,6 +43,7 @@ def cleanup_old_files(days_old: int = 14):
         os.path.join(DATA_NEWS_DIR, "multi_source_news_*.json"),
         os.path.join(DATA_NEWS_DIR, "multi_source_summarized_*.json"),
         os.path.join(DATA_MONITORS_DIR, "monitor_updates_*.json"),
+        os.path.join(DATA_DIAGNOSTICS_DIR, "latest_sources_*.json"),
         os.path.join(PROJECT_ROOT, "logs", "cron_*.log"),
     ]
     
@@ -152,6 +155,10 @@ def main():
     if not run_step("ICH & PDF Monitor", [python_exe, monitor_script], cwd=PROJECT_ROOT):
         failed_steps.append("ICH & PDF Monitor")
 
+    diagnostic_script = os.path.join(PROJECT_ROOT, "scripts", "diagnose_latest_sources.py")
+    if not run_step("Source Health Diagnostics", [python_exe, diagnostic_script, "--days", str(days_back)], cwd=PROJECT_ROOT):
+        failed_steps.append("Source Health Diagnostics")
+
     # ---------------------------------------------------------
     # PART 3: REPORTING
     # ---------------------------------------------------------
@@ -186,16 +193,18 @@ def main():
             print(f"[ERROR] Failed to check monitor file: {e}")
         
     # ---------------------------------------------------------
-    # PART 4: SEND LOG EMAIL
+    # PART 4: SEND ADMIN EMAILS
     # ---------------------------------------------------------
-    print("\n[PHASE 4] System Log Email")
+    print("\n[PHASE 4] Admin Emails")
     try:
-        from email_sender import send_log_email
+        from email_sender import send_admin_summary_email, send_log_email
         if not send_log_email():
             failed_steps.append("System Log Email")
+        if not send_admin_summary_email():
+            failed_steps.append("Daily Admin Summary Email")
     except Exception as e:
-        print(f"[ERROR] Log email failed: {e}")
-        failed_steps.append("System Log Email")
+        print(f"[ERROR] Admin email step failed: {e}")
+        failed_steps.append("Admin Emails")
 
     if failed_steps:
         print("\n[FINAL] Pipeline completed with failures.")

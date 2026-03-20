@@ -82,6 +82,10 @@ class PDAScraper(BaseScraper):
             'Referer': 'https://www.google.com/'
         }
 
+    def _is_blocked_response(self, response: requests.Response) -> bool:
+        text = response.text.lower()
+        return response.status_code == 403 or "attention required! | cloudflare" in text or "sorry, you have been blocked" in text
+
     def fetch_news(self, query: str = None, days_back: int = None) -> List[NewsArticle]:
         """
         PDA Letter Portal에서 Recent News 수집 (5개 소스)
@@ -138,8 +142,8 @@ class PDAScraper(BaseScraper):
             time.sleep(2)  # Polite delay
             response = self.session.get(self.PORTAL_URL, timeout=30)
 
-            if response.status_code == 403:
-                print("[PDA Portal] 403 Forbidden - blocked")
+            if self._is_blocked_response(response):
+                print("[PDA Portal] Blocked by Cloudflare - source not accessible from this environment")
                 return articles
             elif response.status_code == 404:
                 print("[PDA Portal] 404 Not Found")
@@ -211,8 +215,8 @@ class PDAScraper(BaseScraper):
             time.sleep(2)  # Polite delay
             response = self.session.get(category_url, timeout=30)
 
-            if response.status_code == 403:
-                print(f"[PDA {category_name}] 403 Forbidden - blocked")
+            if self._is_blocked_response(response):
+                print(f"[PDA {category_name}] Blocked by Cloudflare - source not accessible from this environment")
                 return articles
             elif response.status_code == 404:
                 print(f"[PDA {category_name}] 404 Not Found")
@@ -287,8 +291,8 @@ class PDAScraper(BaseScraper):
             time.sleep(1)  # Polite delay
             response = self.session.get(link, timeout=30)
 
-            if response.status_code == 403:
-                print(f"[PDA] 403 Forbidden - skipping")
+            if self._is_blocked_response(response):
+                print(f"[PDA] Blocked by Cloudflare - skipping article fetch")
                 return None
 
             response.raise_for_status()

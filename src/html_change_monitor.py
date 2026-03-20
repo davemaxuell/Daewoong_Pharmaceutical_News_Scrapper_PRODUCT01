@@ -45,6 +45,30 @@ class HTMLChangeMonitor:
         return {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
+
+    def _is_transient_block_page(self, text_content: str) -> bool:
+        """Akamai/error pages change on every request and should not be tracked as real updates."""
+        if not text_content:
+            return False
+
+        lowered = text_content.lower()
+        return (
+            "reference #" in lowered and "errors.edgesuite.net" in lowered
+        ) or "abuse-detection-apology" in lowered
+
+    def _should_retry_with_playwright(self, error_message: str) -> bool:
+        if not error_message:
+            return False
+
+        lowered = error_message.lower()
+        retry_markers = [
+            "abuse-detection-apology",
+            "transient block page detected",
+            "403 client error",
+            "404 client error",
+            "access denied",
+        ]
+        return any(marker in lowered for marker in retry_markers)
     
     def fetch_page_content(self, url: str, content_selector: str = None) -> Dict[str, Any]:
         """
@@ -78,6 +102,15 @@ class HTMLChangeMonitor:
             
             # 텍스트 콘텐츠 추출 (비교용)
             text_content = content_elem.get_text(separator="\n", strip=True) if content_elem else ""
+
+            if self._is_transient_block_page(text_content):
+                return {
+                    "url": url,
+                    "selector": content_selector,
+                    "timestamp": datetime.now().isoformat(),
+                    "status": "error",
+                    "error": "Transient block page detected"
+                }
             
             # 링크 추출
             links = []
@@ -137,8 +170,10 @@ class HTMLChangeMonitor:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page()
 
-                # Navigate with timeout
-                page.goto(url, timeout=60000, wait_until="networkidle")
+                # `domcontentloaded` is more reliable than `networkidle` on sites
+                # that keep analytics/background requests open indefinitely.
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                page.wait_for_timeout(3000)
 
                 # Get page content
                 html = page.content()
@@ -160,6 +195,15 @@ class HTMLChangeMonitor:
 
             # 텍스트 콘텐츠 추출 (비교용)
             text_content = content_elem.get_text(separator="\n", strip=True) if content_elem else ""
+
+            if self._is_transient_block_page(text_content):
+                return {
+                    "url": url,
+                    "selector": content_selector,
+                    "timestamp": datetime.now().isoformat(),
+                    "status": "error",
+                    "error": "Transient block page detected"
+                }
 
             # 링크 추출
             links = []
@@ -312,6 +356,11 @@ class HTMLChangeMonitor:
         else:
             current_content = self.fetch_page_content(url, content_selector)
         
+        if current_content.get("status") == "error":
+            if not use_playwright and PLAYWRIGHT_AVAILABLE and self._should_retry_with_playwright(current_content.get("error", "")):
+                print("[Monitor] Retrying with Playwright fallback")
+                current_content = self.fetch_page_with_playwright(url, content_selector)
+
         if current_content.get("status") == "error":
             return {
                 "url": url,
@@ -516,7 +565,8 @@ class RegulatoryPageMonitor(HTMLChangeMonitor):
         "FDA_CGMP": {
             "url": "https://www.fda.gov/drugs/pharmaceutical-quality-resources/current-good-manufacturing-practice-cgmp-regulations",
             "selector": "main",
-            "description": "FDA CGMP Regulations"
+            "description": "FDA CGMP Regulations",
+            "use_playwright": True
         },
         "USP_Pending": {
             "url": "https://www.uspnf.com/pending-monographs/pending-monograph-program",
@@ -553,6 +603,8 @@ class RegulatoryPageMonitor(HTMLChangeMonitor):
             # 결과 출력
             if result.get("has_changes"):
                 print(f"  [CHANGE DETECTED] {result.get('summary')}")
+            elif result.get("status") == "error":
+                print(f"  [ERROR] {result.get('error')}")
             elif result.get("status") == "first_check":
                 print(f"  [FIRST CHECK] Baseline saved")
             else:

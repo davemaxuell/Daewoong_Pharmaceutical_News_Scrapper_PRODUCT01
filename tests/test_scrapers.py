@@ -12,6 +12,9 @@ import os
 import argparse
 from datetime import datetime
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 # Setup project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -71,7 +74,7 @@ def list_sources():
     print("="*60)
     
     for key, config in MultiSourceScraper.SCRAPERS_CONFIG.items():
-        status = "✓ Enabled" if config.get("enabled", True) else "✗ Disabled"
+        status = "ENABLED" if config.get("enabled", True) else "DISABLED"
         print(f"\n  {key}")
         print(f"    {config['description']}")
         print(f"    [{status}]")
@@ -98,7 +101,7 @@ def test_all_scrapers(days_back: int = 1):
     failed = sum(1 for v in results.values() if not v)
     
     for key, success in results.items():
-        status = "✓ PASS" if success else "✗ FAIL"
+        status = "PASS" if success else "FAIL"
         print(f"  {status}: {key}")
     
     print(f"\nTotal: {passed} passed, {failed} failed")

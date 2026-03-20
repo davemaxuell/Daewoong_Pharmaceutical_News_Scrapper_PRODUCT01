@@ -49,6 +49,10 @@ class USPMonographScraper(BaseScraper):
     @property
     def revision_bulletins_url(self) -> str:
         return "https://www.uspnf.com/official-text/revision-bulletins"
+
+    def _is_access_denied_response(self, response: requests.Response) -> bool:
+        text = response.text.lower()
+        return response.status_code == 403 or ("access denied" in text and "errors.edgesuite.net" in text)
     
     def fetch_news(self, query: str = None, days_back: int = 7) -> List[NewsArticle]:
         """
@@ -72,6 +76,9 @@ class USPMonographScraper(BaseScraper):
                 headers=self.get_headers(),
                 timeout=30
             )
+            if self._is_access_denied_response(response):
+                print("[USP] Access denied by upstream protection - source not accessible from this environment")
+                return articles
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -221,6 +228,9 @@ class USPMonographScraper(BaseScraper):
                 headers=self.get_headers(),
                 timeout=30
             )
+            if self._is_access_denied_response(response):
+                print("[USP-RB] Access denied by upstream protection - source not accessible from this environment")
+                return articles
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'html.parser')

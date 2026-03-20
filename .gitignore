@@ -10,6 +10,7 @@ ENV/
 
 # Environment & Sensitive Data
 config/.env
+config/server_password.txt
 *.pem
 *.key
 

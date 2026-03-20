@@ -12,6 +12,9 @@ import os
 import argparse
 from datetime import datetime
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 # Setup project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -41,7 +44,7 @@ def test_ich_monitor():
         changes_found = 0
         for res in results:
             has_changes = res.get("has_changes", False)
-            status = "📢 CHANGES" if has_changes else "✓ No changes"
+            status = "CHANGES" if has_changes else "NO CHANGES"
             print(f"  {status}: {res.get('category', 'Unknown')}")
             if has_changes:
                 changes_found += 1
@@ -111,7 +114,7 @@ def test_all_monitors():
     print("="*60)
     
     for name, success in results.items():
-        status = "✓ PASS" if success else "✗ FAIL"
+        status = "PASS" if success else "FAIL"
         print(f"  {status}: {name}")
 
 

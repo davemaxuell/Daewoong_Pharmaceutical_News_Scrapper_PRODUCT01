@@ -190,8 +190,8 @@ class YakupScraper(BaseScraper):
         summary_elem = link_tag.select_one('.text_con span')
         summary = summary_elem.get_text(strip=True) if summary_elem else ''
         
-        # 날짜 (.name_con span) - Format: YYYY-MM-DD HH:MM
-        date_elem = link_tag.select_one('.name_con span')
+        # 날짜 (.name_con .date) - current markup separates author and date spans
+        date_elem = link_tag.select_one('.name_con .date') or link_tag.select_one('.name_con span.date')
         date_text = date_elem.get_text(strip=True) if date_elem else ''
         
         # 날짜 파싱

@@ -532,6 +532,16 @@ class ISPEScraper(BaseScraper):
         if not date_str:
             return None
 
+        try:
+            from email.utils import parsedate_to_datetime
+            dt = parsedate_to_datetime(date_str.strip())
+            if dt is not None:
+                if dt.tzinfo is not None:
+                    dt = dt.astimezone().replace(tzinfo=None)
+                return dt
+        except Exception:
+            pass
+
         date_formats = [
             "%Y-%m-%dT%H:%M:%S%z",
             "%Y-%m-%dT%H:%M:%S",

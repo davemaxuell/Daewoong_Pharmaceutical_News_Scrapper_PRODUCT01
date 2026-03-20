@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+from urllib.parse import urlsplit, urlunsplit
 
 
 class GMPJournalAnnex1Monitor:
@@ -63,6 +64,11 @@ class GMPJournalAnnex1Monitor:
             print(f"[GMP Journal Annex1] Page fetch error ({url}): {e}")
             return None
 
+    def _normalize_url(self, url: str) -> str:
+        """Strip unstable query parameters from article URLs."""
+        parts = urlsplit(url)
+        return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+
     def extract_search_articles(self, soup: BeautifulSoup) -> List[Dict[str, str]]:
         """
         검색 결과 페이지에서 Annex 1 관련 기사 추출
@@ -90,6 +96,7 @@ class GMPJournalAnnex1Monitor:
                     full_link = f"{self.BASE_URL}/{href}"
                 else:
                     full_link = href
+                full_link = self._normalize_url(full_link)
 
                 # 날짜 추출
                 date_str = ""
@@ -203,21 +210,37 @@ class GMPJournalAnnex1Monitor:
         }
 
         # 1. 기사 비교 (URL 기준)
-        old_urls = {a["url"] for a in old.get("articles", [])}
-        new_urls = {a["url"] for a in new.get("articles", [])}
+        old_articles = []
+        for article in old.get("articles", []):
+            normalized = dict(article)
+            normalized["url"] = self._normalize_url(article.get("url", ""))
+            old_articles.append(normalized)
+
+        new_articles = []
+        for article in new.get("articles", []):
+            normalized = dict(article)
+            normalized["url"] = self._normalize_url(article.get("url", ""))
+            new_articles.append(normalized)
+
+        old_urls = {a["url"] for a in old_articles}
+        new_urls = {a["url"] for a in new_articles}
 
         added_urls = new_urls - old_urls
         removed_urls = old_urls - new_urls
 
         # 새로 추가된 기사
-        for article in new.get("articles", []):
-            if article["url"] in added_urls:
+        seen_added = set()
+        for article in new_articles:
+            if article["url"] in added_urls and article["url"] not in seen_added:
                 changes["new_articles"].append(article)
+                seen_added.add(article["url"])
 
         # 삭제된 기사
-        for article in old.get("articles", []):
-            if article["url"] in removed_urls:
+        seen_removed = set()
+        for article in old_articles:
+            if article["url"] in removed_urls and article["url"] not in seen_removed:
                 changes["removed_articles"].append(article)
+                seen_removed.add(article["url"])
 
         # 2. 페이지 콘텐츠 변경 비교
         old_hashes = old.get("page_hashes", {})

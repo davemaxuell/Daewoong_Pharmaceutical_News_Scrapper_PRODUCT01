@@ -37,3 +37,15 @@ tenacity
 
 # Browser automation (for bot-protected sites like USP)
 playwright
+
+# Database (admin website import scripts)
+psycopg[binary]
+
+# Admin API
+fastapi
+uvicorn
+sqlalchemy
+python-jose[cryptography]
+passlib
+email-validator
+jinja2
