@@ -67,6 +67,9 @@ class PharmaceuticalOnlineScraper(BaseScraper):
     def base_url(self) -> str:
         return self.BASE_URL
 
+    def _get_snapshot_file(self) -> str:
+        return os.path.join(SNAPSHOT_DIR, "article_links.json")
+
     def _get_days_back(self) -> int:
         """
         월요일: 3일 (주말 포함)
@@ -92,8 +95,12 @@ class PharmaceuticalOnlineScraper(BaseScraper):
 
     def _load_snapshot(self) -> Set[str]:
         """Load previous article links snapshot"""
-        os.makedirs(SNAPSHOT_DIR, exist_ok=True)
-        snapshot_file = os.path.join(SNAPSHOT_DIR, "article_links.json")
+        try:
+            os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+        except OSError as e:
+            print(f"[Pharmaceutical Online] Snapshot directory unavailable: {e}")
+            return set()
+        snapshot_file = self._get_snapshot_file()
 
         if os.path.exists(snapshot_file):
             try:
@@ -110,8 +117,12 @@ class PharmaceuticalOnlineScraper(BaseScraper):
         The snapshot stores ALL links ever seen (union of current + previous).
         This prevents articles from being falsely reported as 'new'.
         """
-        os.makedirs(SNAPSHOT_DIR, exist_ok=True)
-        snapshot_file = os.path.join(SNAPSHOT_DIR, "article_links.json")
+        try:
+            os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+        except OSError as e:
+            print(f"[Pharmaceutical Online] Snapshot directory unavailable: {e}")
+            return
+        snapshot_file = self._get_snapshot_file()
 
         # Cumulative: merge current links with all previously seen links
         if previous_links:
@@ -125,8 +136,12 @@ class PharmaceuticalOnlineScraper(BaseScraper):
             "links": list(all_seen_links)
         }
 
-        with open(snapshot_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        try:
+            with open(snapshot_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            print(f"[Pharmaceutical Online] Snapshot save skipped: {e}")
+            return
 
         print(f"[Pharmaceutical Online] Snapshot updated: {len(all_seen_links)} total links (cumulative)")
 
@@ -429,13 +444,12 @@ def main():
     parser.add_argument('--days', type=int, default=None, help='Override days_back (default: auto)')
     args = parser.parse_args()
 
+    scraper = PharmaceuticalOnlineScraper()
     if args.reset:
-        snapshot_file = os.path.join(SNAPSHOT_DIR, "article_links.json")
+        snapshot_file = scraper._get_snapshot_file()
         if os.path.exists(snapshot_file):
             os.remove(snapshot_file)
             print("Snapshot reset. Next run will create new baseline.")
-
-    scraper = PharmaceuticalOnlineScraper()
     articles = scraper.fetch_news(days_back=args.days)
 
     print(f"\nTotal collected: {len(articles)} new articles\n")
