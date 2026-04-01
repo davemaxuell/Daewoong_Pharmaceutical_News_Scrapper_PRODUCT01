@@ -6,6 +6,7 @@ import sys
 import io
 import json
 import os
+import re
 from datetime import datetime
 
 # 프로젝트 루트 설정 (src/ 상위 디렉토리)
@@ -14,16 +15,145 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-# API 키 로드 (config 디렉토리에서)
-load_dotenv(os.path.join(PROJECT_ROOT, "config", ".env"))
+from src.env_config import first_env, load_project_env
 
-# 모델명 상수
-MODEL_NAME = 'gemini-2.0-flash'
+# API 키 로드 (.env 또는 config/.env)
+load_project_env()
+
+# 모델명 (.env 우선)
+MODEL_NAME = first_env("GEMINI_MODEL_NAME", "GOOGLE_MODEL_NAME", default="gemini-2.5-flash")
+
+ARTICLE_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "summary": {"type": "STRING"},
+        "key_points": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "industry_impact": {"type": "STRING"},
+        "categories": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "keywords": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "target_teams": {"type": "ARRAY", "items": {"type": "STRING"}},
+    },
+    "required": ["summary", "key_points", "industry_impact", "categories", "keywords", "target_teams"],
+}
+
+PDF_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "summary": {"type": "STRING"},
+        "key_changes": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "implications": {"type": "STRING"},
+        "target_teams": {"type": "ARRAY", "items": {"type": "STRING"}},
+    },
+    "required": ["summary", "key_changes", "implications", "target_teams"],
+}
+
+
+def _fallback_summary_text(title: str, content: str, limit: int = 280) -> str:
+    """Create a readable local fallback summary when AI output is unavailable."""
+    cleaned = " ".join((content or "").split())
+    if not cleaned:
+        return title or "요약을 생성할 수 없습니다."
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[:limit].rstrip() + "..."
+
+
+def _clean_summary_text(value: str, title: str, content: str, limit: int = 280) -> str:
+    text = (value or "").strip()
+    if not text:
+        return _fallback_summary_text(title, content, limit=limit)
+
+    if "```" in text:
+        text = text.replace("```text", "").replace("```", "").strip()
+
+    text = re.sub(r"^\s*(summary|요약)\s*[:：-]\s*", "", text, flags=re.IGNORECASE)
+    text = text.strip(" \t\r\n\"'")
+    text = re.sub(r"\s+", " ", text)
+
+    if len(text) <= 10:
+        return _fallback_summary_text(title, content, limit=limit)
+
+    if len(text) > limit:
+        text = text[:limit].rstrip() + "..."
+
+    return text
+
+
+def _extract_json_payload(result_text: str) -> dict:
+    """Best-effort JSON extraction for Gemini responses."""
+    text = (result_text or "").strip()
+    if not text:
+        raise json.JSONDecodeError("Empty response", text, 0)
+
+    if "```json" in text:
+        text = text.split("```json", 1)[1].split("```", 1)[0].strip()
+    elif "```" in text:
+        text = text.split("```", 1)[1].split("```", 1)[0].strip()
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start:end + 1]
+
+    text = re.sub(r"[\x00-\x08\x0b-\x1f]", " ", text)
+    return json.loads(text)
+
+
+def _clean_json_string(value: str) -> str:
+    if value is None:
+        return ""
+    cleaned = str(value)
+    cleaned = cleaned.replace('\\"', '"').replace("\\n", " ").replace("\\t", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned.strip(" \t\r\n\"',")
+
+
+def _extract_string_field(text: str, field_name: str) -> str:
+    pattern = rf'"{re.escape(field_name)}"\s*:\s*"((?:[^"\\]|\\.)*)'
+    match = re.search(pattern, text, re.S)
+    if not match:
+        return ""
+    return _clean_json_string(match.group(1))
+
+
+def _extract_array_field(text: str, field_name: str) -> list[str]:
+    pattern = rf'"{re.escape(field_name)}"\s*:\s*\[(.*?)\]'
+    match = re.search(pattern, text, re.S)
+    if not match:
+        return []
+
+    values = []
+    for item in re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(1)):
+        cleaned = _clean_json_string(item)
+        if cleaned:
+            values.append(cleaned)
+    return values
+
+
+def _salvage_partial_response(result_text: str, title: str, content: str) -> dict | None:
+    """Recover useful fields from truncated JSON-like model output."""
+    text = (result_text or "").strip()
+    if not text:
+        return None
+
+    summary = _extract_string_field(text, "summary")
+    if not summary:
+        return None
+
+    return {
+        "ai_summary": summary,
+        "key_points": _extract_array_field(text, "key_points"),
+        "industry_impact": _extract_string_field(text, "industry_impact"),
+        "ai_categories": _extract_array_field(text, "categories"),
+        "ai_keywords": [],
+        "target_teams": _extract_array_field(text, "target_teams"),
+        "model_used": MODEL_NAME,
+        "parse_salvaged": True,
+    }
 
 
 def get_gemini_client():
@@ -31,7 +161,7 @@ def get_gemini_client():
     Gemini API 클라이언트 초기화
     Returns: genai.Client
     """
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    api_key = first_env("GEMINI_API_KEY", "GOOGLE_API_KEY")
     
     if not api_key or api_key.startswith("your_"):
         raise ValueError(
@@ -73,60 +203,18 @@ def summarize_article(client, title: str, content: str, images: list = None) -> 
     if len(content) > max_content_length:
         content = content[:max_content_length] + "..."
     
-    # 분류 카테고리 목록 (기존 + GMP/QMS 카테고리)
-    categories = [
-        # 기존 뉴스 분류
-        "주요전문지 헤드라인",
-        "대웅/관계사",
-        "정책/행정",
-        "AI",
-        "업계/R&D",
-        "제품",
-        "시장/투자",
-        "인력/교육",
-        # GMP/QMS 전문 용어 카테고리
-        "개정/변경",
-        "무균/주사제",
-        "품질시스템/QMS",
-        "밸리데이션",
-        "데이터 완전성",
-        "약전",
-        "고형제-칭량/혼합",
-        "고형제-과립/건조",
-        "고형제-타정",
-        "고형제-코팅",
-        "교차오염"
-    ]
-    
-    # 팀 라우팅 정의
-    from src.team_definitions import get_team_prompt
-    team_descriptions = get_team_prompt()
-    
     prompt = f"""당신은 제약/바이오 산업 전문 뉴스 분석가입니다.
 
-다음 제약/바이오 뉴스 기사를 분석하여 아래 형식의 JSON으로 응답해주세요.
+아래 기사를 한국어로 2~3문장으로만 깔끔하게 요약하세요.
+- JSON, 마크다운, 따옴표, 제목 라벨을 쓰지 마세요.
+- 이메일 본문에 바로 넣을 수 있도록 자연스러운 문장만 출력하세요.
+- 핵심 사실과 업계 의미를 짧게 포함하세요.
 
 기사 제목: {title}
 
 기사 본문:
 {content}
-
-다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
-{{
-    "summary": "기사의 핵심 내용을 2-3문장으로 요약",
-    "key_points": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
-    "industry_impact": "업계에 미치는 영향을 1-2문장으로 설명",
-    "categories": ["해당되는 카테고리들"],
-    "keywords": ["기사에서 추출한 핵심 키워드 3-5개"],
-    "target_teams": ["이 뉴스를 받아야 할 팀 1-2개"]
-}}
-
-분류 카테고리 옵션 (1개 이상 선택): {categories}
-
-타겟 팀 옵션 (가장 관련 있는 1-2개 선택):
-{team_descriptions}
-
-반드시 유효한 JSON 형식으로만 응답하세요."""
+"""
 
     try:
         response = client.models.generate_content(
@@ -134,46 +222,26 @@ def summarize_article(client, title: str, content: str, images: list = None) -> 
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.3,
-                max_output_tokens=800,
+                max_output_tokens=500,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
             )
         )
-        
-        # 응답 파싱
-        result_text = response.text.strip()
-        
-        # JSON 블록 추출
-        if "```json" in result_text:
-            result_text = result_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in result_text:
-            result_text = result_text.split("```")[1].split("```")[0].strip()
-        
-        result = json.loads(result_text)
-        
+
+        summary_text = _clean_summary_text(getattr(response, "text", ""), title, content)
+
         return {
-            "ai_summary": result.get("summary", ""),
-            "key_points": result.get("key_points", []),
-            "industry_impact": result.get("industry_impact", ""),
-            "ai_categories": result.get("categories", []),
-            "ai_keywords": [],  # 스크래퍼의 규칙 기반 matched_keywords로 채워짐
-            "target_teams": result.get("target_teams", []),
-            "model_used": MODEL_NAME
-        }
-        
-    except json.JSONDecodeError as e:
-        print(f"    [WARN] JSON 파싱 실패: {e}")
-        return {
-            "ai_summary": result_text[:200] if 'result_text' in locals() and result_text else "",
+            "ai_summary": summary_text,
             "key_points": [],
             "industry_impact": "",
             "ai_categories": [],
-            "ai_keywords": [],
+            "ai_keywords": [],  # 스크래퍼의 규칙 기반 matched_keywords로 채워짐
             "target_teams": [],
-            "error": "JSON 파싱 실패"
+            "model_used": MODEL_NAME
         }
     except Exception as e:
         print(f"    [ERROR] AI 요청 실패: {e}")
         return {
-            "ai_summary": "",
+            "ai_summary": _fallback_summary_text(title, content),
             "key_points": [],
             "industry_impact": "",
             "ai_categories": [],
@@ -216,19 +284,15 @@ def analyze_pdf(client, pdf_url: str, title: str = "PDF Document") -> dict:
             config=types.GenerateContentConfig(
                 temperature=0.2,
                 max_output_tokens=1000,
+                response_mime_type="application/json",
+                response_schema=PDF_RESPONSE_SCHEMA,
             )
         )
         
         # 응답 파싱
-        result_text = gemini_response.text.strip()
-        
-        # JSON 블록 추출
-        if "```json" in result_text:
-            result_text = result_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in result_text:
-            result_text = result_text.split("```")[1].split("```")[0].strip()
-            
-        return json.loads(result_text)
+        if getattr(gemini_response, "parsed", None):
+            return gemini_response.parsed
+        return _extract_json_payload(gemini_response.text.strip())
 
     except Exception as e:
         print(f"  [ERROR] PDF Analysis Failed: {e}")

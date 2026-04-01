@@ -132,18 +132,30 @@ tail -f logs/admin_api_error.log
 
 ## 8) Optional Nginx reverse proxy
 
-If you want the admin UI behind port 80:
+If you want the admin UI behind port 80, keep the FastAPI app on port `8000` and put Nginx in front of it.
+
+Why: the bundled `systemd_pharma_admin_api.service` runs as the non-root `develop` user, so it cannot bind directly to privileged port `80` without extra Linux capability changes.
 
 ```bash
 sudo apt-get install -y nginx
 ```
+
+Use the included helper:
+
+```bash
+cd /home/ubuntu/pharma_news_agent
+chmod +x scripts/linux/setup_admin_nginx.sh
+./scripts/linux/setup_admin_nginx.sh YOUR_SERVER_IP 8000
+```
+
+This installs Nginx and renders `config/nginx/pharma_admin.conf.template` into `/etc/nginx/sites-available/pharma_admin`.
 
 Example server block:
 
 ```nginx
 server {
     listen 80;
-    server_name _;
+    server_name YOUR_SERVER_IP;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -154,6 +166,11 @@ server {
     }
 }
 ```
+
+After that, open:
+
+- `http://YOUR_SERVER_IP/health`
+- `http://YOUR_SERVER_IP/admin`
 
 ## Docker?
 

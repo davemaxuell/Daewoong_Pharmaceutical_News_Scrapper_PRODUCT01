@@ -7,6 +7,7 @@ from uuid import UUID
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .models import Role, User, UserRole
@@ -60,7 +61,7 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
         db.query(User)
         .filter(
             User.is_active.is_(True),
-            User.username == login_value,
+            or_(User.username == login_value, User.email == login_value),
         )
         .first()
     )

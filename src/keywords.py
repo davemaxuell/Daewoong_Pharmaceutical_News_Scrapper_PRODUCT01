@@ -1,6 +1,15 @@
 # Classification
 # Keywords synced from C:/Users/user/Downloads/keywords_all.xlsx
 
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from time import monotonic
+
 KEYWORDS = {
     '개정/변경': [
         'revision',
@@ -377,26 +386,278 @@ KEYWORDS = {
 }
 
 
+_RUNTIME_KEYWORDS_CACHE: dict[str, list[str]] | None = None
+_RUNTIME_KEYWORDS_LOADED_AT = 0.0
+_RUNTIME_KEYWORDS_SOURCE = "static"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+UPDATED_KEYWORDS_PATH = PROJECT_ROOT / "config" / "updated_keywords.json"
+_CONFIG_KEYWORDS_LOADED = False
+
+
+def _copy_keyword_map(keyword_map: dict[str, list[str]]) -> dict[str, list[str]]:
+    return {category: list(keywords) for category, keywords in keyword_map.items()}
+
+
+def _normalize_keyword(value: str) -> str:
+    return " ".join(value.strip().lower().split())
+
+
+def _load_keywords_from_updated_config() -> dict[str, list[str]] | None:
+    if not UPDATED_KEYWORDS_PATH.exists():
+        return None
+
+    try:
+        payload = json.loads(UPDATED_KEYWORDS_PATH.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        print(f"[WARN] Failed to load updated keywords config: {exc}")
+        return None
+
+    terminology = payload.get("pharmaceutical_terminology", {})
+    keyword_map: dict[str, list[str]] = {}
+
+    for raw_item in terminology.values():
+        item = raw_item if isinstance(raw_item, dict) else {}
+        category_name = str(((item.get("category_name") or {}).get("ko")) or "").strip()
+        if not category_name:
+            continue
+
+        seen: set[str] = set()
+        terms: list[str] = []
+        for raw_term_group in item.get("terms", []) or []:
+            term_group = raw_term_group if isinstance(raw_term_group, dict) else {}
+            for bucket in ("en", "ko"):
+                for raw_value in term_group.get(bucket, []) or []:
+                    value = str(raw_value or "").strip()
+                    if not value:
+                        continue
+                    normalized = _normalize_keyword(value)
+                    if normalized in seen:
+                        continue
+                    seen.add(normalized)
+                    terms.append(value)
+
+        if terms:
+            keyword_map[category_name] = terms
+
+    return keyword_map or None
+
+
+_UPDATED_KEYWORDS = _load_keywords_from_updated_config()
+if _UPDATED_KEYWORDS:
+    KEYWORDS = _UPDATED_KEYWORDS
+    _CONFIG_KEYWORDS_LOADED = True
+
+
+def _get_keyword_cache_ttl_seconds() -> int:
+    raw = (os.getenv("SCRAPER_KEYWORD_CACHE_TTL_SECONDS") or "300").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 300
+
+
+def _get_database_url() -> str:
+    try:
+        from src.env_config import first_env, load_project_env
+    except Exception:
+        return ""
+
+    load_project_env()
+    return first_env("DATABASE_URL")
+
+
+def _load_keywords_via_project_venv() -> dict[str, list[str]] | None:
+    venv_python = PROJECT_ROOT / "venv" / "bin" / "python"
+    if not venv_python.exists():
+        return None
+
+    current_python = Path(sys.executable).absolute()
+    if venv_python.absolute() == current_python:
+        return None
+
+    helper = """
+import json
+from psycopg import connect
+from src.env_config import first_env, load_project_env
+
+def normalize_keyword(value: str) -> str:
+    return " ".join(value.strip().lower().split())
+
+load_project_env()
+database_url = first_env("DATABASE_URL")
+if not database_url:
+    raise SystemExit(2)
+
+keyword_map = {}
+seen_by_category = {}
+
+with connect(database_url, connect_timeout=5) as conn:
+    with conn.cursor() as cur:
+        cur.execute(
+            '''
+            SELECT c.name, k.keyword
+            FROM keywords AS k
+            JOIN keyword_category_map AS km
+              ON km.keyword_id = k.id
+            JOIN categories AS c
+              ON c.id = km.category_id
+            WHERE k.is_active IS TRUE
+            ORDER BY c.name ASC, k.keyword ASC
+            '''
+        )
+        for category_name, keyword in cur.fetchall():
+            category = str(category_name or '').strip()
+            keyword_value = str(keyword or '').strip()
+            if not category or not keyword_value:
+                continue
+            normalized = normalize_keyword(keyword_value)
+            seen = seen_by_category.setdefault(category, set())
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            keyword_map.setdefault(category, []).append(keyword_value)
+
+print(json.dumps(keyword_map, ensure_ascii=False))
+"""
+
+    try:
+        result = subprocess.run(
+            [str(venv_python), "-c", helper],
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+            timeout=15,
+        )
+    except Exception:
+        return None
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    keyword_map: dict[str, list[str]] = {}
+    for category_name, keywords in payload.items():
+        category = str(category_name or "").strip()
+        if not category or not isinstance(keywords, list):
+            continue
+        cleaned_keywords = [str(keyword).strip() for keyword in keywords if str(keyword).strip()]
+        if cleaned_keywords:
+            keyword_map[category] = cleaned_keywords
+    return keyword_map
+
+
+def _load_keywords_from_admin_db() -> dict[str, list[str]] | None:
+    try:
+        from psycopg import connect
+    except Exception:
+        return _load_keywords_via_project_venv()
+
+    database_url = _get_database_url()
+    if not database_url:
+        return None
+
+    keyword_map: dict[str, list[str]] = {}
+    seen_by_category: dict[str, set[str]] = {}
+
+    try:
+        with connect(database_url, connect_timeout=5) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT c.name, k.keyword
+                    FROM keywords AS k
+                    JOIN keyword_category_map AS km
+                      ON km.keyword_id = k.id
+                    JOIN categories AS c
+                      ON c.id = km.category_id
+                    WHERE k.is_active IS TRUE
+                    ORDER BY c.name ASC, k.keyword ASC
+                    """
+                )
+                for category_name, keyword in cur.fetchall():
+                    category = str(category_name or "").strip()
+                    keyword_value = str(keyword or "").strip()
+                    if not category or not keyword_value:
+                        continue
+
+                    normalized = _normalize_keyword(keyword_value)
+                    seen = seen_by_category.setdefault(category, set())
+                    if normalized in seen:
+                        continue
+
+                    seen.add(normalized)
+                    keyword_map.setdefault(category, []).append(keyword_value)
+    except Exception as exc:
+        print(f"[WARN] Falling back to bundled keywords; failed to load admin DB keywords: {exc}")
+        return None
+
+    return keyword_map
+
+
+def get_runtime_keywords(force_refresh: bool = False) -> dict[str, list[str]]:
+    """Return the keyword map currently used by scraper classification."""
+    global _RUNTIME_KEYWORDS_CACHE
+    global _RUNTIME_KEYWORDS_LOADED_AT
+    global _RUNTIME_KEYWORDS_SOURCE
+
+    ttl_seconds = _get_keyword_cache_ttl_seconds()
+    if (
+        not force_refresh
+        and _RUNTIME_KEYWORDS_CACHE is not None
+        and ttl_seconds > 0
+        and (monotonic() - _RUNTIME_KEYWORDS_LOADED_AT) < ttl_seconds
+    ):
+        return _copy_keyword_map(_RUNTIME_KEYWORDS_CACHE)
+
+    admin_keywords = _load_keywords_from_admin_db()
+    if admin_keywords is None:
+        if _get_database_url():
+            raise RuntimeError(
+                "Failed to load active keywords from the admin database. "
+                "Scraper classification is configured to use the admin-managed keywords."
+            )
+        _RUNTIME_KEYWORDS_CACHE = _copy_keyword_map(KEYWORDS)
+        _RUNTIME_KEYWORDS_SOURCE = "updated_keywords_json" if _CONFIG_KEYWORDS_LOADED else "static"
+    else:
+        _RUNTIME_KEYWORDS_CACHE = _copy_keyword_map(admin_keywords)
+        _RUNTIME_KEYWORDS_SOURCE = "admin_db"
+
+    _RUNTIME_KEYWORDS_LOADED_AT = monotonic()
+    return _copy_keyword_map(_RUNTIME_KEYWORDS_CACHE)
+
+
+def get_keyword_source(force_refresh: bool = False) -> str:
+    """Return where the current runtime keyword map was loaded from."""
+    get_runtime_keywords(force_refresh=force_refresh)
+    return _RUNTIME_KEYWORDS_SOURCE
+
+
 def get_all_keywords():
-    """?? ??? ??? ??"""
+    """Return all runtime keywords used by scraper classification."""
     all_kw = []
-    for keywords in KEYWORDS.values():
+    for keywords in get_runtime_keywords().values():
         all_kw.extend(keywords)
-    return list(set(all_kw))
+    return sorted(set(all_kw), key=str.lower)
 
 
 def get_categories():
-    """???? ?? ??"""
-    return list(KEYWORDS.keys())
+    """Return runtime categories used by scraper classification."""
+    return list(get_runtime_keywords().keys())
 
 
 def classify_article(title: str, text: str = "") -> tuple[list, list]:
-    """?? ??/???? ??? ?? ? ??? ?? ???? ??"""
+    """Classify an article using the runtime keyword map."""
     content = (title + " " + text).lower()
     matched_classifications = []
     matched_keywords = []
 
-    for classification, keywords in KEYWORDS.items():
+    for classification, keywords in get_runtime_keywords().items():
         for keyword in keywords:
             if keyword.lower() in content:
                 if classification not in matched_classifications:
@@ -408,5 +669,5 @@ def classify_article(title: str, text: str = "") -> tuple[list, list]:
 
 
 def get_gmp_categories():
-    """GMP/QMS ?? ???? ??"""
-    return list(KEYWORDS.keys())
+    """Return runtime GMP/QMS categories used by scraper classification."""
+    return list(get_runtime_keywords().keys())

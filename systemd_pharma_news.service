@@ -4,13 +4,14 @@ After=network.target
 
 [Service]
 Type=oneshot
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/ubuntu/pharma_news_agent
-Environment="PATH=/home/ubuntu/pharma_news_agent/venv/bin:/usr/local/bin:/usr/bin:/bin"
-ExecStart=/home/ubuntu/pharma_news_agent/venv/bin/python /home/ubuntu/pharma_news_agent/src/run_pipeline.py
-StandardOutput=append:/home/ubuntu/pharma_news_agent/logs/systemd_output.log
-StandardError=append:/home/ubuntu/pharma_news_agent/logs/systemd_error.log
+User=develop
+Group=develop
+WorkingDirectory=/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01
+Environment="PATH=/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=-/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/config/.env
+ExecStart=/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/venv/bin/python /home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/src/run_pipeline.py
+StandardOutput=append:/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/logs/systemd_output.log
+StandardError=append:/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/logs/systemd_error.log
 
 [Install]
 WantedBy=multi-user.target

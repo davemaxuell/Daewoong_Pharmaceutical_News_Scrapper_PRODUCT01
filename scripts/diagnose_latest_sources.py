@@ -12,13 +12,15 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from dotenv import load_dotenv
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
-load_dotenv(PROJECT_ROOT / "config" / ".env")
+
+from src.env_config import load_project_env
+
+load_project_env()
 
 from src.multi_source_scraper import MultiSourceScraper  # type: ignore
 
@@ -27,6 +29,10 @@ WIDE_LOOKBACK_DAYS: dict[str, Any] = {
     "fda_recalls": None,
     "fda_warning_letters": 30,
     "pmda": 365,
+    "pics": 120,
+    "ispe": 120,
+    "gmp_journal": 60,
+    "pharmaceutical_online": 60,
     "default": 30,
 }
 
@@ -71,6 +77,11 @@ def _classify_status(item: dict[str, Any]) -> tuple[str, str]:
                 age_days = max(0, (datetime.now(latest_dt.tzinfo) - latest_dt).days) if latest_dt.tzinfo else max(
                     0, (datetime.now() - latest_dt).days
                 )
+                if age_days <= SOURCE_HEALTH_STALE_DAYS:
+                    return "healthy", (
+                        f"no items in the immediate window, but the latest item is only {age_days} days old "
+                        f"(threshold {SOURCE_HEALTH_STALE_DAYS} days)"
+                    )
                 return "stale", (
                     f"no recent items in the configured window; latest item is {age_days} days old "
                     f"(threshold {SOURCE_HEALTH_STALE_DAYS} days)"

@@ -1,0 +1,244 @@
+{
+  "generated_at": "2026-03-23T14:22:53.541898",
+  "recent_days": 3,
+  "stale_threshold_days": 7,
+  "results": [
+    {
+      "source_key": "kpa_news",
+      "description": "약사공론 (KPA News)",
+      "recent_count": 50,
+      "recent_latest": "2026-03-23T03:05:00",
+      "recent_titles": [
+        "섬까지 찾아가고, 군부대도 누빈다…약사, 통합돌봄 판 키웠다",
+        "유나이티드·환인·삼진까지…제약바이오 '고배당 공시' 줄잇는다",
+        "관리 사각지대 창고형약국…약사 자격정지 15일 처분 '확정''"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "dailypharm",
+      "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
+      "recent_count": 22,
+      "recent_latest": "2026-03-23T12:01:00",
+      "recent_titles": [
+        "[데일리팜] 상장 제약 독립이사 대거 교체…복지부·식약처 출신 눈길",
+        "[데일리팜] \"웰컴 아미\" BTS 특수에 약국 가세…매출 반짝 증가",
+        "[데일리팜] 약품비 중 항암제 점유율 역대 최고...청구액 15% 증가"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "yakup",
+      "description": "약업신문 (Yakup News)",
+      "recent_count": 33,
+      "recent_latest": "2026-03-23T00:00:00",
+      "recent_titles": [
+        "[약업신문] BMS ‘옵디보’ 전형적 호지킨 림프종 美ㆍEU 추가",
+        "[약업신문] 모세혈관 확장성 운동실조증 치료제 부재 해소?",
+        "[약업신문] 한국파스퇴르연구소, 개인기초연구사업 신진연구 3개 과제 선정"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "kpbma",
+      "description": "한국제약바이오협회 뉴스레터",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 16,
+      "wide_latest": "2026-03-11T00:00:00",
+      "wide_titles": [
+        "[뉴시스]\"급격한 약가인하땐 붕괴\"…제약사, 민관 공동연구 제안",
+        "[연합뉴스] 제약업계 \"정부, 약가 인하 파급효과 산업계와 공동연구해야\"",
+        "[조선일보] 제약업계 “중동 위기 속 약가 인하하면 산업 붕괴”"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 12 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "mfds",
+      "description": "식품의약품안전처 RSS",
+      "recent_count": 2,
+      "recent_latest": "2026-03-23T04:20:57",
+      "recent_titles": [
+        "유전자변형 미생물 유래 식품첨가물 셀룰라아제 안전성심사 결과 보고서(안)에 관한 공개의견수렴",
+        "[보도참고] 국내 유통 농·축·수산물의 농약 및 동물용의약품 검사 결과 안전한 수준"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "fda_recalls",
+      "description": "FDA Drug Recalls (openFDA API)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": null,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    },
+    {
+      "source_key": "fda_warning_letters",
+      "description": "FDA Warning Letters (All Offices)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 30,
+      "wide_latest": "2026-03-17T00:00:00",
+      "wide_titles": [
+        "[FDA Warning Letter] Flowchem Pharma Private Limited - CGMP/Active Pharmaceutical Ingredient (API)/Adulte",
+        "[FDA Warning Letter] Vedic Lifesciences Pvt. Ltd. - Good Laboratory Practice (GLP) for Nonclinical Lab",
+        "[FDA Warning Letter] A TO Z Distributor Inc - Foreign Supplier Verification Program (FSVP)"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 6 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "edqm",
+      "description": "EDQM Newsrooms (EU)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 5,
+      "wide_latest": "2026-03-20T00:00:00",
+      "wide_titles": [
+        "New EDQM guidance on reliance-based or fast-track assessment of CEP applications",
+        "Council of Europe leading the way in animal welfare for over 40 years",
+        "Middle East supply chain disruptions - Update"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 3 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "eudralex",
+      "description": "EudraLex Volume 4 (EU GMP)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 2,
+      "wide_latest": "2026-03-19T12:00:00",
+      "wide_titles": [
+        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)",
+        "Consultation of new guidance on the conduct of clinical trials during public health emergencies in the EU"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 4 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pics",
+      "description": "PIC/S (GMP Inspection)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    },
+    {
+      "source_key": "ich_news",
+      "description": "ICH News (가이드라인)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 2,
+      "wide_latest": "2026-03-20T00:00:00",
+      "wide_titles": [
+        "Updated and Expanded ICH Q9(R1) Quality Risk Management Briefing Pack Now Available",
+        "Final training module issued for ICH guideline E2B(R3)"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 3 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "gmp_journal",
+      "description": "GMP Journal",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 5,
+      "wide_latest": "2026-03-17T00:00:00",
+      "wide_titles": [
+        "Report on the ECA “Equipment Qualification Forum”",
+        "Preventing Typical Challenges in GMP Projects",
+        "Sterile Filtration and PUPSIT – Questions and Answers at a Glance (Part 1)"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 6 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ispe",
+      "description": "ISPE (주사제/고형제 제조 공정, QA 이슈)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    },
+    {
+      "source_key": "bioprocess",
+      "description": "BioProcess International (Validation, Fill-Finish, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 8,
+      "wide_latest": "2026-03-10T19:35:19",
+      "wide_titles": [
+        "[BioProcess] Exposing the F0 Illusion in SIP: Why Sterilization Assurance Demands More",
+        "[BioProcess] Canadian government grants vaccine manufacturing contract to CSL Seqirus",
+        "[BioProcess] Lonza to offload capsule and health ingredients biz to Lone Star in $3bn transaction"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 12 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pda",
+      "description": "PDA Letter (주사제/무균공정, 멸균, 바이오의약품)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "blocked",
+      "status_reason": "blocked by upstream protection (403)"
+    },
+    {
+      "source_key": "pharmaceutical_online",
+      "description": "Pharmaceutical Online (완제의약품 10개 카테고리: 고형제/액제, 검사, 포장, 시리얼화, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 13,
+      "wide_latest": "2026-03-20T00:00:00",
+      "wide_titles": [
+        "[Pharmaceutical Online] Where Contamination Control Really Breaks Down In Practice",
+        "[Pharmaceutical Online] FDA's 483 Playbook: What It Means For Pharma Outsourcing — And What It Doesn't Address",
+        "[Pharmaceutical Online] Organic Impurities: New Draft ICH Q3E Guidance For Leachables And Extractables"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 3 days old (threshold 7 days)"
+    }
+  ]
+}

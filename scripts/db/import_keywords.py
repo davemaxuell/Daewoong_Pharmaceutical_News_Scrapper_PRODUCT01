@@ -1,4 +1,4 @@
-"""Import categories and keywords from src/keywords.py into PostgreSQL."""
+"""Import categories and keywords from the managed keyword source into PostgreSQL."""
 
 from __future__ import annotations
 
@@ -64,16 +64,64 @@ def map_keyword_to_category(cur, keyword_id: str, category_id: str) -> None:
     )
 
 
+def deactivate_missing_categories(cur, category_names: list[str]) -> None:
+    if category_names:
+        cur.execute(
+            """
+            UPDATE categories
+            SET is_active = FALSE, updated_at = NOW()
+            WHERE name <> ALL(%s)
+            """,
+            (category_names,),
+        )
+        return
+
+    cur.execute(
+        """
+        UPDATE categories
+        SET is_active = FALSE, updated_at = NOW()
+        """
+    )
+
+
+def deactivate_missing_keywords(cur, normalized_keywords: list[str], language_code: str) -> None:
+    if normalized_keywords:
+        cur.execute(
+            """
+            UPDATE keywords
+            SET is_active = FALSE, updated_at = NOW()
+            WHERE language_code = %s
+              AND normalized_keyword <> ALL(%s)
+            """,
+            (language_code, normalized_keywords),
+        )
+        return
+
+    cur.execute(
+        """
+        UPDATE keywords
+        SET is_active = FALSE, updated_at = NOW()
+        WHERE language_code = %s
+        """,
+        (language_code,),
+    )
+
+
 def run(db_url: str, language_code: str, dry_run: bool) -> None:
     category_count = 0
     keyword_count = 0
     mapping_count = 0
+    desired_pairs: set[tuple[str, str]] = set()
+    desired_keyword_ids: set[str] = set()
+    desired_category_names: list[str] = []
+    desired_normalized_keywords: list[str] = []
 
     with postgres_connection(db_url) as conn:
         with conn.cursor() as cur:
             for category, keywords in KEYWORDS.items():
                 category_id = upsert_category(cur, category)
                 category_count += 1
+                desired_category_names.append(category)
 
                 seen_normalized: set[str] = set()
                 for keyword in keywords:
@@ -84,11 +132,22 @@ def run(db_url: str, language_code: str, dry_run: bool) -> None:
                     if normalized in seen_normalized:
                         continue
                     seen_normalized.add(normalized)
+                    desired_normalized_keywords.append(normalized)
 
                     keyword_id = upsert_keyword(cur, keyword.strip(), language_code)
                     keyword_count += 1
-                    map_keyword_to_category(cur, keyword_id, category_id)
-                    mapping_count += 1
+                    desired_keyword_ids.add(keyword_id)
+                    desired_pairs.add((keyword_id, category_id))
+
+            deactivate_missing_categories(cur, sorted(set(desired_category_names)))
+            deactivate_missing_keywords(cur, sorted(set(desired_normalized_keywords)), language_code)
+
+            for keyword_id in desired_keyword_ids:
+                cur.execute("DELETE FROM keyword_category_map WHERE keyword_id = %s", (keyword_id,))
+
+            for keyword_id, category_id in sorted(desired_pairs):
+                map_keyword_to_category(cur, keyword_id, category_id)
+                mapping_count += 1
 
         if dry_run:
             conn.rollback()
@@ -110,4 +169,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

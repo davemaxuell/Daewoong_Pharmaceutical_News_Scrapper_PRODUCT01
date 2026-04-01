@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-20T21:42:49.712312",
+  "timestamp": "2026-04-01T07:03:51.822411",
   "articles": [
     {
       "title": "CONSEQUENCES OF ANNEX 1 REVISION FOR INDUSTRY",
@@ -38,12 +38,6 @@
       "hash": "44b1371a"
     },
     {
-      "title": "Data flows, Data Lifecycle, and ALCOA+",
-      "url": "https://www.gmp-journal.com/current-articles/details/data-flows-data-lifecycle-and-alcoa.html",
-      "date": "",
-      "hash": "fd1b79d7"
-    },
-    {
       "title": "GMP TRENDS: ANNEX 1, CONTINUOUS PRODUCTION AND CONTROL OF PARENTERALS",
       "url": "https://www.gmp-journal.com/current-articles/details/gmp-trends-annex-1-continuous-production-and-control-of-parenterals.html",
       "date": "",
@@ -60,12 +54,18 @@
       "url": "https://www.gmp-journal.com/current-articles/details/developments-on-gmp-classification-of-fiscal-imports.html",
       "date": "",
       "hash": "37396ef9"
+    },
+    {
+      "title": "GMP UPDATE - WHAT'S NEW IN EUROPE?",
+      "url": "https://www.gmp-journal.com/current-articles/details/gmp-update-whats-new-in-europe.html",
+      "date": "",
+      "hash": "4a13fe31"
     }
   ],
   "page_hashes": {
-    "/current-articles/details/annex-1-revision.html": "9ffe9fd13bbfe129b6349903710cfe6e320558e4ab55c14c8fa1e2b0f1308e83",
-    "/current-articles/details/consequences-of-annex-1-revision-for-industry.html": "a7f5d6a8f41af7c389fff24ceb1e666582a19ae1ca2d00657a68a25a1d4a712d",
-    "/current-articles/details/gmp-trends-annex-1-continuous-production-and-control-of-parenterals.html": "0285e355063797ae4ac858caba17dc303df9e6c5a668f6f7e2bea90842ac52f9"
+    "/current-articles/details/annex-1-revision.html": "e494a5de64afde673bc57b120bbe85e75d5e89da8d043424971d727baa4a6231",
+    "/current-articles/details/consequences-of-annex-1-revision-for-industry.html": "0cc6db36e732c80f51a4de952900548805b72a1877ed6a1415b76e6b53c2c254",
+    "/current-articles/details/gmp-trends-annex-1-continuous-production-and-control-of-parenterals.html": "151d2ae276e1e1a8b46eeafa26a138a66c5b8242a70c3fa66e1aa8a0eddfb7ff"
   },
   "article_count": 10
 }

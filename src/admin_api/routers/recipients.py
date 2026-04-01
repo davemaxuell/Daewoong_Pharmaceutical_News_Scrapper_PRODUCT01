@@ -5,14 +5,33 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from ..audit import write_audit
 from ..database import get_db
 from ..dependencies import get_current_user, require_admin
-from ..models import Recipient, RecipientTeamMap, Team, User
-from ..schemas import RecipientCreateRequest, RecipientResponse, RecipientUpdateRequest, TeamResponse
+from ..models import (
+    Category,
+    EmailDelivery,
+    Keyword,
+    KeywordCategoryMap,
+    Recipient,
+    RecipientTeamMap,
+    Team,
+    TeamCategoryMap,
+    User,
+)
+from ..schemas import (
+    RecipientCreateRequest,
+    RecipientResponse,
+    RecipientUpdateRequest,
+    TeamCategoryUpdateRequest,
+    TeamResponse,
+    TeamRoutingResponse,
+)
+from ..services.keyword_sync import ensure_keywords_seeded
+from ..services.team_sync import ensure_team_data_seeded
 
 
 router = APIRouter(prefix="/recipients", tags=["recipients"])
@@ -28,6 +47,16 @@ def _get_or_create_team(db: Session, team_name: str) -> Team:
     return team
 
 
+def _get_or_create_category(db: Session, category_name: str) -> Category:
+    category = db.query(Category).filter(Category.name == category_name).first()
+    if category:
+        return category
+    category = Category(name=category_name, is_active=True)
+    db.add(category)
+    db.flush()
+    return category
+
+
 def _set_teams(db: Session, recipient: Recipient, team_names: list[str]) -> None:
     db.query(RecipientTeamMap).filter(RecipientTeamMap.recipient_id == recipient.id).delete()
     unique_team_names = sorted(set([name.strip() for name in team_names if name.strip()]))
@@ -40,6 +69,24 @@ def _set_teams(db: Session, recipient: Recipient, team_names: list[str]) -> None
         recipient.team_id = first_team.id if first_team else None
     else:
         recipient.team_id = None
+
+
+def _set_team_categories(db: Session, team: Team, category_names: list[str]) -> None:
+    db.query(TeamCategoryMap).filter(TeamCategoryMap.team_id == team.id).delete()
+    unique_category_names = sorted(set([name.strip() for name in category_names if name.strip()]))
+    for category_name in unique_category_names:
+        category = _get_or_create_category(db, category_name)
+        db.add(TeamCategoryMap(team_id=team.id, category_id=category.id))
+
+
+def _delete_recipient_dependencies(db: Session, recipient_id: UUID) -> None:
+    db.query(RecipientTeamMap).filter(RecipientTeamMap.recipient_id == recipient_id).delete(
+        synchronize_session=False
+    )
+    db.query(EmailDelivery).filter(EmailDelivery.recipient_id == recipient_id).update(
+        {EmailDelivery.recipient_id: None},
+        synchronize_session=False,
+    )
 
 
 def _recipient_to_response(db: Session, recipient: Recipient) -> RecipientResponse:
@@ -61,13 +108,110 @@ def _recipient_to_response(db: Session, recipient: Recipient) -> RecipientRespon
     )
 
 
+def _team_to_routing_response(db: Session, team: Team) -> TeamRoutingResponse:
+    category_rows = (
+        db.query(Category.name)
+        .join(TeamCategoryMap, TeamCategoryMap.category_id == Category.id)
+        .filter(
+            TeamCategoryMap.team_id == team.id,
+            Category.is_active.is_(True),
+        )
+        .order_by(Category.name.asc())
+        .all()
+    )
+    keyword_rows = (
+        db.query(Keyword.keyword, Keyword.normalized_keyword)
+        .join(KeywordCategoryMap, KeywordCategoryMap.keyword_id == Keyword.id)
+        .join(Category, Category.id == KeywordCategoryMap.category_id)
+        .join(TeamCategoryMap, TeamCategoryMap.category_id == Category.id)
+        .filter(
+            TeamCategoryMap.team_id == team.id,
+            Category.is_active.is_(True),
+            Keyword.is_active.is_(True),
+        )
+        .order_by(Keyword.keyword.asc())
+        .all()
+    )
+    keyword_names: list[str] = []
+    seen_keywords: set[str] = set()
+    for keyword_value, normalized_value in keyword_rows:
+        keyword_text = str(keyword_value or "").strip()
+        normalized_text = str(normalized_value or "").strip() or keyword_text.casefold()
+        if not keyword_text or normalized_text in seen_keywords:
+            continue
+        seen_keywords.add(normalized_text)
+        keyword_names.append(keyword_text)
+
+    recipient_count = (
+        db.query(func.count(func.distinct(Recipient.id)))
+        .join(RecipientTeamMap, RecipientTeamMap.recipient_id == Recipient.id)
+        .filter(
+            RecipientTeamMap.team_id == team.id,
+            Recipient.is_active.is_(True),
+        )
+        .scalar()
+        or 0
+    )
+    return TeamRoutingResponse(
+        id=team.id,
+        name=team.name,
+        is_active=team.is_active,
+        category_names=[name for (name,) in category_rows],
+        recipient_count=int(recipient_count),
+        keyword_count=len(keyword_names),
+        keywords=keyword_names,
+    )
+
+
 @router.get("/teams", response_model=list[TeamResponse])
 def list_teams(
     _user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    ensure_team_data_seeded(db)
     teams = db.query(Team).order_by(Team.name.asc()).all()
     return [TeamResponse(id=t.id, name=t.name) for t in teams]
+
+
+@router.get("/team-routing", response_model=list[TeamRoutingResponse])
+def list_team_routing(
+    _user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    ensure_team_data_seeded(db)
+    ensure_keywords_seeded(db)
+    teams = db.query(Team).order_by(Team.name.asc()).all()
+    return [_team_to_routing_response(db, team) for team in teams]
+
+
+@router.put("/teams/{team_id}/routing", response_model=TeamRoutingResponse)
+def update_team_routing(
+    team_id: UUID,
+    payload: TeamCategoryUpdateRequest,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    team = db.query(Team).filter(Team.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+
+    before = _team_to_routing_response(db, team).model_dump()
+    _set_team_categories(db, team, payload.category_names)
+    db.commit()
+    db.refresh(team)
+
+    result = _team_to_routing_response(db, team)
+    write_audit(
+        db,
+        actor_user_id=str(admin.id),
+        action="team.routing.update",
+        entity_type="team",
+        entity_id=str(team.id),
+        before_json=before,
+        after_json=result.model_dump(),
+    )
+    db.commit()
+    return result
 
 
 @router.get("", response_model=list[RecipientResponse])
@@ -78,6 +222,7 @@ def list_recipients(
     _user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    ensure_team_data_seeded(db)
     query = db.query(Recipient)
     if q:
         query = query.filter(
@@ -181,6 +326,7 @@ def delete_recipient(
     if not recipient:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")
     before = _recipient_to_response(db, recipient).model_dump()
+    _delete_recipient_dependencies(db, recipient.id)
     db.delete(recipient)
     db.commit()
     write_audit(

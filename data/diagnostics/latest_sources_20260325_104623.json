@@ -1,0 +1,215 @@
+{
+  "generated_at": "2026-03-25T10:46:23.560130",
+  "recent_days": 2,
+  "stale_threshold_days": 7,
+  "results": [
+    {
+      "source_key": "kpa_news",
+      "description": "약사공론 (KPA News)",
+      "recent_count": 50,
+      "recent_latest": "2026-03-25T00:50:28",
+      "recent_titles": [
+        "건보노조, 돌봄통합 시행 앞두고 재정·인력 문제제기",
+        "디지털 혁신 초점 맞춘 '건강보험 25시' 앱 공식 출시",
+        "심사평가원 '업무처리자동화' 전환 통해 업무방식 혁신한다"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "dailypharm",
+      "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
+      "recent_count": 24,
+      "recent_latest": "2026-03-25T10:09:41",
+      "recent_titles": [
+        "[데일리팜] 이정연 교수, 'Outstanding Career Achievement' 수상",
+        "[데일리팜] 병원약사회, 온라인 교육 대상 약사 넘어 업계 종사자로 확대",
+        "[데일리팜] 임상규 전 대한약사회 감사, 건강소비자연대 회장에"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "yakup",
+      "description": "약업신문 (Yakup News)",
+      "recent_count": 36,
+      "recent_latest": "2026-03-25T00:00:00",
+      "recent_titles": [
+        "[약업신문] 바이오벤처·스타트업 13곳  주력 사업 아이템 발표",
+        "[약업신문] 1시간 내 사망 돌연사…심장이 보내는 경고 놓치지 말아야",
+        "[약업신문] 건강소비자연대 초대 회장 임상규 박사 취임"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "kpbma",
+      "description": "한국제약바이오협회 뉴스레터",
+      "recent_count": 11,
+      "recent_latest": "2026-03-24T00:00:00",
+      "recent_titles": [
+        "[연합뉴스]제네릭 약가 개편 임박…업계 \"일괄 인하는 생태계 훼손\" 반발",
+        "[뉴시스]'혁신-공급' 지속성 확보…\"약가개편, 근본취지 되새겨야\"",
+        "[뉴스1]\"제네릭 기반 지키고, 혁신 신약 가치 키우는 약가 정책 필요\"(종합)"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "mfds",
+      "description": "식품의약품안전처 RSS",
+      "recent_count": 4,
+      "recent_latest": "2026-03-25T00:00:23",
+      "recent_titles": [
+        "[보도참고]  ’26년 한약(생약) 분야 정책설명회 개최",
+        "[보도참고] 소비기한 연장 표시 '과자' 회수 조치",
+        "마약류 ‘에토미데이트’ 등 44억원 전문의약품 불법유통 총책 구속"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "fda_recalls",
+      "description": "FDA Drug Recalls (openFDA API)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": null,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    },
+    {
+      "source_key": "fda_warning_letters",
+      "description": "FDA Warning Letters (All Offices)",
+      "recent_count": 6,
+      "recent_latest": "2026-03-24T00:00:00",
+      "recent_titles": [
+        "[FDA Warning Letter] IsoTis OrthoBiologics, Inc. - CGMP/QSR/Medical Devices/Adulterated",
+        "[FDA Warning Letter] Yangzhou H&R Plastic Daily Chemical Co., Ltd. - CGMP/Finished Pharmaceuticals/Adulterated",
+        "[FDA Warning Letter] 4U Health - Premarket Approval/Adulterated"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "edqm",
+      "description": "EDQM Newsrooms (EU)",
+      "recent_count": 1,
+      "recent_latest": "2026-03-24T00:00:00",
+      "recent_titles": [
+        "Outcome of the 184th session of the European Pharmacopoeia Commission"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "eudralex",
+      "description": "EudraLex Volume 4 (EU GMP)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 2,
+      "wide_latest": "2026-03-19T12:00:00",
+      "wide_titles": [
+        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)",
+        "Consultation of new guidance on the conduct of clinical trials during public health emergencies in the EU"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 5 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pics",
+      "description": "PIC/S (GMP Inspection)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 120,
+      "wide_count": 6,
+      "wide_latest": "2026-02-12T14:22:00",
+      "wide_titles": [
+        "Concept paper on the revision of EU-PIC/S GMP Annex 6 - Manufacture of medicinal gases",
+        "Concept paper on the revision of EU-PIC/S GMP Annex 15 (Qualification and validation)",
+        "Kazakhstan applies for PIC/S membership"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 40 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ich_news",
+      "description": "ICH News (가이드라인)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 1,
+      "wide_latest": "2026-03-20T00:00:00",
+      "wide_titles": [
+        "Updated and Expanded ICH Q9(R1) Quality Risk Management Briefing Pack Now Available"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 5 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "gmp_journal",
+      "description": "GMP Journal",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 60,
+      "wide_count": 5,
+      "wide_latest": "2026-03-17T00:00:00",
+      "wide_titles": [
+        "Report on the ECA “Equipment Qualification Forum”",
+        "Preventing Typical Challenges in GMP Projects",
+        "Sterile Filtration and PUPSIT – Questions and Answers at a Glance (Part 1)"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 8 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ispe",
+      "description": "ISPE (주사제/고형제 제조 공정, QA 이슈)",
+      "recent_count": 3,
+      "recent_latest": null,
+      "recent_titles": [
+        "[ISPE] ISPE Announces its 2026 ISPE Europe Annual Conference Keynote Speakers",
+        "[ISPE] ISPE Announces its 2026 ISPE Aseptic Conference Keynote Speakers",
+        "[ISPE] ISPE Announces Radiopharmaceuticals Community of Practice"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "bioprocess",
+      "description": "BioProcess International (Validation, Fill-Finish, QA/QC)",
+      "recent_count": 1,
+      "recent_latest": "2026-03-23T16:58:10",
+      "recent_titles": [
+        "[BioProcess] Federal judge blocks RFK’s re-haul of childhood vaccination schedule"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "pharmaceutical_online",
+      "description": "Pharmaceutical Online (완제의약품 10개 카테고리: 고형제/액제, 검사, 포장, 시리얼화, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 60,
+      "wide_count": 6,
+      "wide_latest": "2026-02-20T00:00:00",
+      "wide_titles": [
+        "[Pharmaceutical Online] January 2026 — CDMO Opportunities And Threats Report",
+        "[Pharmaceutical Online] New ISPE Framework Targets Uncertainty In Pharma's AI Deployment",
+        "[Pharmaceutical Online] U.S. Pharma Tariffs And MFN In 2026: Manufacturing And Procurement Impact"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 33 days old (threshold 7 days)"
+    }
+  ]
+}

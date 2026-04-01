@@ -1,18 +1,18 @@
 #!/bin/bash
 # Cron 작업 설정 스크립트
-# Setup Cron Job for Daily Automation
+# Setup Cron Job for Weekday Automation
 
 APP_DIR="/home/ubuntu/pharma_news_agent"
 PYTHON_BIN="$APP_DIR/venv/bin/python"
-SCRIPT_PATH="$APP_DIR/run_pipeline.py"
+SCRIPT_PATH="$APP_DIR/src/run_pipeline.py"
 LOG_FILE="$APP_DIR/logs/cron_$(date +\%Y\%m\%d).log"
 
 echo "========================================="
-echo "Cron 작업 설정 (Daily News Pipeline)"
+echo "Cron 작업 설정 (Weekday News Pipeline)"
 echo "========================================="
 
 # Cron 작업 내용
-CRON_JOB="0 7 * * * cd $APP_DIR && $PYTHON_BIN $SCRIPT_PATH >> $LOG_FILE 2>&1"
+CRON_JOB="0 7 * * 1-5 cd $APP_DIR && $PYTHON_BIN $SCRIPT_PATH >> $LOG_FILE 2>&1"
 
 # 기존 cron 작업 확인
 echo "현재 Cron 작업:"
@@ -22,8 +22,8 @@ echo ""
 echo "추가할 Cron 작업:"
 echo "$CRON_JOB"
 echo ""
-echo "설명: 매일 오전 7시에 뉴스 수집 파이프라인 실행"
-echo "Description: Run news pipeline daily at 7:00 AM KST"
+echo "설명: 평일 오전 7시에 뉴스 수집 파이프라인 실행"
+echo "Description: Run news pipeline on weekdays at 7:00 AM KST"
 echo ""
 
 read -p "Cron 작업을 추가하시겠습니까? (y/n): " -n 1 -r
@@ -47,5 +47,5 @@ fi
 echo ""
 echo "========================================="
 echo "수동 실행 방법:"
-echo "cd $APP_DIR && source venv/bin/activate && python run_pipeline.py"
+echo "cd $APP_DIR && source venv/bin/activate && python src/run_pipeline.py"
 echo "========================================="

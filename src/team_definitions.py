@@ -43,7 +43,7 @@ TEAM_DEFINITIONS = {
         ],
     },
     '오송 QA팀': {
-        'description': 'Keywords for categories: 개정/변경, 무균/주사제, 품질 시스템(QMS), Data integrity, 약전, 교차 오염',
+        'description': 'Keywords for categories: 개정/변경, 무균/주사제, 품질 시스템(QMS), 데이터 완전성, 약전, 교차 오염',
         'keywords': [
             'revision',
             'revised',
@@ -66,7 +66,7 @@ TEAM_DEFINITIONS = {
             '유효성 평가',
             '시정 조치',
             '예방 조치',
-            'Data integrity',
+            '데이터 완전성',
             'ALCOA',
             'ALCOA+',
             'audit trail',
@@ -95,7 +95,7 @@ TEAM_DEFINITIONS = {
             '개정/변경',
             '무균/주사제',
             '품질 시스템(QMS)',
-            'Data integrity',
+            '데이터 완전성',
             '약전',
             '교차 오염',
         ],
@@ -135,7 +135,7 @@ TEAM_DEFINITIONS = {
         ],
     },
     '오송고형제생산1팀': {
-        'description': 'Keywords for categories: 고형제 - 칭량, 고형제 - 과립 & 건조, 고형제 - 타정, 고형제 - 코팅, 교차 오염',
+        'description': 'Keywords for categories: 고형제 - 칭량/혼합, 고형제 - 과립 & 건조, 고형제 - 타정, 고형제 - 코팅, 교차 오염',
         'keywords': [
             'dispensing',
             'weighing',
@@ -169,7 +169,7 @@ TEAM_DEFINITIONS = {
             '잔류 오염',
         ],
         'categories': [
-            '고형제 - 칭량',
+            '고형제 - 칭량/혼합',
             '고형제 - 과립 & 건조',
             '고형제 - 타정',
             '고형제 - 코팅',
@@ -177,7 +177,7 @@ TEAM_DEFINITIONS = {
         ],
     },
     '오송고형제생산2팀': {
-        'description': 'Keywords for categories: 고형제 - 칭량, 고형제 - 과립 & 건조, 고형제 - 타정, 고형제 - 코팅, 교차 오염',
+        'description': 'Keywords for categories: 고형제 - 칭량/혼합, 고형제 - 과립 & 건조, 고형제 - 타정, 고형제 - 코팅, 교차 오염',
         'keywords': [
             'dispensing',
             'weighing',
@@ -211,7 +211,7 @@ TEAM_DEFINITIONS = {
             '잔류 오염',
         ],
         'categories': [
-            '고형제 - 칭량',
+            '고형제 - 칭량/혼합',
             '고형제 - 과립 & 건조',
             '고형제 - 타정',
             '고형제 - 코팅',
@@ -219,7 +219,7 @@ TEAM_DEFINITIONS = {
         ],
     },
     '오송제제기술팀': {
-        'description': 'Keywords for categories: Validation, 교차 오염',
+        'description': 'Keywords for categories: 밸리데이션, 교차 오염',
         'keywords': [
             'qualification',
             'DQ',
@@ -242,7 +242,7 @@ TEAM_DEFINITIONS = {
             '잔류 오염',
         ],
         'categories': [
-            'Validation',
+            '밸리데이션',
             '교차 오염',
         ],
     },

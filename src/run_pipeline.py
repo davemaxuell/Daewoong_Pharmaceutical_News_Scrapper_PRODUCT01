@@ -6,26 +6,61 @@
 import subprocess
 import sys
 import os
+import argparse
 from datetime import datetime, timedelta
 import glob
 import json
+import atexit
 
 # Get the project root directory (parent of src/)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 SRC_DIR = os.path.join(PROJECT_ROOT, "src")
 DATA_NEWS_DIR = os.path.join(PROJECT_ROOT, "data", "news")
 DATA_MONITORS_DIR = os.path.join(PROJECT_ROOT, "data", "monitors")
 DATA_DIAGNOSTICS_DIR = os.path.join(PROJECT_ROOT, "data", "diagnostics")
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
+LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
 
 # Ensure data directories exist
 os.makedirs(DATA_NEWS_DIR, exist_ok=True)
 os.makedirs(DATA_MONITORS_DIR, exist_ok=True)
 os.makedirs(DATA_DIAGNOSTICS_DIR, exist_ok=True)
+os.makedirs(LOGS_DIR, exist_ok=True)
 
-# Load .env from config directory
-from dotenv import load_dotenv
-load_dotenv(os.path.join(CONFIG_DIR, ".env"))
+from src.env_config import load_project_env
+from src.runtime_admin_config import load_runtime_admin_config
+
+# Load .env from project root or config directory
+load_project_env()
+
+
+class _TeeStream:
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for stream in self._streams:
+            stream.write(data)
+            stream.flush()
+        return len(data)
+
+    def flush(self):
+        for stream in self._streams:
+            stream.flush()
+
+
+def setup_pipeline_logging() -> str:
+    """Mirror pipeline stdout/stderr to the daily cron log."""
+    today = datetime.now().strftime("%Y%m%d")
+    log_path = os.path.join(LOGS_DIR, f"cron_{today}.log")
+    log_handle = open(log_path, "a", encoding="utf-8")
+    sys.stdout = _TeeStream(sys.__stdout__, log_handle)
+    sys.stderr = _TeeStream(sys.__stderr__, log_handle)
+    atexit.register(log_handle.close)
+    return log_path
 
 
 def cleanup_old_files(days_old: int = 14):
@@ -97,28 +132,67 @@ def run_step(step_name: str, command: list, cwd: str = None) -> bool:
         return False
 
 
-def main():
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run the full pharma news pipeline.")
+    parser.add_argument(
+        "--ignore-db-schedule",
+        action="store_true",
+        help="Run even when the admin DB schedule is disabled (used for manual admin-triggered runs).",
+    )
+    return parser.parse_args()
+
+
+def main(ignore_db_schedule: bool = False):
+    log_path = setup_pipeline_logging()
     print("""
 ================================================================
        Pharmaceutical News Agent - Full Pipeline (v2.0)
 ================================================================
     """)
-    
-    today = datetime.now().strftime('%Y%m%d')
+
+    now = datetime.now()
+    weekday = now.weekday()
+    is_weekend = weekday >= 5
+    is_monday = weekday == 0
+    today = now.strftime('%Y%m%d')
     failed_steps = []
-    is_monday = datetime.now().weekday() == 0
     days_back = 3 if is_monday else 1
-    
-    print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"Day: {'Monday' if is_monday else 'Weekday'}")
+
+    if is_weekend:
+        day_label = "Weekend"
+    elif is_monday:
+        day_label = "Monday"
+    else:
+        day_label = "Weekday"
+
+    print(f"Date: {now.strftime('%Y-%m-%d %H:%M')}")
+    print(f"Day: {day_label}")
     print(f"Days back: {days_back}")
     print(f"Project root: {PROJECT_ROOT}")
-    
+    print(f"Log file: {log_path}")
+
     # Cleanup old files (older than 14 days)
     cleanup_old_files(days_old=14)
-    
+
+    runtime_admin_config = load_runtime_admin_config()
+    schedule_settings = runtime_admin_config.get("schedule", {}) if isinstance(runtime_admin_config, dict) else {}
+    if schedule_settings:
+        print(
+            f"DB schedule: {schedule_settings.get('cron_expr') or '-'} "
+            f"({schedule_settings.get('timezone') or 'Asia/Seoul'}) | enabled={schedule_settings.get('is_enabled')}"
+        )
+
+    if schedule_settings and not schedule_settings.get("is_enabled", True) and not ignore_db_schedule:
+        print("\n[INFO] Admin DB schedule is disabled. Skipping scheduled pipeline run.")
+        return 0
+
+    if is_weekend:
+        print("\n[INFO] Weekend run detected. Pipeline will not scrape or send emails on Saturday/Sunday.")
+        print("[INFO] Monday runs automatically collect the last 3 days, so weekend news will be included then.")
+        return 0
+
     python_exe = sys.executable
-    
+
     # Files (now in data directories)
     news_file = os.path.join(DATA_NEWS_DIR, f"multi_source_news_{today}.json")
     summarized_file = os.path.join(DATA_NEWS_DIR, f"multi_source_summarized_{today}.json")
@@ -197,8 +271,8 @@ def main():
     # ---------------------------------------------------------
     print("\n[PHASE 4] Admin Emails")
     try:
-        from email_sender import send_admin_summary_email, send_log_email
-        if not send_log_email():
+        from src.email_sender import send_admin_summary_email, send_log_email
+        if not send_log_email(log_path):
             failed_steps.append("System Log Email")
         if not send_admin_summary_email():
             failed_steps.append("Daily Admin Summary Email")
@@ -217,4 +291,5 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    args = parse_args()
+    raise SystemExit(main(ignore_db_schedule=args.ignore_db_schedule))

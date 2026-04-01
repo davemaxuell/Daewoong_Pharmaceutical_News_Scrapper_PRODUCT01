@@ -65,6 +65,10 @@ def map_team_category(cur, team_id: str, category_id: str) -> None:
     )
 
 
+def reset_team_categories(cur, team_id: str) -> None:
+    cur.execute("DELETE FROM team_category_map WHERE team_id = %s", (team_id,))
+
+
 def run(db_url: str, dry_run: bool) -> None:
     team_count = 0
     category_count = 0
@@ -75,6 +79,7 @@ def run(db_url: str, dry_run: bool) -> None:
             for team_name, team_info in TEAM_DEFINITIONS.items():
                 team_id = upsert_team(cur, team_name, team_info.get("description"))
                 team_count += 1
+                reset_team_categories(cur, team_id)
 
                 for category in team_info.get("categories", []):
                     if not category or not category.strip():
@@ -104,4 +109,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

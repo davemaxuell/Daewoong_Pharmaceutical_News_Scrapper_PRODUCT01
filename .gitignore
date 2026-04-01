@@ -61,3 +61,6 @@ Thumbs.db
 
 # Assets (local only)
 assets/
+
+# Local tool installs
+.tools/

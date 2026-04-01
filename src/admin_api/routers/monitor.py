@@ -347,6 +347,29 @@ def get_run_result(
                 data = json.load(f)
             if isinstance(data, list):
                 articles = data[:200]
+    elif job.job_type == "source_health":
+        candidates = list(DATA_DIAGNOSTICS_DIR.glob("latest_sources_*.json"))
+        latest_file = DATA_DIAGNOSTICS_DIR / "latest_source_health.json"
+        if latest_file.exists():
+            candidates.append(latest_file)
+        picked = _pick_latest_in_window(candidates, job.started_at, job.finished_at)
+        if picked and picked.exists():
+            result_file = str(picked)
+            with picked.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                results = data.get("results", []) or []
+                if isinstance(results, list):
+                    articles = [
+                        {
+                            "title": item.get("description") or item.get("source_key") or "Source health",
+                            "source": item.get("status") or ("error" if item.get("error") else "unknown"),
+                            "summary": item.get("status_reason") or item.get("error") or "",
+                            "link": "",
+                        }
+                        for item in results[:200]
+                        if isinstance(item, dict)
+                    ]
 
     logs = (
         db.query(AppLog)

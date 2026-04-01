@@ -108,6 +108,17 @@ class Team(Base):
     )
 
 
+class TeamCategoryMap(Base):
+    __tablename__ = "team_category_map"
+
+    team_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), primary_key=True
+    )
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE"), primary_key=True
+    )
+
+
 class Recipient(Base):
     __tablename__ = "recipients"
 

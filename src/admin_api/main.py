@@ -3,14 +3,31 @@
 from __future__ import annotations
 
 from datetime import datetime
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from .database import SessionLocal
 from .routers import auth, email_history, keywords, monitor, recipients, scraper_control, settings, ui
+from .services.keyword_sync import ensure_keywords_seeded
+from .services.source_sync import ensure_sources_seeded
+from .services.team_sync import ensure_team_data_seeded
 
 
-app = FastAPI(title="Pharma News Admin API", version="0.1.0")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    db = SessionLocal()
+    try:
+        ensure_sources_seeded(db)
+        ensure_keywords_seeded(db)
+        ensure_team_data_seeded(db)
+    finally:
+        db.close()
+    yield
+
+
+app = FastAPI(title="Pharma News Admin API", version="0.1.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="src/admin_api/static"), name="static")
 
 

@@ -1,6 +1,10 @@
 ﻿const state = {
   token: localStorage.getItem("admin_token") || "",
   me: null,
+  keywordGroups: [],
+  teamRouting: [],
+  teamRoutingLoaded: false,
+  selectedTeamRoutingId: "",
   generalSettings: {
     scrapeFrequencyMinutes: 1440,
   },
@@ -35,6 +39,9 @@ const el = {
   kwGroupFilter: document.getElementById("kw-group-filter"),
   kwLanguageFilter: document.getElementById("kw-language-filter"),
   keywordList: document.getElementById("keyword-list"),
+  teamRoutingSelect: document.getElementById("team-routing-team-pick"),
+  teamRoutingSummary: document.getElementById("team-routing-summary"),
+  teamRoutingList: document.getElementById("team-routing-list"),
 
   recipientForm: document.getElementById("recipient-form"),
   rcEmail: document.getElementById("rc-email"),
@@ -104,9 +111,40 @@ function splitCsv(value) {
   return value.split(",").map((v) => v.trim()).filter(Boolean);
 }
 
+function mergeCsvValues(...values) {
+  const merged = [];
+  const seen = new Set();
+  for (const raw of values) {
+    for (const value of splitCsv(String(raw || ""))) {
+      const key = value.toLocaleLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(value);
+    }
+  }
+  return merged;
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function guessLanguageCode(keyword) {
+  const value = String(keyword || "").trim();
+  if (!value) return "ko";
+  if (/[가-힣]/.test(value)) return "ko";
+  if (/[A-Za-z]/.test(value)) return "en";
+  return "ko";
+}
+
 function cronToTime(cronExpr) {
   const value = String(cronExpr || "").trim();
-  const match = value.match(/^(\d{1,2})\s+(\d{1,2})\s+\*\s+\*\s+\*$/);
+  const match = value.match(/^(\d{1,2})\s+(\d{1,2})\s+\*\s+\*\s+(?:\*|1-5|MON-FRI)$/i);
   if (!match) return "08:00";
   const minute = match[1].padStart(2, "0");
   const hour = match[2].padStart(2, "0");
@@ -116,15 +154,15 @@ function cronToTime(cronExpr) {
 function timeToCron(timeValue) {
   const value = String(timeValue || "").trim();
   const match = value.match(/^(\d{2}):(\d{2})$/);
-  if (!match) return "0 8 * * *";
+  if (!match) return "0 8 * * 1-5";
   const [, hour, minute] = match;
-  return `${Number(minute)} ${Number(hour)} * * *`;
+  return `${Number(minute)} ${Number(hour)} * * 1-5`;
 }
 
 function setupScheduleUi() {
   if (!el.scheduleForm) return;
   const labels = Array.from(el.scheduleForm.querySelectorAll("label"));
-  if (labels[0]) labels[0].textContent = "매일 실행 시간";
+  if (labels[0]) labels[0].textContent = "평일 실행 시간";
   if (el.setCron) {
     el.setCron.type = "time";
     if (!el.setCron.value) el.setCron.value = "08:00";
@@ -138,7 +176,7 @@ function setupScheduleUi() {
   }
   const checklineLabel = el.scheduleForm.querySelector(".checkline");
   if (checklineLabel) {
-    checklineLabel.lastChild.textContent = " 매일 자동 실행";
+    checklineLabel.lastChild.textContent = " 평일 자동 실행";
   }
   const submitBtn = el.scheduleForm.querySelector('button[type="submit"]');
   if (submitBtn) submitBtn.textContent = "스케줄 저장";
@@ -276,6 +314,9 @@ function showDashboard() {
 function logout() {
   state.token = "";
   state.me = null;
+  state.teamRouting = [];
+  state.teamRoutingLoaded = false;
+  state.selectedTeamRoutingId = "";
   localStorage.removeItem("admin_token");
   if (serverTimeTimer) {
     clearInterval(serverTimeTimer);
@@ -285,6 +326,125 @@ function logout() {
   serverTimeLoadedAtMs = null;
   serverTimeZone = "";
   showLogin();
+}
+
+function setTeamRoutingLoadingState() {
+  if (el.teamRoutingSelect) {
+    el.teamRoutingSelect.innerHTML = `<option value="">팀 불러오는 중...</option>`;
+    el.teamRoutingSelect.disabled = true;
+  }
+  if (el.teamRoutingSummary) {
+    el.teamRoutingSummary.textContent = "팀 정보를 불러오는 중입니다.";
+  }
+}
+
+function syncSelectedTeamRoutingId(items) {
+  const teams = items || [];
+  if (!teams.length) {
+    state.selectedTeamRoutingId = "";
+    return null;
+  }
+
+  const selected = teams.find((item) => String(item.id) === String(state.selectedTeamRoutingId));
+  if (selected) {
+    state.selectedTeamRoutingId = String(selected.id);
+    return selected;
+  }
+
+  state.selectedTeamRoutingId = String(teams[0].id);
+  return teams[0];
+}
+
+function renderTeamRoutingPicker(items, selectedTeam) {
+  if (el.teamRoutingSelect) {
+    el.teamRoutingSelect.innerHTML = "";
+    if (!items.length) {
+      el.teamRoutingSelect.innerHTML = `<option value="">선택할 팀이 없습니다</option>`;
+      el.teamRoutingSelect.disabled = true;
+    } else {
+      for (const item of items) {
+        const opt = document.createElement("option");
+        opt.value = String(item.id);
+        opt.textContent = `${item.name} (${Number(item.recipient_count || 0)}명)`;
+        el.teamRoutingSelect.appendChild(opt);
+      }
+      el.teamRoutingSelect.disabled = false;
+      el.teamRoutingSelect.value = String(selectedTeam ? selectedTeam.id : items[0].id);
+    }
+  }
+
+  if (!el.teamRoutingSummary) return;
+  if (!items.length) {
+    el.teamRoutingSummary.textContent = "아직 표시할 팀이 없습니다.";
+    return;
+  }
+
+  const team = selectedTeam || items[0];
+  el.teamRoutingSummary.textContent =
+    `총 ${items.length}개 팀 중 ${team.name} 표시 중 · 수신자 ${Number(team.recipient_count || 0)}명 · 키워드 ${Number(team.keyword_count || (team.keywords || []).length || 0)}개`;
+}
+
+function buildTeamRoutingCard(item) {
+  const categoryNames = item.category_names || [];
+  const categoryValue = categoryNames.join(", ");
+  const keywords = item.keywords || [];
+  const options = [
+    `<option value="">기존 그룹 선택</option>`,
+    ...(state.keywordGroups || []).map(
+      (group) => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`
+    ),
+  ].join("");
+  const teamCategoryOptions = categoryNames.length
+    ? categoryNames.map((group) => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join("")
+    : `<option value="">먼저 그룹을 지정하세요</option>`;
+
+  return `
+    <div class="item team-routing-card">
+      <div class="item-head">
+        <strong>${escapeHtml(item.name)}</strong>
+        <div class="chips">
+          <span class="chip ${item.is_active ? "" : "warn"}">${item.is_active ? "활성 팀" : "비활성 팀"}</span>
+          <span class="chip">${Number(item.recipient_count || 0)}명</span>
+        </div>
+      </div>
+      ${
+        categoryNames.length
+          ? `<div class="chips">${categoryNames.map((name) => `<span class="chip">${escapeHtml(name)}</span>`).join("")}</div>`
+          : `<div class="muted">현재 연결된 수신 그룹이 없습니다.</div>`
+      }
+      <details class="team-keyword-block">
+        <summary>팀 키워드 ${Number(item.keyword_count || keywords.length || 0)}개 보기</summary>
+        <textarea class="team-keyword-preview" readonly>${escapeHtml(keywords.join(", "))}</textarea>
+      </details>
+      <div class="muted">팀 키워드는 연결된 그룹의 활성 키워드로 계산됩니다. 같은 그룹을 쓰는 다른 팀에도 함께 반영될 수 있습니다.</div>
+      <div class="team-routing-editor">
+        <input
+          type="text"
+          data-team-routing-input="${item.id}"
+          value="${escapeHtml(categoryValue)}"
+          placeholder="수신 그룹을 쉼표로 구분해 입력"
+        >
+        <div class="team-routing-row">
+          <select data-team-routing-pick="${item.id}">
+            ${options}
+          </select>
+          <button type="button" class="secondary" data-team-routing-add="${item.id}">그룹 추가</button>
+          <button type="button" data-team-routing-save="${item.id}">저장</button>
+        </div>
+        <div class="team-routing-row">
+          <input
+            type="text"
+            data-team-keyword-input="${item.id}"
+            placeholder="이 팀 그룹에 추가할 키워드"
+          >
+          <select data-team-keyword-category="${item.id}">
+            ${teamCategoryOptions}
+          </select>
+          <button type="button" class="secondary" data-team-keyword-add="${item.id}">키워드 추가</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderKeywords(items) {
@@ -324,6 +484,22 @@ function renderRecipients(items) {
     `;
     el.recipientList.appendChild(card);
   }
+}
+
+function renderTeamRouting(items) {
+  state.teamRouting = items || [];
+  state.teamRoutingLoaded = true;
+  if (!el.teamRoutingList) return;
+  el.teamRoutingList.innerHTML = "";
+  const selectedTeam = syncSelectedTeamRoutingId(state.teamRouting);
+  renderTeamRoutingPicker(state.teamRouting, selectedTeam);
+
+  if (!selectedTeam) {
+    el.teamRoutingList.innerHTML = `<div class="item">팀이 아직 없습니다. 수신자를 추가하면서 팀을 만들면 여기에서 그룹을 연결할 수 있습니다.</div>`;
+    return;
+  }
+
+  el.teamRoutingList.innerHTML = buildTeamRoutingCard(selectedTeam);
 }
 
 function renderRuns(items) {
@@ -686,8 +862,12 @@ function fillTeamSelect(teams) {
 
 async function loadKeywordGroups() {
   const groups = await api("/keywords/groups");
+  state.keywordGroups = groups || [];
   fillSelect(el.kwGroupFilter, groups, "전체 그룹");
   fillSelect(el.kwCategoryPick, groups, "기존 카테고리 선택");
+  if (state.teamRoutingLoaded) {
+    renderTeamRouting(state.teamRouting);
+  }
 }
 
 async function loadKeywordLanguages() {
@@ -698,6 +878,15 @@ async function loadKeywordLanguages() {
 async function loadTeams() {
   const teams = await api("/recipients/teams");
   fillTeamSelect(teams);
+}
+
+async function loadTeamRouting() {
+  if (!el.teamRoutingList) return;
+  state.teamRoutingLoaded = false;
+  setTeamRoutingLoadingState();
+  setLoading(el.teamRoutingList);
+  const teams = await api("/recipients/team-routing");
+  renderTeamRouting(teams);
 }
 
 async function loadMe() {
@@ -859,6 +1048,10 @@ async function loadEmailDetail(campaignId) {
 
 async function refreshAll() {
   await Promise.all([
+    loadKeywordGroups(),
+    loadKeywordLanguages(),
+    loadTeams(),
+    loadTeamRouting(),
     loadMe(),
     loadServerTime(),
     loadAdminReport(),
@@ -887,9 +1080,6 @@ el.loginForm.addEventListener("submit", async (e) => {
     state.token = res.access_token;
     localStorage.setItem("admin_token", state.token);
     showDashboard();
-    await loadKeywordGroups();
-    await loadKeywordLanguages();
-    await loadTeams();
     await refreshAll();
     syncRunSelectorState();
     startServerTimeTicker();
@@ -905,12 +1095,13 @@ el.refreshBtn.addEventListener("click", () => refreshAll().catch((err) => alert(
 
 el.keywordForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const categoryNames = mergeCsvValues(el.kwCategories.value, el.kwCategoryPick.value);
   try {
     await api("/keywords", {
       method: "POST",
       body: JSON.stringify({
         keyword: el.kwName.value.trim(),
-        category_names: splitCsv(el.kwCategories.value),
+        category_names: categoryNames,
         language_code: el.kwLanguage.value.trim() || "ko",
         is_active: el.kwActive.checked,
       }),
@@ -921,6 +1112,7 @@ el.keywordForm.addEventListener("submit", async (e) => {
     await loadKeywordGroups();
     await loadKeywordLanguages();
     await loadKeywords();
+    await loadTeamRouting();
     showToast("키워드가 추가되었습니다.", "success");
   } catch (err) {
     alert(`키워드 생성 실패: ${err.message}`);
@@ -940,13 +1132,14 @@ el.kwCategoryAddBtn.addEventListener("click", () => {
 
 el.recipientForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const teamNames = mergeCsvValues(el.rcTeams.value, el.rcTeamPick.value);
   try {
     await api("/recipients", {
       method: "POST",
       body: JSON.stringify({
         email: el.rcEmail.value.trim(),
         full_name: el.rcName.value.trim() || null,
-        team_names: splitCsv(el.rcTeams.value),
+        team_names: teamNames,
         is_active: el.rcActive.checked,
         receives_test_emails: el.rcTest.checked,
       }),
@@ -955,6 +1148,7 @@ el.recipientForm.addEventListener("submit", async (e) => {
     el.rcActive.checked = true;
     await loadTeams();
     await loadRecipients();
+    await loadTeamRouting();
     showToast("수신자가 추가되었습니다.", "success");
   } catch (err) {
     alert(`수신자 생성 실패: ${err.message}`);
@@ -975,33 +1169,130 @@ el.rcTeamAddBtn.addEventListener("click", () => {
 el.keywordList.addEventListener("click", async (e) => {
   const target = e.target;
   if (!(target instanceof HTMLElement)) return;
-  const id = target.dataset.del;
+  const button = target.closest("button[data-del]");
+  if (!(button instanceof HTMLButtonElement)) return;
+  const id = button.dataset.del;
   if (!id) return;
+  if (button.dataset.busy === "1") return;
   if (!confirm("이 키워드를 삭제할까요?")) return;
+  button.dataset.busy = "1";
+  button.disabled = true;
   try {
     await api(`/keywords/${id}`, { method: "DELETE" });
     await loadKeywordGroups();
     await loadKeywordLanguages();
     await loadKeywords();
+    await loadTeamRouting();
     showToast("키워드가 삭제되었습니다.", "success");
   } catch (err) {
     alert(`삭제 실패: ${err.message}`);
+  } finally {
+    button.dataset.busy = "0";
+    button.disabled = false;
   }
 });
 
 el.recipientList.addEventListener("click", async (e) => {
   const target = e.target;
   if (!(target instanceof HTMLElement)) return;
-  const id = target.dataset.del;
+  const button = target.closest("button[data-del]");
+  if (!(button instanceof HTMLButtonElement)) return;
+  const id = button.dataset.del;
   if (!id) return;
+  if (button.dataset.busy === "1") return;
   if (!confirm("이 수신자를 삭제할까요?")) return;
+  button.dataset.busy = "1";
+  button.disabled = true;
   try {
     await api(`/recipients/${id}`, { method: "DELETE" });
     await loadTeams();
     await loadRecipients();
+    await loadTeamRouting();
     showToast("수신자가 삭제되었습니다.", "success");
   } catch (err) {
     alert(`삭제 실패: ${err.message}`);
+  } finally {
+    button.dataset.busy = "0";
+    button.disabled = false;
+  }
+});
+
+if (el.teamRoutingSelect) {
+  el.teamRoutingSelect.addEventListener("change", () => {
+    state.selectedTeamRoutingId = String(el.teamRoutingSelect.value || "");
+    renderTeamRouting(state.teamRouting);
+  });
+}
+
+el.teamRoutingList.addEventListener("click", async (e) => {
+  const target = e.target;
+  if (!(target instanceof HTMLElement)) return;
+  const trigger = target.closest("button") || target;
+
+  const keywordAddId = trigger.dataset.teamKeywordAdd;
+  if (keywordAddId) {
+    const input = el.teamRoutingList.querySelector(`[data-team-keyword-input="${keywordAddId}"]`);
+    const select = el.teamRoutingList.querySelector(`[data-team-keyword-category="${keywordAddId}"]`);
+    const keyword = input ? String(input.value || "").trim() : "";
+    const category = select ? String(select.value || "").trim() : "";
+    if (!keyword) return alert("추가할 키워드를 입력하세요.");
+    if (!category) return alert("키워드를 추가할 그룹을 먼저 선택하세요.");
+
+    try {
+      await api("/keywords", {
+        method: "POST",
+        body: JSON.stringify({
+          keyword,
+          category_names: [category],
+          language_code: guessLanguageCode(keyword),
+          is_active: true,
+        }),
+      });
+      if (input) input.value = "";
+      await loadKeywordGroups();
+      await loadKeywordLanguages();
+      await loadKeywords();
+      await loadTeamRouting();
+      showToast("팀 그룹에 키워드가 추가되었습니다.", "success");
+    } catch (err) {
+      alert(`팀 키워드 추가 실패: ${err.message}`);
+    }
+    return;
+  }
+
+  const addId = trigger.dataset.teamRoutingAdd;
+  if (addId) {
+    const pick = el.teamRoutingList.querySelector(`[data-team-routing-pick="${addId}"]`);
+    const input = el.teamRoutingList.querySelector(`[data-team-routing-input="${addId}"]`);
+    const selected = pick ? String(pick.value || "").trim() : "";
+    if (!selected || !input) return;
+    const values = splitCsv(input.value);
+    if (!values.includes(selected)) {
+      values.push(selected);
+    }
+    input.value = values.join(", ");
+    if (pick) pick.value = "";
+    return;
+  }
+
+  const saveId = trigger.dataset.teamRoutingSave;
+  if (!saveId) return;
+
+  const input = el.teamRoutingList.querySelector(`[data-team-routing-input="${saveId}"]`);
+  if (!input) return;
+
+  try {
+    await api(`/recipients/teams/${saveId}/routing`, {
+      method: "PUT",
+      body: JSON.stringify({
+        category_names: splitCsv(input.value),
+      }),
+    });
+    await loadKeywordGroups();
+    await loadTeamRouting();
+    showToast("팀 수신 그룹이 저장되었습니다.", "success");
+  } catch (err) {
+    alert(`팀 수신 그룹 저장 실패: ${err.message}`);
   }
 });
 
@@ -1238,9 +1529,6 @@ async function init() {
     showDashboard();
     setupGeneralSettingsUi();
     setupScheduleUi();
-    await loadKeywordGroups();
-    await loadKeywordLanguages();
-    await loadTeams();
     await refreshAll();
     syncRunSelectorState();
     startServerTimeTicker();
@@ -1252,5 +1540,3 @@ async function init() {
 setupGeneralSettingsUi();
 setupScheduleUi();
 init().catch((err) => console.error(err));
-
-

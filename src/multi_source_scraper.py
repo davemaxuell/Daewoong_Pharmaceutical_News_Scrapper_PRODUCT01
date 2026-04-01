@@ -5,6 +5,9 @@ import json
 import os
 import sys
 import copy
+import signal
+import threading
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
@@ -35,6 +38,11 @@ from scrapers.pharmaceutical_online_scraper import PharmaceuticalOnlineScraper  
 # from scrapers.usp_monograph_scraper import USPMonographScraper  # PDF parsing, optional
 
 import src.logger as logger  # Logging module
+from src.runtime_admin_config import load_runtime_admin_config
+
+
+class SourceRuntimeTimeoutError(TimeoutError):
+    """Raised when a source exceeds its configured runtime limit."""
 
 
 class MultiSourceScraper:
@@ -141,7 +149,7 @@ class MultiSourceScraper:
         },
         "pda": {
             "class": PDAScraper,
-            "enabled": True,
+            "enabled": False,
             "description": "PDA Letter (주사제/무균공정, 멸균, 바이오의약품)",
             "args": {}
         },
@@ -159,9 +167,48 @@ class MultiSourceScraper:
             sources: 활성화할 소스 목록 (None이면 모두 활성화)
         """
         self.sources = sources
+        self.runtime_admin_config = load_runtime_admin_config()
         self.scrapers_config = self._load_scrapers_config()
+        general_settings = self.runtime_admin_config.get("general", {}) if isinstance(self.runtime_admin_config, dict) else {}
+        self.max_total_articles = self._normalize_positive_int(general_settings.get("max_total_articles"))
         self.results = []
         self.source_stats = {}
+
+    @staticmethod
+    def _normalize_positive_int(value: Any, default: int | None = None) -> int | None:
+        try:
+            if value is None:
+                return default
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+        return parsed if parsed > 0 else default
+
+    @contextmanager
+    def _time_limit(self, seconds: int | None):
+        timeout_seconds = self._normalize_positive_int(seconds)
+        if (
+            not timeout_seconds
+            or os.name == "nt"
+            or threading.current_thread() is not threading.main_thread()
+            or not hasattr(signal, "SIGALRM")
+            or not hasattr(signal, "setitimer")
+        ):
+            yield
+            return
+
+        previous_handler = signal.getsignal(signal.SIGALRM)
+
+        def _handle_timeout(_signum, _frame):
+            raise SourceRuntimeTimeoutError(f"Timed out after {timeout_seconds} seconds")
+
+        signal.signal(signal.SIGALRM, _handle_timeout)
+        signal.setitimer(signal.ITIMER_REAL, timeout_seconds)
+        try:
+            yield
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, previous_handler)
 
     def _load_scrapers_config(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -170,19 +217,18 @@ class MultiSourceScraper:
         - Optional overrides: config/scraper_sources.json
         """
         merged = copy.deepcopy(self.SCRAPERS_CONFIG)
-        if not os.path.exists(SCRAPER_SOURCES_PATH):
-            return merged
-
-        try:
-            with open(SCRAPER_SOURCES_PATH, "r", encoding="utf-8") as f:
-                overrides = json.load(f)
-        except Exception as e:
-            print(f"[WARN] Failed to load {SCRAPER_SOURCES_PATH}: {e}")
-            return merged
-
-        if not isinstance(overrides, dict):
-            print(f"[WARN] Invalid format in {SCRAPER_SOURCES_PATH}: expected object")
-            return merged
+        overrides: dict[str, Any] = {}
+        if os.path.exists(SCRAPER_SOURCES_PATH):
+            try:
+                with open(SCRAPER_SOURCES_PATH, "r", encoding="utf-8") as f:
+                    loaded_overrides = json.load(f)
+            except Exception as e:
+                print(f"[WARN] Failed to load {SCRAPER_SOURCES_PATH}: {e}")
+            else:
+                if isinstance(loaded_overrides, dict):
+                    overrides = loaded_overrides
+                else:
+                    print(f"[WARN] Invalid format in {SCRAPER_SOURCES_PATH}: expected object")
 
         for source_key, patch in overrides.items():
             if source_key not in merged:
@@ -195,6 +241,24 @@ class MultiSourceScraper:
             for field in ("enabled", "description", "args", "use_internal_days_back"):
                 if field in patch:
                     merged[source_key][field] = patch[field]
+
+        admin_sources = {}
+        if isinstance(self.runtime_admin_config, dict):
+            admin_sources = self.runtime_admin_config.get("sources", {}) or {}
+
+        for source_key, override in admin_sources.items():
+            if source_key not in merged or not isinstance(override, dict):
+                continue
+
+            if "display_name" in override and str(override.get("display_name") or "").strip():
+                merged[source_key]["description"] = str(override["display_name"]).strip()
+            if "is_enabled" in override:
+                merged[source_key]["enabled"] = bool(override["is_enabled"])
+
+            timeout_seconds = self._normalize_positive_int(override.get("timeout_seconds"), default=120)
+            max_items = self._normalize_positive_int(override.get("max_items"), default=200)
+            merged[source_key]["timeout_seconds"] = timeout_seconds
+            merged[source_key]["max_items"] = max_items
 
         return merged
     
@@ -229,15 +293,19 @@ class MultiSourceScraper:
         print("=" * 60)
         print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         print(f"Days back: {days_back}")
+        if self.max_total_articles:
+            print(f"DB max_total_articles: {self.max_total_articles}")
         print("=" * 60)
-        
+
+        selected_sources = set(self.sources or [])
         for source_key, config in self.scrapers_config.items():
-            # 비활성화된 소스 건너뛰기
-            if not config.get("enabled", True):
-                continue
-            
             # 특정 소스만 실행
-            if self.sources and source_key not in self.sources:
+            explicitly_selected = bool(selected_sources) and source_key in selected_sources
+            if selected_sources and source_key not in selected_sources:
+                continue
+
+            # 자동 실행에서는 비활성화된 소스 건너뛰기
+            if not explicitly_selected and not config.get("enabled", True):
                 continue
             
             print(f"\n[{source_key.upper()}] {config['description']}")
@@ -248,13 +316,20 @@ class MultiSourceScraper:
                 scraper_class = config["class"]
                 scraper_args = config.get("args", {})
                 scraper = scraper_class(**scraper_args)
-                
+                timeout_seconds = self._normalize_positive_int(config.get("timeout_seconds"), default=120)
+
                 # 뉴스 수집
                 # 일부 소스는 자체 days_back 로직 사용 (FDA 등)
-                if config.get("use_internal_days_back", False):
-                    articles = scraper.fetch_news(days_back=None)
-                else:
-                    articles = scraper.fetch_news(days_back=days_back)
+                with self._time_limit(timeout_seconds):
+                    if config.get("use_internal_days_back", False):
+                        articles = scraper.fetch_news(days_back=None)
+                    else:
+                        articles = scraper.fetch_news(days_back=days_back)
+
+                max_items = self._normalize_positive_int(config.get("max_items"), default=200)
+                if max_items and len(articles) > max_items:
+                    print(f"[{source_key.upper()}] Truncating to {max_items} items based on DB source settings")
+                    articles = articles[:max_items]
                 
                 # NewsArticle -> dict 변환 및 소스 표시
                 for article in articles:
@@ -264,7 +339,9 @@ class MultiSourceScraper:
                 
                 print(f"[{source_key.upper()}] Collected: {len(articles)} articles")
                 self.source_stats[config['description']] = len(articles)
-                
+            except SourceRuntimeTimeoutError as e:
+                print(f"[{source_key.upper()}] Error: {e}")
+                self.source_stats[config['description']] = 0
             except Exception as e:
                 print(f"[{source_key.upper()}] Error: {e}")
                 import traceback
@@ -294,6 +371,10 @@ class MultiSourceScraper:
             key=lambda x: x.get("published", "") or "",
             reverse=True
         )
+
+        if self.max_total_articles and len(filtered_articles) > self.max_total_articles:
+            print(f"\n[LIMIT] Truncating final result to {self.max_total_articles} articles from DB general settings")
+            filtered_articles = filtered_articles[: self.max_total_articles]
         
         print("\n" + "=" * 60)
         print(f"TOTAL COLLECTED: {len(filtered_articles)} articles")

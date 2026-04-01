@@ -26,7 +26,7 @@ from ..services.source_sync import ensure_sources_seeded
 router = APIRouter(prefix="/settings", tags=["settings"])
 DEFAULT_SCRAPE_FREQUENCY_MINUTES = 1440
 DEFAULT_MAX_TOTAL_ARTICLES = 2000
-DEFAULT_SCHEDULE_CRON = "0 8 * * *"
+DEFAULT_SCHEDULE_CRON = "0 8 * * 1-5"
 DEFAULT_SCHEDULE_TIMEZONE = "Asia/Seoul"
 DEFAULT_SOURCE_TIMEOUT_SECONDS = 120
 DEFAULT_SOURCE_MAX_ITEMS = 200

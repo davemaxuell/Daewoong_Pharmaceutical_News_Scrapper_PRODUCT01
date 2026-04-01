@@ -14,11 +14,11 @@ from src.ich_monitor import ICHGuidelinesMonitor
 from src.eudralex_monitor import EudraLexMonitor
 from src.gmpjournal_annex1_monitor import GMPJournalAnnex1Monitor
 from src.ai_summarizer_gemini import get_gemini_client, analyze_pdf
+from src.env_config import load_project_env
 import src.logger as logger
 
-# config 디렉토리에서 .env 로드
-from dotenv import load_dotenv
-load_dotenv(os.path.join(PROJECT_ROOT, "config", ".env"))
+# .env 또는 config/.env 로드
+load_project_env()
 
 # Snapshot directory for change detection
 SNAPSHOT_DIR_USP = os.path.join(PROJECT_ROOT, "snapshots", "usp")

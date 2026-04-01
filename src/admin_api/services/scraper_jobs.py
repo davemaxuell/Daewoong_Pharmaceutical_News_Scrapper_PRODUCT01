@@ -262,7 +262,7 @@ def start_full_pipeline_job(
     db.commit()
     db.refresh(job)
 
-    cmd = [sys.executable, str(FULL_PIPELINE_SCRIPT)]
+    cmd = [sys.executable, str(FULL_PIPELINE_SCRIPT), "--ignore-db-schedule"]
     thread = threading.Thread(
         target=_run_command_job_thread,
         args=(str(job.id), cmd, "Started full pipeline run.", "Full pipeline completed successfully."),

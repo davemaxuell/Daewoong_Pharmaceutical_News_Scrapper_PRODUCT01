@@ -56,6 +56,20 @@ class TeamResponse(BaseModel):
     name: str
 
 
+class TeamCategoryUpdateRequest(BaseModel):
+    category_names: list[str] = Field(default_factory=list)
+
+
+class TeamRoutingResponse(BaseModel):
+    id: UUID
+    name: str
+    is_active: bool
+    category_names: list[str]
+    recipient_count: int
+    keyword_count: int = 0
+    keywords: list[str] = Field(default_factory=list)
+
+
 class RecipientCreateRequest(BaseModel):
     email: EmailStr
     full_name: str | None = None

@@ -236,6 +236,10 @@ button.danger {
   min-width: 0;
 }
 
+.span-two {
+  grid-column: 1 / -1;
+}
+
 .row {
   display: flex;
   gap: 10px;
@@ -320,6 +324,36 @@ h4 {
   gap: 8px;
   max-height: 52vh;
   overflow: auto;
+}
+
+.team-routing-list {
+  max-height: none;
+}
+
+.team-routing-browser {
+  margin-bottom: 12px;
+}
+
+.team-routing-toolbar {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 250, 244, 0.88);
+}
+
+.team-routing-toolbar-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.team-routing-toolbar-row select {
+  flex: 0 0 320px;
+  max-width: 100%;
+}
+
+.team-routing-summary {
+  margin: 0;
 }
 
 .item {
@@ -411,6 +445,53 @@ h4 {
 .item-actions button {
   padding: 6px 10px;
   font-size: 0.82rem;
+}
+
+.team-routing-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.team-routing-card {
+  gap: 12px;
+}
+
+.team-keyword-block {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 250, 244, 0.88);
+  padding: 10px 12px;
+}
+
+.team-keyword-block summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.team-keyword-preview {
+  width: 100%;
+  min-height: 92px;
+  margin-top: 10px;
+  resize: vertical;
+}
+
+.team-routing-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.team-routing-row input,
+.team-routing-row select {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.team-routing-row button {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .run-actions {
@@ -658,6 +739,16 @@ h4 {
 
   .filter-inline {
     flex-wrap: wrap;
+  }
+
+  .team-routing-toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .team-routing-toolbar-row select {
+    flex: 1 1 auto;
+    width: 100%;
   }
 
   .run-selector,

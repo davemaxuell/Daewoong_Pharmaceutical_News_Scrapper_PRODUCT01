@@ -1,0 +1,247 @@
+{
+  "generated_at": "2026-03-29T07:07:19.343156",
+  "recent_days": 1,
+  "stale_threshold_days": 7,
+  "results": [
+    {
+      "source_key": "kpa_news",
+      "description": "약사공론 (KPA News)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 50,
+      "wide_latest": "2026-03-27T20:53:00",
+      "wide_titles": [
+        "내달 2일 부터 ‘운전금지 약물’ 복약지도…약봉투·복약지도서 표기",
+        "네트워크약국 금지법안, 30일 법사위 심의…약사사회 '촉각'",
+        "마약류 취급 위반 시 요양기관 등 12개월 업무정지 명문화"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "dailypharm",
+      "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 24,
+      "wide_latest": "2026-03-28T06:50:53",
+      "wide_titles": [
+        "[데일리팜] \"함께 하는 미래\"...전국 약사&분회 우수 콘텐츠 공모전",
+        "[데일리팜] 약값 깎기 바쁜 정부…사용량 통제 없는 건보절감은 '공염불'",
+        "[데일리팜] \"늘어나는 가루약\"…약국·병원, 왜 '분쇄 조제'에 내몰렸나"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "yakup",
+      "description": "약업신문 (Yakup News)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 48,
+      "wide_latest": "2026-03-27T00:00:00",
+      "wide_titles": [
+        "[약업신문] 우정바이오, 경영권 콜마홀딩스 이전",
+        "[약업신문] 다임바이오-엑세쏘바이오, PARP1 프로탁 기반 표적항암제 공동 개발",
+        "[약업신문] 신라젠, 한상규•박상근 각자대표 체제 돌입"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "kpbma",
+      "description": "한국제약바이오협회 뉴스레터",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 18,
+      "wide_latest": "2026-03-24T00:00:00",
+      "wide_titles": [
+        "[연합뉴스]제네릭 약가 개편 임박…업계 \"일괄 인하는 생태계 훼손\" 반발",
+        "[뉴시스]'혁신-공급' 지속성 확보…\"약가개편, 근본취지 되새겨야\"",
+        "[뉴스1]\"제네릭 기반 지키고, 혁신 신약 가치 키우는 약가 정책 필요\"(종합)"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 5 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "mfds",
+      "description": "식품의약품안전처 RSS",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 80,
+      "wide_latest": "2026-03-27T09:23:47",
+      "wide_titles": [
+        "[보도참고] 잔류농약 기준 초과 검출된 수입 '냉동 패션후르츠' 회수 조치",
+        "(알림) 식품안심업소 지정 현황(2026.3.27 기준)",
+        "의약품 제조시설의 식품제조가공시설 이용 변경 신청 승인[경남제약(주)](제2026-162호)"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "fda_recalls",
+      "description": "FDA Drug Recalls (openFDA API)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": null,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    },
+    {
+      "source_key": "fda_warning_letters",
+      "description": "FDA Warning Letters (All Offices)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 30,
+      "wide_latest": "2026-03-24T00:00:00",
+      "wide_titles": [
+        "[FDA Warning Letter] matesbrand.com - Family Smoking Prevention and Tobacco Control Act/",
+        "[FDA Warning Letter] Longhorn Vaccines and Diagnostics LLC - CGMP/QSR/Medical Devices/Adulterated",
+        "[FDA Warning Letter] IsoTis OrthoBiologics, Inc. - CGMP/QSR/Medical Devices/Adulterated"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 5 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "edqm",
+      "description": "EDQM Newsrooms (EU)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 8,
+      "wide_latest": "2026-03-27T00:00:00",
+      "wide_titles": [
+        "Junior Scientific Assistant - CEP procedure",
+        "New milestone in the development of the certification concept for rapid microbiological methods",
+        "Outcome of the 184th session of the European Pharmacopoeia Commission"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "eudralex",
+      "description": "EudraLex Volume 4 (EU GMP)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 2,
+      "wide_latest": "2026-03-19T12:00:00",
+      "wide_titles": [
+        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)",
+        "Consultation of new guidance on the conduct of clinical trials during public health emergencies in the EU"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 9 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pics",
+      "description": "PIC/S (GMP Inspection)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 120,
+      "wide_count": 6,
+      "wide_latest": "2026-02-12T14:22:00",
+      "wide_titles": [
+        "Concept paper on the revision of EU-PIC/S GMP Annex 6 - Manufacture of medicinal gases",
+        "Concept paper on the revision of EU-PIC/S GMP Annex 15 (Qualification and validation)",
+        "Kazakhstan applies for PIC/S membership"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 44 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ich_news",
+      "description": "ICH News (가이드라인)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 1,
+      "wide_latest": "2026-03-20T00:00:00",
+      "wide_titles": [
+        "Updated and Expanded ICH Q9(R1) Quality Risk Management Briefing Pack Now Available"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 9 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "gmp_journal",
+      "description": "GMP Journal",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 60,
+      "wide_count": 5,
+      "wide_latest": "2026-03-17T00:00:00",
+      "wide_titles": [
+        "Report on the ECA “Equipment Qualification Forum”",
+        "Preventing Typical Challenges in GMP Projects",
+        "Sterile Filtration and PUPSIT – Questions and Answers at a Glance (Part 1)"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 12 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ispe",
+      "description": "ISPE (주사제/고형제 제조 공정, QA 이슈)",
+      "recent_count": 8,
+      "recent_latest": null,
+      "recent_titles": [
+        "[ISPE] Bioprocess Online Covers Novo Nordisk Feature at the 2026 ISPE Facilities of the Future Conference",
+        "[ISPE] ISPE Announces its 2026 ISPE Europe Annual Conference Keynote Speakers",
+        "[ISPE] Bioprocess Online Covers ISPE GAMP Guide: Artificial Intelligence"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "bioprocess",
+      "description": "BioProcess International (Validation, Fill-Finish, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 14,
+      "wide_latest": "2026-03-26T19:55:01",
+      "wide_titles": [
+        "[BioProcess] Register Now: Tailored Bioassay Solutions for Peptide Drugs and New Biologic Modalities",
+        "[BioProcess] Closing the gap: How academic non-profits are making CGT manufacturing accessible",
+        "[BioProcess] From Formulation to Facility: Driving Risk-Assessment Excellence Across Products and Projects"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pharmaceutical_online",
+      "description": "Pharmaceutical Online (완제의약품 10개 카테고리: 고형제/액제, 검사, 포장, 시리얼화, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 60,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    }
+  ]
+}

@@ -69,6 +69,19 @@ class HTMLChangeMonitor:
             "access denied",
         ]
         return any(marker in lowered for marker in retry_markers)
+
+    def _playwright_runtime_unavailable(self, error_message: str) -> bool:
+        if not error_message:
+            return False
+        lowered = error_message.lower()
+        markers = [
+            "error while loading shared libraries",
+            "cannot open shared object file",
+            "browsertype.launch",
+            "target page, context or browser has been closed",
+            "playwright not installed",
+        ]
+        return any(marker in lowered for marker in markers)
     
     def fetch_page_content(self, url: str, content_selector: str = None) -> Dict[str, Any]:
         """
@@ -360,6 +373,9 @@ class HTMLChangeMonitor:
             if not use_playwright and PLAYWRIGHT_AVAILABLE and self._should_retry_with_playwright(current_content.get("error", "")):
                 print("[Monitor] Retrying with Playwright fallback")
                 current_content = self.fetch_page_with_playwright(url, content_selector)
+            elif use_playwright and self._playwright_runtime_unavailable(current_content.get("error", "")):
+                print("[Monitor] Playwright runtime unavailable, retrying with HTTP fallback")
+                current_content = self.fetch_page_content(url, content_selector)
 
         if current_content.get("status") == "error":
             return {
@@ -678,4 +694,3 @@ if __name__ == "__main__":
         report = monitor.run_and_report_all()
     
     print(report)
-

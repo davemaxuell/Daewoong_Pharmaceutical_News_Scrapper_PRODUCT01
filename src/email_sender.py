@@ -6,6 +6,7 @@ import smtplib
 import base64
 import uuid
 import html as html_lib
+import re
 from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -14,20 +15,21 @@ from email.mime.base import MIMEBase
 from email import encoders
 from datetime import datetime, timezone
 import os
-from dotenv import load_dotenv
 
 # ?꾨줈?앺듃 猷⑦듃 諛?config ?붾젆?좊━ 寃쎈줈
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
-load_dotenv(os.path.join(CONFIG_DIR, ".env"))
 import sys
 sys.path.insert(0, PROJECT_ROOT)
+from src.env_config import first_env, load_project_env
+
+load_project_env()
 
 # ?대찓???ㅼ젙 (.env ?뚯씪?먯꽌 濡쒕뱶)
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "")
-SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "")
+SMTP_SERVER = first_env("SMTP_SERVER", default="smtp.gmail.com")
+SMTP_PORT = int(first_env("SMTP_PORT", default="587"))
+SENDER_EMAIL = first_env("SENDER_EMAIL", "EMAIL_SENDER")
+SENDER_PASSWORD = first_env("SENDER_PASSWORD", "EMAIL_PASSWORD")
 
 # 濡쒓퀬 ?뚯씪 寃쎈줈
 LOGO_PATH = os.path.join(PROJECT_ROOT, "assets", "LOGO.png")
@@ -147,29 +149,177 @@ def _finalize_email_history(campaign_id: str, success: bool, error_message: str 
 
 
 def get_logo_base64() -> str:
-    """濡쒓퀬瑜?Base64濡??몄퐫?⑺븯??諛섑솚"""
+    """Return the logo as a base64 string."""
     try:
         with open(LOGO_PATH, 'rb') as f:
             return base64.b64encode(f.read()).decode('utf-8')
     except FileNotFoundError:
-        print(f"[WARN] 濡쒓퀬 ?뚯씪??李얠쓣 ???놁뒿?덈떎: {LOGO_PATH}")
+        print(f"[WARN] Logo file not found: {LOGO_PATH}")
         return ""
 
 
-def load_team_emails(filepath: str = "team_emails.json") -> dict:
-    """?蹂??대찓??二쇱냼 濡쒕뱶"""
+def _load_team_emails_from_file(filepath: str, *, silence_missing: bool = False) -> dict:
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, 'r', encoding='utf-8-sig') as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"[ERROR] {filepath} ?뚯씪??李얠쓣 ???놁뒿?덈떎.")
+        if not silence_missing:
+            print(f"[ERROR] Team email file not found: {filepath}")
         return {}
+
+
+def _load_team_emails_from_admin_db() -> dict | None:
+    if not DATABASE_URL:
+        return None
+
+    try:
+        import psycopg
+    except Exception:
+        return None
+
+    try:
+        with psycopg.connect(DATABASE_URL, connect_timeout=5) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT name, COALESCE(description, '')
+                    FROM teams
+                    WHERE is_active IS TRUE
+                    ORDER BY name ASC
+                    """
+                )
+                team_rows = cur.fetchall()
+
+                if not team_rows:
+                    return None
+
+                team_map = {
+                    str(team_name): {
+                        "team_name": str(team_name),
+                        "description": str(description or ""),
+                        "categories": [],
+                        "members": [],
+                    }
+                    for team_name, description in team_rows
+                    if str(team_name or "").strip()
+                }
+
+                cur.execute(
+                    """
+                    SELECT t.name, c.name
+                    FROM team_category_map AS tcm
+                    JOIN teams AS t
+                      ON t.id = tcm.team_id
+                    JOIN categories AS c
+                      ON c.id = tcm.category_id
+                    WHERE t.is_active IS TRUE
+                      AND c.is_active IS TRUE
+                    ORDER BY t.name ASC, c.name ASC
+                    """
+                )
+                for team_name, category_name in cur.fetchall():
+                    team_key = str(team_name or "").strip()
+                    category_value = str(category_name or "").strip()
+                    if not team_key or not category_value or team_key not in team_map:
+                        continue
+                    categories = team_map[team_key]["categories"]
+                    if category_value not in categories:
+                        categories.append(category_value)
+
+                cur.execute(
+                    """
+                    SELECT t.name, r.email, COALESCE(r.full_name, '')
+                    FROM recipient_team_map AS rtm
+                    JOIN teams AS t
+                      ON t.id = rtm.team_id
+                    JOIN recipients AS r
+                      ON r.id = rtm.recipient_id
+                    WHERE t.is_active IS TRUE
+                      AND r.is_active IS TRUE
+                    ORDER BY t.name ASC, r.email ASC
+                    """
+                )
+                for team_name, email, full_name in cur.fetchall():
+                    team_key = str(team_name or "").strip()
+                    email_value = str(email or "").strip().lower()
+                    if not team_key or not email_value or team_key not in team_map:
+                        continue
+                    team_map[team_key]["members"].append(
+                        {
+                            "email": email_value,
+                            "name": str(full_name or "").strip(),
+                        }
+                    )
+
+                return team_map
+    except Exception as e:
+        print(f"[WARN] Failed to load team routing from admin DB: {e}")
+        return None
+
+
+def load_team_emails(filepath: str = "team_emails.json") -> dict:
+    """Load team/category/member routing for email delivery."""
+    db_payload = _load_team_emails_from_admin_db()
+    if db_payload:
+        return db_payload
+
+    return _load_team_emails_from_file(filepath)
 
 
 def load_summarized_news(filepath: str) -> list:
     """?붿빟???댁뒪 ?곗씠??濡쒕뱶"""
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+
+def _clip_text(value: str, limit: int = 320) -> str:
+    text = " ".join(str(value or "").split())
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
+def _extract_summary_from_jsonish_text(value: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    if not text.startswith("{"):
+        return text
+
+    match = re.search(r'"summary"\s*:\s*"((?:[^"\\]|\\.)*)', text, re.S)
+    if match:
+        cleaned = match.group(1).replace('\\"', '"').replace("\\n", " ").replace("\\t", " ")
+        return re.sub(r"\s+", " ", cleaned).strip(" \t\r\n\"',")
+
+    return text
+
+
+def _resolve_article_summary(article: dict) -> str:
+    """Prefer AI summary, but always fall back to scraped summary/content."""
+    ai = article.get("ai_analysis", {}) or {}
+    summary = (
+        ai.get("ai_summary")
+        or article.get("summary")
+        or article.get("full_text")
+        or ""
+    )
+    summary = _extract_summary_from_jsonish_text(summary)
+    summary = _clip_text(summary, limit=360)
+    return summary or "No summary available."
+
+
+def _htmlize_text(value: str) -> str:
+    return html_lib.escape(str(value or "")).replace("\n", "<br />")
+
+
+def _html_to_plain_text(html_content: str) -> str:
+    text = re.sub(r"<br\s*/?>", "\n", html_content, flags=re.IGNORECASE)
+    text = re.sub(r"</p\s*>", "\n\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"</li\s*>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html_lib.unescape(text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
 def organize_news_by_team(articles: list, team_emails: dict) -> dict:
@@ -239,15 +389,15 @@ def create_email_html(team_name: str, articles: list) -> str:
 
     for article in articles:
         ai = article.get("ai_analysis", {})
-        title = article.get("title", "Untitled")
-        source = article.get("source", "Unknown source")
-        published = article.get("published", "")[:10] if article.get("published") else ""
-        link = article.get("link", "#")
+        title = html_lib.escape(article.get("title", "Untitled"))
+        source = html_lib.escape(article.get("source", "Unknown source"))
+        published = html_lib.escape(article.get("published", "")[:10] if article.get("published") else "")
+        link = html_lib.escape(article.get("link", "#"), quote=True)
 
-        summary = ai.get("ai_summary", "No summary available")
-        key_points = ai.get("key_points", [])
-        impact = ai.get("industry_impact", "")
-        keywords = ai.get("ai_keywords", [])
+        summary = _htmlize_text(_resolve_article_summary(article))
+        key_points = [html_lib.escape(str(point)) for point in (ai.get("key_points") or []) if str(point).strip()]
+        impact = _htmlize_text(ai.get("industry_impact", ""))
+        keywords = [html_lib.escape(str(kw)) for kw in (ai.get("ai_keywords") or []) if str(kw).strip()]
         
         html += f'''
                             <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #FAFAFA; margin-bottom: 15px; border-left: 4px solid #f6a04d; border-radius: 8px;">
@@ -452,8 +602,11 @@ def send_email(
         msg['From'] = SENDER_EMAIL
         msg['To'] = ', '.join(to_emails)
 
+        alt_part = MIMEMultipart('alternative')
+        alt_part.attach(MIMEText(_html_to_plain_text(html_content), 'plain', 'utf-8'))
         html_part = MIMEText(html_content, 'html', 'utf-8')
-        msg.attach(html_part)
+        alt_part.attach(html_part)
+        msg.attach(alt_part)
 
         if os.path.exists(LOGO_PATH):
             with open(LOGO_PATH, 'rb') as f:
@@ -477,9 +630,9 @@ def send_email(
 
 
 def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails.json"):
-    """紐⑤땲?곕쭅 ?낅뜲?댄듃 ?대찓??諛쒖넚"""
+    """Send monitor update emails."""
     print("\n" + "=" * 60)
-    print("?슚 洹쒖젣 紐⑤땲?곕쭅 ?대찓??諛쒖넚 ?쒖옉")
+    print("Monitor Email Delivery Start")
     print("=" * 60)
     
     # ?곗씠??濡쒕뱶
@@ -491,7 +644,7 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
         updates = json.load(f)
     
     if not updates:
-        print("[INFO] 諛쒖넚???낅뜲?댄듃媛 ?놁뒿?덈떎.")
+        print("[INFO] No monitor updates to send.")
         return
 
     # ?蹂?遺꾨쪟 (AI 遺꾩꽍 寃곌낵???곕쫫)
@@ -501,9 +654,9 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
         ai = item.get("ai_analysis", {})
         target_teams = ai.get("target_teams", [])
         
-        # ?寃?????놁쑝硫?RA?(湲곕낯)??諛곗젙
+        # Default fallback target team names
         if not target_teams:
-            target_teams = ["RA?", "?덇??", "Regulatory Affairs"] # 湲곕낯媛??쒕룄
+            target_teams = ["RA팀", "규제팀", "Regulatory Affairs"]
             
         for team in target_teams:
             # 留ㅼ묶?섎뒗 ? 李얘린 (遺遺??쇱튂 ?덉슜)
@@ -522,7 +675,7 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
                 pass
 
     if not team_updates:
-        print("[WARN] ?낅뜲?댄듃瑜??섏떊?????李얠? 紐삵뻽?듬땲?? RA? ?ㅼ젙???뺤씤?섏꽭??")
+        print("[WARN] No matching target teams found for monitor updates. Check RA team naming in team_emails.json.")
         return
 
     sent_count = 0
@@ -542,34 +695,34 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
         subject = f"[Regulatory Alert] {team_name} - {today} ({len(update_list)} updates)"
         html_content = create_monitor_email_html(team_name, update_list)
         
-        print(f"\n[{team_name}] {len(update_list)}嫄댁쓽 洹쒖젣 ?낅뜲?댄듃瑜?諛쒖넚 以?..")
+        print(f"\n[{team_name}] Sending {len(update_list)} monitor update(s)...")
         
         if send_email(to_emails, subject, html_content, article_count=len(update_list)):
-            print(f"  ??諛쒖넚 ?꾨즺")
+            print("  -> Sent")
             sent_count += 1
         else:
-            print(f"  ??諛쒖넚 ?ㅽ뙣")
+            print("  -> Failed")
             
-    print(f"\n[DONE] 珥?{sent_count}媛????紐⑤땲?곕쭅 ?뚮┝ 諛쒖넚 ?꾨즺")
+    print(f"\n[DONE] Monitor email delivery complete: {sent_count} team(s) sent")
 
 
 def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_emails.json"):
-    """?蹂꾨줈 ?댁뒪 ?대찓??諛쒖넚"""
+    """Send news briefing emails by team."""
     print("\n" + "=" * 60)
-    print("?벁 ?대찓??諛쒖넚 ?쒖옉")
+    print("News Email Delivery Start")
     print("=" * 60)
     
     # ?곗씠??濡쒕뱶
     team_emails = load_team_emails(team_emails_json)
     if not team_emails:
-        print("[SKIP] ? ?대찓???ㅼ젙???놁뒿?덈떎.")
+        print("[SKIP] Team email configuration is missing.")
         return
     
     articles = load_summarized_news(summarized_json)
     team_news = organize_news_by_team(articles, team_emails)
     
     if not team_news:
-        print("[SKIP] 諛쒖넚???댁뒪媛 ?놁뒿?덈떎.")
+        print("[SKIP] No news items matched any team.")
         return
     
     today = datetime.now().strftime('%Y-%m-%d')
@@ -579,7 +732,7 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
     for team_name, news_list in team_news.items():
         # ?대떦 ???team_emails.json???덈뒗吏 ?뺤씤
         if team_name not in team_emails:
-            print(f"[SKIP] {team_name}: ?대찓???ㅼ젙 ?놁쓬")
+            print(f"[SKIP] {team_name}: missing team configuration")
             skip_count += 1
             continue
         
@@ -587,7 +740,7 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
         members = team_info.get("members", [])
         
         if not members:
-            print(f"[SKIP] {team_name}: ????놁쓬")
+            print(f"[SKIP] {team_name}: no recipients configured")
             skip_count += 1
             continue
         
@@ -595,14 +748,14 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
         to_emails = [m["email"] for m in members if m.get("email")]
         
         if not to_emails:
-            print(f"[SKIP] {team_name}: ?대찓??二쇱냼 ?놁쓬")
+            print(f"[SKIP] {team_name}: no recipient email addresses")
             skip_count += 1
             continue
         
         # ?ㅼ썙???녿뒗 湲곗궗 ?쒖쇅
         tagged_news = [a for a in news_list if a.get("ai_analysis", {}).get("ai_keywords")]
         if not tagged_news:
-            print(f"[SKIP] {team_name}: ?ㅼ썙???쒓렇???댁뒪 ?놁쓬")
+            print(f"[SKIP] {team_name}: no tagged news items")
             skip_count += 1
             continue
 
@@ -611,19 +764,19 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
         html_content = create_email_html(team_name, tagged_news)
         
         # ?대찓??諛쒖넚
-        print(f"\n[{team_name}] {len(news_list)}嫄댁쓽 ?댁뒪瑜?{len(to_emails)}紐낆뿉寃?諛쒖넚 以?..")
-        print(f"  ??? {', '.join(to_emails)}")
+        print(f"\n[{team_name}] Sending {len(news_list)} news item(s) to {len(to_emails)} recipient(s)...")
+        print(f"  To: {', '.join(to_emails)}")
         
         if send_email(to_emails, subject, html_content, article_count=len(tagged_news)):
-            print(f"  ??諛쒖넚 ?꾨즺!")
+            print("  -> Sent")
             sent_count += 1
         else:
-            print(f"  ??諛쒖넚 ?ㅽ뙣")
+            print("  -> Failed")
     
     print("\n" + "=" * 60)
-    print(f"?벁 ?대찓??諛쒖넚 ?꾨즺")
-    print(f"  ?깃났: {sent_count}媛??")
-    print(f"  嫄대꼫?: {skip_count}媛??")
+    print("News Email Delivery Complete")
+    print(f"  Sent: {sent_count} team(s)")
+    print(f"  Skipped: {skip_count} team(s)")
     print("=" * 60)
 
 
@@ -633,7 +786,7 @@ def send_log_email(log_file: str = None):
     ?뚯씠?꾨씪???ㅽ뻾 寃곌낵瑜?紐⑤땲?곕쭅?섍린 ?꾪븿
     """
     if not SENDER_EMAIL or not SENDER_PASSWORD:
-        print("[LOG EMAIL] ?대찓???ㅼ젙???놁뒿?덈떎.")
+        print("[LOG EMAIL] Sender email configuration is missing.")
         return False
 
     # 濡쒓렇 ?뚯씪 寃쎈줈 寃곗젙
@@ -642,7 +795,7 @@ def send_log_email(log_file: str = None):
         log_file = os.path.join(PROJECT_ROOT, "logs", f"log_{today}.txt")
 
     if not os.path.exists(log_file):
-        print(f"[LOG EMAIL] 濡쒓렇 ?뚯씪??李얠쓣 ???놁뒿?덈떎: {log_file}")
+        print(f"[LOG EMAIL] Log file not found: {log_file}")
         return False
 
     # 濡쒓렇 ?댁슜 ?쎄린
@@ -650,7 +803,7 @@ def send_log_email(log_file: str = None):
         log_content = f.read()
 
     if not log_content.strip():
-        print("[LOG EMAIL] 濡쒓렇 ?댁슜??鍮꾩뼱?덉뒿?덈떎.")
+        print("[LOG EMAIL] Log file is empty.")
         return False
 
     today_str = datetime.now().strftime('%Y-%m-%d %H:%M')
@@ -753,11 +906,11 @@ def send_log_email(log_file: str = None):
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.sendmail(SENDER_EMAIL, [SENDER_EMAIL], msg.as_string())
 
-        print(f"[LOG EMAIL] 濡쒓렇 ?대찓??諛쒖넚 ?꾨즺 -> {SENDER_EMAIL}")
+        print(f"[LOG EMAIL] Log email sent -> {SENDER_EMAIL}")
         return True
 
     except Exception as e:
-        print(f"[LOG EMAIL] 諛쒖넚 ?ㅽ뙣: {e}")
+        print(f"[LOG EMAIL] Send failed: {e}")
         return False
 
 
@@ -944,10 +1097,10 @@ if __name__ == "__main__":
     import argparse
     from datetime import datetime
     
-    parser = argparse.ArgumentParser(description="?蹂??댁뒪 ?대찓??諛쒖넚")
-    parser.add_argument("-i", "--input", help="?붿빟???댁뒪 JSON ?뚯씪")
-    parser.add_argument("-t", "--teams", default="team_emails.json", help="? ?대찓??JSON ?뚯씪")
-    parser.add_argument("--monitor", action="store_true", help="紐⑤땲?곕쭅 ?낅뜲?댄듃 紐⑤뱶濡??ㅽ뻾")
+    parser = argparse.ArgumentParser(description="Send news or monitor emails")
+    parser.add_argument("-i", "--input", help="Input JSON file")
+    parser.add_argument("-t", "--teams", default="team_emails.json", help="Team emails JSON file")
+    parser.add_argument("--monitor", action="store_true", help="Run in monitor update mode")
     
     args = parser.parse_args()
     
@@ -958,13 +1111,10 @@ if __name__ == "__main__":
         today = datetime.now().strftime('%Y%m%d')
         input_file = f"pharma_news_summarized_{today}.json"
     
-    print(f"[INFO] ?낅젰 ?뚯씪: {input_file}")
-    print(f"[INFO] ? ?대찓?? {args.teams}")
+    print(f"[INFO] Input file: {input_file}")
+    print(f"[INFO] Team emails: {args.teams}")
     
     if args.monitor:
         send_monitor_updates(input_file, args.teams)
     else:
         send_news_to_teams(input_file, args.teams)
-
-
-

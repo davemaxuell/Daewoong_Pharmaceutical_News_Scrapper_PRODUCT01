@@ -5,16 +5,16 @@ Wants=postgresql.service
 
 [Service]
 Type=simple
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/ubuntu/pharma_news_agent
-Environment="PATH=/home/ubuntu/pharma_news_agent/venv/bin:/usr/local/bin:/usr/bin:/bin"
-EnvironmentFile=-/home/ubuntu/pharma_news_agent/config/.env
-ExecStart=/home/ubuntu/pharma_news_agent/venv/bin/python -m uvicorn src.admin_api.main:app --host 0.0.0.0 --port 8000
+User=develop
+Group=develop
+WorkingDirectory=/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01
+Environment="PATH=/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=-/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/config/.env
+ExecStart=/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/venv/bin/python -m uvicorn src.admin_api.main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=5
-StandardOutput=append:/home/ubuntu/pharma_news_agent/logs/admin_api_output.log
-StandardError=append:/home/ubuntu/pharma_news_agent/logs/admin_api_error.log
+StandardOutput=append:/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/logs/admin_api_output.log
+StandardError=append:/home/develop/Daewoong_Pharmaceutical_News_Scrapper_PRODUCT01/logs/admin_api_error.log
 
 [Install]
 WantedBy=multi-user.target

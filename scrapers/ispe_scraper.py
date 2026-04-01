@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import warnings
+from urllib.parse import urljoin
 
 # Suppress XML parsing warnings for RSS feeds
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
@@ -216,25 +217,32 @@ class ISPEScraper(BaseScraper):
             # Find news article links
             article_links = []
 
-            # Method 1: article tags
-            for article_tag in soup.find_all('article', limit=50):
-                link_elem = article_tag.find('a', href=True)
-                if link_elem:
-                    article_links.append(link_elem['href'])
+            # Current ISPE markup renders article teasers as .views-row nodes.
+            for teaser in soup.select(".views-row .node--type-news-item, .views-row"):
+                link_elem = teaser.select_one("a[href*='/news/']")
+                if link_elem and link_elem.get("href"):
+                    article_links.append(self._normalize_url(link_elem["href"]))
 
-            # Method 2: news-specific classes
-            for link in soup.find_all('a', class_=['news-link', 'article-link', 'post-link', 'card-link'], limit=50):
-                if link.get('href'):
-                    article_links.append(link['href'])
+            # Fallback to generic selectors if the teaser grid changes again.
+            if not article_links:
+                for article_tag in soup.find_all('article', limit=50):
+                    link_elem = article_tag.find('a', href=True)
+                    if link_elem:
+                        article_links.append(self._normalize_url(link_elem['href']))
 
-            # Method 3: href pattern matching (links with /news/ in path)
-            for link in soup.find_all('a', href=True, limit=100):
-                href = link['href']
-                if '/news/' in href and len(href.split('/')) > 3:
-                    article_links.append(href)
+            if not article_links:
+                for link in soup.find_all('a', class_=['news-link', 'article-link', 'post-link', 'card-link'], limit=50):
+                    if link.get('href'):
+                        article_links.append(self._normalize_url(link['href']))
 
-            # Remove duplicates
-            article_links = list(set(article_links))
+            if not article_links:
+                for link in soup.find_all('a', href=True, limit=150):
+                    href = link['href']
+                    if '/news/' in href and len(href.split('/')) > 3:
+                        article_links.append(self._normalize_url(href))
+
+            # Remove duplicates while preserving order.
+            article_links = list(dict.fromkeys(article_links))
 
             print(f"[ISPE News] Found {len(article_links)} article links")
 
@@ -257,6 +265,10 @@ class ISPEScraper(BaseScraper):
             print(f"[ISPE News] Error scraping news page: {e}")
 
         return articles
+
+    def _normalize_url(self, href: str) -> str:
+        """Normalize relative URLs from ISPE pages into absolute URLs."""
+        return urljoin(self.BASE_URL, href)
 
     def _scrape_smartbrief(self, cutoff_date: datetime, query: str = None) -> List[NewsArticle]:
         """Scrape ISPE SmartBrief Newsletter"""

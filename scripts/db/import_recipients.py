@@ -70,6 +70,10 @@ def map_team_category(cur, team_id: str, category_id: str) -> None:
     )
 
 
+def reset_team_categories(cur, team_id: str) -> None:
+    cur.execute("DELETE FROM team_category_map WHERE team_id = %s", (team_id,))
+
+
 def upsert_recipient(cur, email: str, full_name: str | None, team_id: str) -> str:
     cur.execute(
         """
@@ -115,6 +119,7 @@ def run(db_url: str, team_emails_path: Path, dry_run: bool) -> None:
 
                 team_id = upsert_team(cur, team_name)
                 team_count += 1
+                reset_team_categories(cur, team_id)
 
                 for category in team_info.get("categories", []):
                     if not category or not category.strip():
@@ -155,4 +160,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

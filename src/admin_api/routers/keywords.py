@@ -13,6 +13,8 @@ from ..database import get_db
 from ..dependencies import get_current_user, require_admin
 from ..models import Category, Keyword, KeywordCategoryMap, User
 from ..schemas import KeywordCreateRequest, KeywordResponse, KeywordUpdateRequest
+from ..services.keyword_sync import ensure_keywords_seeded
+from ..services.team_sync import ensure_team_data_seeded
 
 
 router = APIRouter(prefix="/keywords", tags=["keywords"])
@@ -51,6 +53,12 @@ def _keyword_to_response(db: Session, keyword: Keyword) -> KeywordResponse:
     )
 
 
+def _delete_keyword_dependencies(db: Session, keyword_id: UUID) -> None:
+    db.query(KeywordCategoryMap).filter(KeywordCategoryMap.keyword_id == keyword_id).delete(
+        synchronize_session=False
+    )
+
+
 @router.get("", response_model=list[KeywordResponse])
 def list_keywords(
     q: str | None = Query(default=None),
@@ -60,6 +68,7 @@ def list_keywords(
     _user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    ensure_keywords_seeded(db)
     query = db.query(Keyword)
     if group:
         query = (
@@ -83,7 +92,14 @@ def list_keyword_groups(
     _user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    rows = db.query(Category.name).order_by(Category.name.asc()).all()
+    ensure_team_data_seeded(db)
+    ensure_keywords_seeded(db)
+    rows = (
+        db.query(Category.name)
+        .filter(Category.is_active.is_(True))
+        .order_by(Category.name.asc())
+        .all()
+    )
     return [name for (name,) in rows]
 
 
@@ -92,6 +108,7 @@ def list_keyword_languages(
     _user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    ensure_keywords_seeded(db)
     rows = (
         db.query(Keyword.language_code)
         .filter(Keyword.language_code.isnot(None), Keyword.language_code != "")
@@ -207,6 +224,7 @@ def delete_keyword(
     if not keyword:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Keyword not found")
     before = _keyword_to_response(db, keyword).model_dump()
+    _delete_keyword_dependencies(db, keyword.id)
     db.delete(keyword)
     db.commit()
     write_audit(

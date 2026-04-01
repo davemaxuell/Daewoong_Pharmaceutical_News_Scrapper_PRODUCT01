@@ -13,10 +13,9 @@ templates = Jinja2Templates(directory="src/admin_api/templates")
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 def home(request: Request):
-    return templates.TemplateResponse("admin/index.html", {"request": request})
+    return templates.TemplateResponse(request, "admin/index.html", {"request": request})
 
 
 @router.get("/admin", response_class=HTMLResponse, include_in_schema=False)
 def admin_page(request: Request):
-    return templates.TemplateResponse("admin/index.html", {"request": request})
-
+    return templates.TemplateResponse(request, "admin/index.html", {"request": request})

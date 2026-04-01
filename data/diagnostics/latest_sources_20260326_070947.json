@@ -1,0 +1,235 @@
+{
+  "generated_at": "2026-03-26T07:09:47.159485",
+  "recent_days": 1,
+  "stale_threshold_days": 7,
+  "results": [
+    {
+      "source_key": "kpa_news",
+      "description": "약사공론 (KPA News)",
+      "recent_count": 31,
+      "recent_latest": "2026-03-25T21:08:28",
+      "recent_titles": [
+        "[앨리스랩]약공쇼츠 참여 이벤트 당첨자 리스트",
+        "돌봄통합지원법 본격 시행…약사 역할 '조제에서 관리로' 확장",
+        "'약화 사고' 예방…“약 포장 바꾸고 제형까지 개선”"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "dailypharm",
+      "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
+      "recent_count": 23,
+      "recent_latest": "2026-03-26T06:00:59",
+      "recent_titles": [
+        "[데일리팜] 제네릭 깎아 신약 창출?…정부, 약가 패러다임 전환 필요",
+        "[데일리팜] 약값 더 저렴한데…제네릭 약품비 증가 걱정하는 정부",
+        "[데일리팜] 제약 4곳 중 3곳 R&D 확대…약가 개편에 투자 위축 우려"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "yakup",
+      "description": "약업신문 (Yakup News)",
+      "recent_count": 29,
+      "recent_latest": "2026-03-26T00:00:00",
+      "recent_titles": [
+        "[약업신문] 노벨생리의학상 세멘자 교수 방한 “저산소 반응 핵심 인자 'HIF', 혈관 재생 좌우”",
+        "[약업신문] [2026 기대 신약 TOP 10] ① 비만 치료제 '카그리세마'",
+        "[약업신문] 비보존제약, 매출 감소 속 적자 지속…수익성 악화"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "kpbma",
+      "description": "한국제약바이오협회 뉴스레터",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 27,
+      "wide_latest": "2026-03-24T00:00:00",
+      "wide_titles": [
+        "[연합뉴스]제네릭 약가 개편 임박…업계 \"일괄 인하는 생태계 훼손\" 반발",
+        "[뉴시스]'혁신-공급' 지속성 확보…\"약가개편, 근본취지 되새겨야\"",
+        "[뉴스1]\"제네릭 기반 지키고, 혁신 신약 가치 키우는 약가 정책 필요\"(종합)"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "mfds",
+      "description": "식품의약품안전처 RSS",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 88,
+      "wide_latest": "2026-03-25T06:00:15",
+      "wide_titles": [
+        "청년·소상공인의 목소리를 정책으로 잇는다... ‘식의약 정책이음 열린마당(식품편)’ 개최",
+        "식약처, 성병·마약류·독감 등 자가검사용 키트 확대 추진",
+        "「체외진단의료기기 품목 및 품목별 등급에 관한 규정」 일부개정고시(안) 행정예고(식품의약품안전처 공고 제2026-159호)"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "fda_recalls",
+      "description": "FDA Drug Recalls (openFDA API)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": null,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    },
+    {
+      "source_key": "fda_warning_letters",
+      "description": "FDA Warning Letters (All Offices)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 30,
+      "wide_latest": "2026-03-24T00:00:00",
+      "wide_titles": [
+        "[FDA Warning Letter] ImmunityBio, Inc. - False & Misleading Claims/Misbranded",
+        "[FDA Warning Letter] Longhorn Vaccines and Diagnostics LLC - CGMP/QSR/Medical Devices/Adulterated",
+        "[FDA Warning Letter] IsoTis OrthoBiologics, Inc. - CGMP/QSR/Medical Devices/Adulterated"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "edqm",
+      "description": "EDQM Newsrooms (EU)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 6,
+      "wide_latest": "2026-03-24T00:00:00",
+      "wide_titles": [
+        "Outcome of the 184th session of the European Pharmacopoeia Commission",
+        "New EDQM guidance on reliance-based or fast-track assessment of CEP applications",
+        "Council of Europe leading the way in animal welfare for over 40 years"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "eudralex",
+      "description": "EudraLex Volume 4 (EU GMP)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 2,
+      "wide_latest": "2026-03-19T12:00:00",
+      "wide_titles": [
+        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)",
+        "Consultation of new guidance on the conduct of clinical trials during public health emergencies in the EU"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 6 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pics",
+      "description": "PIC/S (GMP Inspection)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 120,
+      "wide_count": 6,
+      "wide_latest": "2026-02-12T14:22:00",
+      "wide_titles": [
+        "Concept paper on the revision of EU-PIC/S GMP Annex 6 - Manufacture of medicinal gases",
+        "Concept paper on the revision of EU-PIC/S GMP Annex 15 (Qualification and validation)",
+        "Kazakhstan applies for PIC/S membership"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 41 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ich_news",
+      "description": "ICH News (가이드라인)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 1,
+      "wide_latest": "2026-03-20T00:00:00",
+      "wide_titles": [
+        "Updated and Expanded ICH Q9(R1) Quality Risk Management Briefing Pack Now Available"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 6 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "gmp_journal",
+      "description": "GMP Journal",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 60,
+      "wide_count": 5,
+      "wide_latest": "2026-03-17T00:00:00",
+      "wide_titles": [
+        "Report on the ECA “Equipment Qualification Forum”",
+        "Preventing Typical Challenges in GMP Projects",
+        "Sterile Filtration and PUPSIT – Questions and Answers at a Glance (Part 1)"
+      ],
+      "status": "stale",
+      "status_reason": "no recent items in the configured window; latest item is 9 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "ispe",
+      "description": "ISPE (주사제/고형제 제조 공정, QA 이슈)",
+      "recent_count": 3,
+      "recent_latest": null,
+      "recent_titles": [
+        "[ISPE] ISPE Announces its 2026 ISPE Europe Annual Conference Keynote Speakers",
+        "[ISPE] ISPE Announces its 2026 ISPE Aseptic Conference Keynote Speakers",
+        "[ISPE] ISPE Announces Radiopharmaceuticals Community of Practice"
+      ],
+      "status": "healthy",
+      "status_reason": "recent items found"
+    },
+    {
+      "source_key": "bioprocess",
+      "description": "BioProcess International (Validation, Fill-Finish, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 30,
+      "wide_count": 9,
+      "wide_latest": "2026-03-23T21:01:52",
+      "wide_titles": [
+        "[BioProcess] From Formulation to Facility: Driving Risk-Assessment Excellence Across Products and Projects",
+        "[BioProcess] Federal judge blocks RFK’s re-haul of childhood vaccination schedule",
+        "[BioProcess] Exposing the F0 Illusion in SIP: Why Sterilization Assurance Demands More"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
+    },
+    {
+      "source_key": "pharmaceutical_online",
+      "description": "Pharmaceutical Online (완제의약품 10개 카테고리: 고형제/액제, 검사, 포장, 시리얼화, QA/QC)",
+      "recent_count": 0,
+      "recent_latest": null,
+      "recent_titles": [],
+      "wide_days": 60,
+      "wide_count": 0,
+      "wide_latest": null,
+      "wide_titles": [],
+      "status": "unknown",
+      "status_reason": "no recent or fallback items found"
+    }
+  ]
+}

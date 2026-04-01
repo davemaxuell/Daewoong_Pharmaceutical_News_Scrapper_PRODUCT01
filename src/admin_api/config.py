@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 
+from src.env_config import load_project_env
+
 
 def _get_env(name: str, default: str | None = None) -> str:
     value = os.getenv(name, default)
@@ -19,6 +21,7 @@ class Settings:
     access_token_expire_minutes: int
 
     def __init__(self) -> None:
+        load_project_env()
         self.database_url = _get_env("DATABASE_URL")
         self.jwt_secret = _get_env("ADMIN_JWT_SECRET", "change-me")
         self.jwt_algorithm = _get_env("ADMIN_JWT_ALGORITHM", "HS256")
@@ -28,4 +31,3 @@ class Settings:
 
 
 settings = Settings()
-

@@ -50,8 +50,26 @@
       </nav>
 
       <section class="grid-two content-section active" data-section="manage">
+        <article class="panel span-two">
+          <h3>팀별 수신 그룹 관리</h3>
+          <p class="muted">각 팀이 어떤 키워드 그룹의 뉴스 이메일을 받을지 여기서 바로 바꿀 수 있습니다.</p>
+          <div class="team-routing-browser">
+            <div class="team-routing-toolbar">
+              <label for="team-routing-team-pick">살펴볼 팀</label>
+              <div class="team-routing-toolbar-row">
+                <select id="team-routing-team-pick">
+                  <option value="">팀 불러오는 중...</option>
+                </select>
+                <p id="team-routing-summary" class="muted team-routing-summary">팀 정보를 불러오는 중입니다.</p>
+              </div>
+            </div>
+          </div>
+          <div id="team-routing-list" class="list-box team-routing-list"></div>
+        </article>
+
         <article class="panel">
           <h3>키워드 관리</h3>
+          <p class="muted">스크래퍼 분류는 이 화면에서 관리하는 활성 키워드를 그대로 사용합니다.</p>
           <form id="keyword-form" class="form-stack compact">
             <input id="kw-name" type="text" placeholder="키워드" required>
             <input id="kw-categories" type="text" placeholder="그룹(카테고리, 쉼표 구분)">
