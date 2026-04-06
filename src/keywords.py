@@ -632,12 +632,6 @@ def get_runtime_keywords(force_refresh: bool = False) -> dict[str, list[str]]:
     return _copy_keyword_map(_RUNTIME_KEYWORDS_CACHE)
 
 
-def get_keyword_source(force_refresh: bool = False) -> str:
-    """Return where the current runtime keyword map was loaded from."""
-    get_runtime_keywords(force_refresh=force_refresh)
-    return _RUNTIME_KEYWORDS_SOURCE
-
-
 def get_all_keywords():
     """Return all runtime keywords used by scraper classification."""
     all_kw = []

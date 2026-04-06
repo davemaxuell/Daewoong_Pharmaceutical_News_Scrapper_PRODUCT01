@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-04-06T08:07:44.515060",
-  "recent_days": 3,
+  "generated_at": "2026-04-02T07:22:08.217177",
+  "recent_days": 1,
   "stale_threshold_days": 7,
   "results": [
     {
       "source_key": "kpa_news",
       "description": "약사공론 (KPA News)",
-      "recent_count": 31,
-      "recent_latest": "2026-04-05T20:55:00",
+      "recent_count": 19,
+      "recent_latest": "2026-04-01T20:55:00",
       "recent_titles": [
-        "[기획] '운영’ 근거는 생겼지만…불법개설 약국 규제, 실효성은?",
-        "\"한약사문제, 합리적 소통할 것…약정협의체도 열어둔다\"",
-        "한국유니온제약 상폐 속 인수 나선 부광약품, 정상화 과제 직면"
+        "약물운전 4월 2일 시행…약국 약사가 알아야 할 핵심 [Q&A]",
+        "급여 일반약, 유지해야 하나?...심평원 연구 추진 '촉각'",
+        "의원급 처방 더 '무거워졌다'…다품목·고비율 동반 상승"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -19,12 +19,12 @@
     {
       "source_key": "dailypharm",
       "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
-      "recent_count": 22,
-      "recent_latest": "2026-04-06T06:00:59",
+      "recent_count": 21,
+      "recent_latest": "2026-04-02T06:00:59",
       "recent_titles": [
-        "[데일리팜] 제약바이오, 새 먹거리 투자 활발…약가인하에 열기 식을라",
-        "[데일리팜] 구강건강 넘어 나눔까지…동국제약, 사랑의 스케일링 10년",
-        "[데일리팜] 약사-한약사 업무범위 갈등...복지부 규제 향방 촉각"
+        "[데일리팜] 허가·수가 막힌 디지털 헬스…제도 장벽이 확산 걸림돌",
+        "[데일리팜] \"약가 압박도 힘든데\"…고환율에 완제·원료업체 동반 시름",
+        "[데일리팜] 오늘부터 약물운전 처벌 강화…약국 준비사항 확인해보니"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -32,12 +32,12 @@
     {
       "source_key": "yakup",
       "description": "약업신문 (Yakup News)",
-      "recent_count": 23,
-      "recent_latest": "2026-04-06T00:00:00",
+      "recent_count": 17,
+      "recent_latest": "2026-04-02T00:00:00",
       "recent_titles": [
-        "[약업신문] 알테오젠, ESG 경영 본격화…조직·환경·거버넌스 체계 구축 완료",
-        "[약업신문] 석정호 대표 \"우울증 조기진단,자살위험 낮추는 디지털의료기 널리 활용 노력\"",
-        "[약업신문] 소비자 기호 맞춘 제형 다변화…판피린 ‘국민 감기약’ 입지 강화"
+        "[약업신문] 마이크로니들 신약, FDA 승인 실패 원인은 ‘비임상 설계’",
+        "[약업신문] 국회 본회의 숨 고른 의료분쟁조정법… 복지부 \"일단 배 띄우고 추후 보완\"",
+        "[약업신문] 김석진 대한혈액학회 이사장 “혈액암 신약 시대, 면역글로불린 선제적 급여 확대 필수”"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -57,17 +57,16 @@
         "[뉴스1]\"제네릭 기반 지키고, 혁신 신약 가치 키우는 약가 정책 필요\"(종합)"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 13 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 9 days old (threshold 7 days)"
     },
     {
       "source_key": "mfds",
       "description": "식품의약품안전처 RSS",
-      "recent_count": 3,
-      "recent_latest": "2026-04-05T21:58:32",
+      "recent_count": 2,
+      "recent_latest": "2026-04-01T10:40:07",
       "recent_titles": [
-        "식약처, 물품의 안정적 수급을 위한 신속 규제지원 가이드라인 즉시 시행",
-        "2026년도 식품의약품안전처 국가표준시행계획 공고",
-        "[보도참고] 식중독균 검출 '배추김치' 회수 조치"
+        "식품의약품안전처 과장급 공모직위(위해정보과장) 서류전형 합격자 및 면접일정 공고",
+        "식약처, 국내 최초 생성형 인공지능 기반 디지털의료기기 허가"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -100,7 +99,7 @@
         "[FDA Warning Letter] Henan Lvyuan Pharmaceutical Co. Ltd. - CGMP/API/Adulterated"
       ],
       "status": "healthy",
-      "status_reason": "no items in the immediate window, but the latest item is only 6 days old (threshold 7 days)"
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
     },
     {
       "source_key": "edqm",
@@ -109,15 +108,15 @@
       "recent_latest": null,
       "recent_titles": [],
       "wide_days": 30,
-      "wide_count": 12,
-      "wide_latest": "2026-04-02T00:00:00",
+      "wide_count": 11,
+      "wide_latest": "2026-04-01T00:00:00",
       "wide_titles": [
-        "CEP holders invited to comment on draft monographs published in Pharmeuropa 38.2",
         "Public consultation on revised general chapter 5.1.10. Guidelines for using the test for bacterial endotoxins in Pharmeuropa 38.2",
-        "European Pharmacopoeia Issue 13.1 now available"
+        "European Pharmacopoeia Issue 13.1 now available",
+        "Pharmeuropa 38.2 just released"
       ],
       "status": "healthy",
-      "status_reason": "no items in the immediate window, but the latest item is only 4 days old (threshold 7 days)"
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
     },
     {
       "source_key": "eudralex",
@@ -126,13 +125,14 @@
       "recent_latest": null,
       "recent_titles": [],
       "wide_days": 30,
-      "wide_count": 1,
+      "wide_count": 2,
       "wide_latest": "2026-03-19T12:00:00",
       "wide_titles": [
-        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)"
+        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)",
+        "Consultation of new guidance on the conduct of clinical trials during public health emergencies in the EU"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 17 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 13 days old (threshold 7 days)"
     },
     {
       "source_key": "pics",
@@ -149,7 +149,7 @@
         "Kazakhstan applies for PIC/S membership"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 52 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 48 days old (threshold 7 days)"
     },
     {
       "source_key": "ich_news",
@@ -164,7 +164,7 @@
         "Updated and Expanded ICH Q9(R1) Quality Risk Management Briefing Pack Now Available"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 17 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 13 days old (threshold 7 days)"
     },
     {
       "source_key": "gmp_journal",
@@ -181,12 +181,12 @@
         "Sterile Filtration and PUPSIT – Questions and Answers at a Glance (Part 1)"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 20 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 16 days old (threshold 7 days)"
     },
     {
       "source_key": "ispe",
       "description": "ISPE (주사제/고형제 제조 공정, QA 이슈)",
-      "recent_count": 6,
+      "recent_count": 8,
       "recent_latest": null,
       "recent_titles": [
         "[ISPE] Biosimilar Development Covers the Session “Good Practices for Smoke Study in Aseptic Fill-Finish\" at the 2026 ISPE Aseptic Conference",
@@ -203,7 +203,7 @@
       "recent_latest": null,
       "recent_titles": [],
       "wide_days": 30,
-      "wide_count": 8,
+      "wide_count": 15,
       "wide_latest": "2026-03-31T17:01:02",
       "wide_titles": [
         "[BioProcess] Samsung Biologics expands US manufacturing footprint with acquisition of GSK’s Rockville site",
@@ -211,7 +211,7 @@
         "[BioProcess] Register Now: Tailored Bioassay Solutions for Peptide Drugs and New Biologic Modalities"
       ],
       "status": "healthy",
-      "status_reason": "no items in the immediate window, but the latest item is only 5 days old (threshold 7 days)"
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
     },
     {
       "source_key": "pda",
@@ -233,11 +233,13 @@
       "recent_latest": null,
       "recent_titles": [],
       "wide_days": 60,
-      "wide_count": 0,
-      "wide_latest": null,
-      "wide_titles": [],
-      "status": "unknown",
-      "status_reason": "no recent or fallback items found"
+      "wide_count": 1,
+      "wide_latest": "2026-04-01T00:00:00",
+      "wide_titles": [
+        "[Pharmaceutical Online] From QM To QMM For AI-Assisted Pharmaceutical Manufacturing Operations"
+      ],
+      "status": "healthy",
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
     }
   ]
 }

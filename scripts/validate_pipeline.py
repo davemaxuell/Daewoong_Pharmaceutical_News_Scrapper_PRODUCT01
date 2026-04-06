@@ -25,18 +25,14 @@ def check_keyword_team_consistency(project_root: Path) -> list[str]:
 
         sys.path.insert(0, str(project_root))
         from src.keywords import KEYWORDS  # type: ignore
-        from src.team_definitions import TEAM_DEFINITIONS  # type: ignore
     except Exception as e:
-        return [f"Import failed for keywords/team_definitions: {e}"]
+        return [f"Import failed for keywords: {e}"]
 
     if not KEYWORDS:
         errors.append("KEYWORDS is empty")
-    if not TEAM_DEFINITIONS:
-        errors.append("TEAM_DEFINITIONS is empty")
 
-    for team, info in TEAM_DEFINITIONS.items():
-        if not info.get("keywords"):
-            errors.append(f"Team has no keywords: {team}")
+    # Team definitions are now managed in the admin DB (via config/team_emails.json seed).
+    # Runtime team-category routing is no longer validated from a static file.
     return errors
 
 
@@ -84,7 +80,6 @@ def main() -> int:
         project_root / "src" / "ai_summarizer_gemini.py",
         project_root / "src" / "email_sender.py",
         project_root / "src" / "keywords.py",
-        project_root / "src" / "team_definitions.py",
     ]
 
     errors: list[str] = []

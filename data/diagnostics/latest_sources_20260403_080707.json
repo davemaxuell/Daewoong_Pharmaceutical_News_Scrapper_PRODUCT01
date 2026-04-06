@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-04-06T08:07:44.515060",
-  "recent_days": 3,
+  "generated_at": "2026-04-03T08:07:07.105809",
+  "recent_days": 1,
   "stale_threshold_days": 7,
   "results": [
     {
       "source_key": "kpa_news",
       "description": "약사공론 (KPA News)",
-      "recent_count": 31,
-      "recent_latest": "2026-04-05T20:55:00",
+      "recent_count": 12,
+      "recent_latest": "2026-04-02T20:55:00",
       "recent_titles": [
-        "[기획] '운영’ 근거는 생겼지만…불법개설 약국 규제, 실효성은?",
-        "\"한약사문제, 합리적 소통할 것…약정협의체도 열어둔다\"",
-        "한국유니온제약 상폐 속 인수 나선 부광약품, 정상화 과제 직면"
+        "[기획] '1인 1개설·운영’ 규정, 의료계는 어떻게 적용됐나",
+        "바이오 창업, 선배들은 어떻게 버텼나…새내기 위한 실전 조언",
+        "내달 수가협상 횟수 3회 목표… 건보 재정전망 공개키로"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -19,12 +19,12 @@
     {
       "source_key": "dailypharm",
       "description": "데일리팜 (Daily Pharm) - 3개 카테고리: 메인, 정책·법률, 제약·바이오",
-      "recent_count": 22,
-      "recent_latest": "2026-04-06T06:00:59",
+      "recent_count": 25,
+      "recent_latest": "2026-04-03T06:00:59",
       "recent_titles": [
-        "[데일리팜] 제약바이오, 새 먹거리 투자 활발…약가인하에 열기 식을라",
-        "[데일리팜] 구강건강 넘어 나눔까지…동국제약, 사랑의 스케일링 10년",
-        "[데일리팜] 약사-한약사 업무범위 갈등...복지부 규제 향방 촉각"
+        "[데일리팜] 의료취약지 추경 30억 의결…\"의료물품 공급도 챙겨라\"",
+        "[데일리팜] 주거인구 많은 왕십리 vs 핫플 성수, 의원·약국 승자는?",
+        "[데일리팜] 올림푸스, 진단 넘어 치료까지 공략…내시경 1위의 승부수"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -32,12 +32,12 @@
     {
       "source_key": "yakup",
       "description": "약업신문 (Yakup News)",
-      "recent_count": 23,
-      "recent_latest": "2026-04-06T00:00:00",
+      "recent_count": 15,
+      "recent_latest": "2026-04-03T00:00:00",
       "recent_titles": [
-        "[약업신문] 알테오젠, ESG 경영 본격화…조직·환경·거버넌스 체계 구축 완료",
-        "[약업신문] 석정호 대표 \"우울증 조기진단,자살위험 낮추는 디지털의료기 널리 활용 노력\"",
-        "[약업신문] 소비자 기호 맞춘 제형 다변화…판피린 ‘국민 감기약’ 입지 강화"
+        "[약업신문] [2026 기대 신약 TOP 10] ② 비만 치료제 '올포글리프론'",
+        "[약업신문] [영상] KOREA PACK & ICPI WEEK 2026, 제조 혁신의 청사진을 켜다",
+        "[약업신문] 깐깐해지는 의약품 제조 규제… 제약 제조 혁신, 스마트 팩토리가 답이다"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -57,17 +57,15 @@
         "[뉴스1]\"제네릭 기반 지키고, 혁신 신약 가치 키우는 약가 정책 필요\"(종합)"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 13 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 10 days old (threshold 7 days)"
     },
     {
       "source_key": "mfds",
       "description": "식품의약품안전처 RSS",
-      "recent_count": 3,
-      "recent_latest": "2026-04-05T21:58:32",
+      "recent_count": 1,
+      "recent_latest": "2026-04-02T08:45:01",
       "recent_titles": [
-        "식약처, 물품의 안정적 수급을 위한 신속 규제지원 가이드라인 즉시 시행",
-        "2026년도 식품의약품안전처 국가표준시행계획 공고",
-        "[보도참고] 식중독균 검출 '배추김치' 회수 조치"
+        "희귀난치성질환 치료용 의약품 관·부가세 면제로 환자 치료기회 확대"
       ],
       "status": "healthy",
       "status_reason": "recent items found"
@@ -100,7 +98,7 @@
         "[FDA Warning Letter] Henan Lvyuan Pharmaceutical Co. Ltd. - CGMP/API/Adulterated"
       ],
       "status": "healthy",
-      "status_reason": "no items in the immediate window, but the latest item is only 6 days old (threshold 7 days)"
+      "status_reason": "no items in the immediate window, but the latest item is only 3 days old (threshold 7 days)"
     },
     {
       "source_key": "edqm",
@@ -117,7 +115,7 @@
         "European Pharmacopoeia Issue 13.1 now available"
       ],
       "status": "healthy",
-      "status_reason": "no items in the immediate window, but the latest item is only 4 days old (threshold 7 days)"
+      "status_reason": "no items in the immediate window, but the latest item is only 1 days old (threshold 7 days)"
     },
     {
       "source_key": "eudralex",
@@ -126,13 +124,14 @@
       "recent_latest": null,
       "recent_titles": [],
       "wide_days": 30,
-      "wide_count": 1,
+      "wide_count": 2,
       "wide_latest": "2026-03-19T12:00:00",
       "wide_titles": [
-        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)"
+        "Agenda - 103rd meeting of the Pharmaceutical Committee (27 March 2026)",
+        "Consultation of new guidance on the conduct of clinical trials during public health emergencies in the EU"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 17 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 14 days old (threshold 7 days)"
     },
     {
       "source_key": "pics",
@@ -149,7 +148,7 @@
         "Kazakhstan applies for PIC/S membership"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 52 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 49 days old (threshold 7 days)"
     },
     {
       "source_key": "ich_news",
@@ -164,7 +163,7 @@
         "Updated and Expanded ICH Q9(R1) Quality Risk Management Briefing Pack Now Available"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 17 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 14 days old (threshold 7 days)"
     },
     {
       "source_key": "gmp_journal",
@@ -181,7 +180,7 @@
         "Sterile Filtration and PUPSIT – Questions and Answers at a Glance (Part 1)"
       ],
       "status": "stale",
-      "status_reason": "no recent items in the configured window; latest item is 20 days old (threshold 7 days)"
+      "status_reason": "no recent items in the configured window; latest item is 17 days old (threshold 7 days)"
     },
     {
       "source_key": "ispe",
@@ -203,7 +202,7 @@
       "recent_latest": null,
       "recent_titles": [],
       "wide_days": 30,
-      "wide_count": 8,
+      "wide_count": 11,
       "wide_latest": "2026-03-31T17:01:02",
       "wide_titles": [
         "[BioProcess] Samsung Biologics expands US manufacturing footprint with acquisition of GSK’s Rockville site",
@@ -211,7 +210,7 @@
         "[BioProcess] Register Now: Tailored Bioassay Solutions for Peptide Drugs and New Biologic Modalities"
       ],
       "status": "healthy",
-      "status_reason": "no items in the immediate window, but the latest item is only 5 days old (threshold 7 days)"
+      "status_reason": "no items in the immediate window, but the latest item is only 2 days old (threshold 7 days)"
     },
     {
       "source_key": "pda",

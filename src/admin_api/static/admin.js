@@ -180,22 +180,19 @@ function setupScheduleUi() {
   }
   const submitBtn = el.scheduleForm.querySelector('button[type="submit"]');
   if (submitBtn) submitBtn.textContent = "스케줄 저장";
+
+  if (!el.scheduleForm.querySelector(".schedule-note")) {
+    const note = document.createElement("p");
+    note.className = "muted schedule-note";
+    note.textContent =
+      "※ 실행 시간은 서버 cron 데몬이 관리하며 여기서 변경해도 실제 실행 시각은 바뀌지 않습니다. " +
+      "\"평일 자동 실행\" 체크박스만 파이프라인 실행 여부를 실제로 제어합니다.";
+    el.scheduleForm.insertAdjacentElement("afterend", note);
+  }
 }
 
 function setupGeneralSettingsUi() {
   if (!el.generalSettingsForm) return;
-  if (el.setFrequency) {
-    const frequencyLabel = el.setFrequency.previousElementSibling;
-    if (frequencyLabel && frequencyLabel.tagName === "LABEL") {
-      frequencyLabel.remove();
-    }
-    el.setFrequency.remove();
-  } else {
-    const labels = Array.from(el.generalSettingsForm.querySelectorAll("label"));
-    if (labels.length > 1) {
-      labels[0].remove();
-    }
-  }
   const submitBtn = el.generalSettingsForm.querySelector('button[type="submit"]');
   if (submitBtn) submitBtn.textContent = "설정 저장";
   if (!document.getElementById("settings-reset-btn")) {
@@ -1113,7 +1110,7 @@ el.keywordForm.addEventListener("submit", async (e) => {
     await loadKeywordLanguages();
     await loadKeywords();
     await loadTeamRouting();
-    showToast("키워드가 추가되었습니다.", "success");
+    showToast("키워드가 추가되었습니다. 스크래퍼 분류에 반영되기까지 최대 5분이 걸릴 수 있습니다.", "success");
   } catch (err) {
     alert(`키워드 생성 실패: ${err.message}`);
   }
@@ -1183,7 +1180,7 @@ el.keywordList.addEventListener("click", async (e) => {
     await loadKeywordLanguages();
     await loadKeywords();
     await loadTeamRouting();
-    showToast("키워드가 삭제되었습니다.", "success");
+    showToast("키워드가 삭제되었습니다. 스크래퍼 분류에 반영되기까지 최대 5분이 걸릴 수 있습니다.", "success");
   } catch (err) {
     alert(`삭제 실패: ${err.message}`);
   } finally {
@@ -1253,7 +1250,7 @@ el.teamRoutingList.addEventListener("click", async (e) => {
       await loadKeywordLanguages();
       await loadKeywords();
       await loadTeamRouting();
-      showToast("팀 그룹에 키워드가 추가되었습니다.", "success");
+      showToast("팀 그룹에 키워드가 추가되었습니다. 스크래퍼 분류에 반영되기까지 최대 5분이 걸릴 수 있습니다.", "success");
     } catch (err) {
       alert(`팀 키워드 추가 실패: ${err.message}`);
     }
@@ -1399,14 +1396,19 @@ el.scraperRetryBtn.addEventListener("click", async () => {
 
 el.generalSettingsForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const frequencyVal = Number(el.setFrequency ? el.setFrequency.value : (state.generalSettings.scrapeFrequencyMinutes || 1440));
+  if (!frequencyVal || frequencyVal < 1 || frequencyVal > 1440) {
+    return alert("스크랩 주기는 1~1440 분 사이로 입력하세요.");
+  }
   try {
     await api("/settings/general", {
       method: "PUT",
       body: JSON.stringify({
-        scrape_frequency_minutes: Number(state.generalSettings.scrapeFrequencyMinutes || 1440),
+        scrape_frequency_minutes: frequencyVal,
         max_total_articles: Number(el.setMaxArticles.value),
       }),
     });
+    state.generalSettings.scrapeFrequencyMinutes = frequencyVal;
     showToast("일반 설정이 저장되었습니다.", "success");
   } catch (err) {
     alert(`저장 실패: ${err.message}`);

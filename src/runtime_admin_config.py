@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 from src.env_config import first_env, load_project_env
@@ -113,3 +114,25 @@ def load_runtime_admin_config() -> dict[str, Any]:
         return {"general": {}, "schedule": None, "sources": {}}
 
     return payload
+
+
+def record_schedule_run() -> None:
+    """Stamp schedules.last_run_at = now for the default-daily schedule."""
+    database_url = _get_database_url()
+    if not database_url:
+        return
+    try:
+        from psycopg import connect
+    except Exception:
+        return
+    try:
+        now = datetime.now(timezone.utc)
+        with connect(database_url, connect_timeout=5) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE schedules SET last_run_at = %s WHERE name = %s",
+                    (now, "default-daily"),
+                )
+            conn.commit()
+    except Exception as exc:
+        print(f"[WARN] Failed to record schedule run time: {exc}")

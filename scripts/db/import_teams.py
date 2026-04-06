@@ -1,8 +1,13 @@
-"""Import teams and team-category mappings from src/team_definitions.py."""
+"""Import teams and team-category mappings from config/team_emails.json.
+
+NOTE: The admin API auto-seeds this data on startup via src/admin_api/services/team_sync.py.
+Run this script only when you need to force a re-seed without starting the API server.
+"""
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -10,9 +15,7 @@ from db_common import get_database_url, postgres_connection
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(PROJECT_ROOT))
-
-from src.team_definitions import TEAM_DEFINITIONS  # type: ignore  # noqa: E402
+TEAM_EMAILS_PATH = PROJECT_ROOT / "config" / "team_emails.json"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -70,21 +73,29 @@ def reset_team_categories(cur, team_id: str) -> None:
 
 
 def run(db_url: str, dry_run: bool) -> None:
+    if not TEAM_EMAILS_PATH.exists():
+        print(f"[ERROR] {TEAM_EMAILS_PATH} not found.")
+        sys.exit(1)
+
+    payload = json.loads(TEAM_EMAILS_PATH.read_text(encoding="utf-8-sig"))
+
     team_count = 0
     category_count = 0
     mapping_count = 0
 
     with postgres_connection(db_url) as conn:
         with conn.cursor() as cur:
-            for team_name, team_info in TEAM_DEFINITIONS.items():
-                team_id = upsert_team(cur, team_name, team_info.get("description"))
+            for team_key, team_info in payload.items():
+                team_name = str(team_info.get("team_name") or team_key).strip()
+                description = f"Seeded from config/team_emails.json"
+                team_id = upsert_team(cur, team_name, description)
                 team_count += 1
                 reset_team_categories(cur, team_id)
 
                 for category in team_info.get("categories", []):
-                    if not category or not category.strip():
+                    if not category or not str(category).strip():
                         continue
-                    category_id = upsert_category(cur, category.strip())
+                    category_id = upsert_category(cur, str(category).strip())
                     category_count += 1
                     map_team_category(cur, team_id, category_id)
                     mapping_count += 1

@@ -1,6 +1,3 @@
-﻿# ?대찓??諛쒖넚 紐⑤뱢
-# ?蹂꾨줈 ?댁뒪瑜??뺣━?섏뿬 ?대찓?쇰줈 諛쒖넚?⑸땲??
-
 import json
 import smtplib
 import base64
@@ -16,7 +13,7 @@ from email import encoders
 from datetime import datetime, timezone
 import os
 
-# ?꾨줈?앺듃 猷⑦듃 諛?config ?붾젆?좊━ 寃쎈줈
+# 프로젝트 루트 및 config 디렉토리 경로
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
 import sys
@@ -25,13 +22,13 @@ from src.env_config import first_env, load_project_env
 
 load_project_env()
 
-# ?대찓???ㅼ젙 (.env ?뚯씪?먯꽌 濡쒕뱶)
+# 이메일 설정 (.env 파일에서 로드)
 SMTP_SERVER = first_env("SMTP_SERVER", default="smtp.gmail.com")
 SMTP_PORT = int(first_env("SMTP_PORT", default="587"))
 SENDER_EMAIL = first_env("SENDER_EMAIL", "EMAIL_SENDER")
 SENDER_PASSWORD = first_env("SENDER_PASSWORD", "EMAIL_PASSWORD")
 
-# 濡쒓퀬 ?뚯씪 寃쎈줈
+# 로고 파일 경로
 LOGO_PATH = os.path.join(PROJECT_ROOT, "assets", "LOGO.png")
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 _EMAIL_HISTORY_DISABLED = False
@@ -267,7 +264,7 @@ def load_team_emails(filepath: str = "team_emails.json") -> dict:
 
 
 def load_summarized_news(filepath: str) -> list:
-    """?붿빟???댁뒪 ?곗씠??濡쒕뱶"""
+    """요약된 뉴스 데이터 로드"""
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 
@@ -323,7 +320,7 @@ def _html_to_plain_text(html_content: str) -> str:
 
 
 def organize_news_by_team(articles: list, team_emails: dict) -> dict:
-    """?댁뒪瑜??蹂꾨줈 遺꾨쪟 (keywords.py 移댄뀒怨좊━ 湲곕컲 ?쇱슦??"""
+    """뉴스를 팀별로 분류 (keywords.py 카테고리 기반 매칭)"""
     team_news = {}
 
     for team_name, team_info in team_emails.items():
@@ -344,10 +341,10 @@ def organize_news_by_team(articles: list, team_emails: dict) -> dict:
 
 
 def create_email_html(team_name: str, articles: list) -> str:
-    """?蹂??대찓??HTML ?앹꽦 - ?몃씪??CSS 踰꾩쟾 (?ㅼ씠踰?硫붿씪 ?명솚)"""
+    """팀 이메일 HTML 생성 - 인라인 CSS 버전 (이메일 클라이언트 호환)"""
     today = datetime.now().strftime('%Y-%m-%d')
     
-    # 紐⑤뱺 ?ㅽ??쇱쓣 ?몃씪?몄쑝濡??곸슜 (?ㅼ씠踰?硫붿씪 ?명솚??
+    # 모든 스타일을 인라인으로 적용 (이메일 클라이언트 호환용)
     html = f'''<!DOCTYPE html>
 <html>
 <head>
@@ -384,7 +381,7 @@ def create_email_html(team_name: str, articles: list) -> str:
                         <td style="padding: 20px;">
 '''
     
-    # ?ㅼ썙?쒓? ?녿뒗 湲곗궗???쒖쇅
+    # AI 키워드가 없는 기사 제외
     articles = [a for a in articles if a.get("ai_analysis", {}).get("ai_keywords")]
 
     for article in articles:
@@ -463,10 +460,10 @@ def create_email_html(team_name: str, articles: list) -> str:
 
 
 def create_monitor_email_html(team_name: str, updates: list) -> str:
-    """紐⑤땲?곕쭅 ?낅뜲?댄듃 ?대찓??HTML ?앹꽦 - ?몃씪??CSS 踰꾩쟾 (?ㅼ씠踰?硫붿씪 ?명솚)"""
+    """모니터링 업데이트 이메일 HTML 생성 - 인라인 CSS 버전 (이메일 클라이언트 호환)"""
     today = datetime.now().strftime('%Y-%m-%d')
     
-    # 紐⑤뱺 ?ㅽ??쇱쓣 ?몃씪?몄쑝濡??곸슜 (?ㅼ씠踰?硫붿씪 ?명솚??
+    # 모든 스타일을 인라인으로 적용 (이메일 클라이언트 호환용)
     html = f'''<!DOCTYPE html>
 <html>
 <head>
@@ -510,7 +507,7 @@ def create_monitor_email_html(team_name: str, updates: list) -> str:
         link = item.get("link", "#")
         timestamp = item.get("timestamp", "")[:10] if item.get("timestamp") else ""
         
-        # AI 寃곌낵媛 ?놁쑝硫?湲곕낯媛??ъ슜
+        # AI 결과가 없으면 기본값 사용
         summary = ai.get("summary") or ai.get("ai_summary") or item.get("note", "No summary available")
         key_changes = ai.get("key_changes") or ai.get("key_points") or []
         implications = ai.get("implications") or ai.get("industry_impact") or ""
@@ -635,7 +632,7 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
     print("Monitor Email Delivery Start")
     print("=" * 60)
     
-    # ?곗씠??濡쒕뱶
+    # 데이터 로드
     team_emails = load_team_emails(team_emails_json)
     if not team_emails:
         return
@@ -647,19 +644,24 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
         print("[INFO] No monitor updates to send.")
         return
 
-    # ?蹂?遺꾨쪟 (AI 遺꾩꽍 寃곌낵???곕쫫)
+    # 팀별 분류 (AI 분석 결과 기준)
     team_updates = {}
     
     for item in updates:
         ai = item.get("ai_analysis", {})
         target_teams = ai.get("target_teams", [])
-        
-        # Default fallback target team names
+
+        # Fallback: send to all active teams when AI provides no target
         if not target_teams:
-            target_teams = ["RA팀", "규제팀", "Regulatory Affairs"]
+            target_teams = list(team_emails.keys())
+            if target_teams:
+                print(f"[INFO] No AI target teams for monitor update. Sending to all active teams: {target_teams}")
+            else:
+                print("[WARN] No active teams found. Skipping monitor update item.")
+                continue
             
         for team in target_teams:
-            # 留ㅼ묶?섎뒗 ? 李얘린 (遺遺??쇱튂 ?덉슜)
+            # 유사 팀명 매칭 (부분 문자열 사용)
             matched_team = None
             for defined_team in team_emails.keys():
                 if team in defined_team or defined_team in team:
@@ -671,7 +673,7 @@ def send_monitor_updates(updates_json: str, team_emails_json: str = "team_emails
                     team_updates[matched_team] = []
                 team_updates[matched_team].append(item)
             else:
-                # 留ㅼ묶?섏? ?딆? 寃쎌슦 '?꾩껜怨듭?' ?뱀? 泥ル쾲吏????異붽? (?덉쟾?μ튂)
+                # 매칭 팀이 없는 경우 무시 (전체 발송 폴백 가능)
                 pass
 
     if not team_updates:
@@ -712,7 +714,7 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
     print("News Email Delivery Start")
     print("=" * 60)
     
-    # ?곗씠??濡쒕뱶
+    # 데이터 로드
     team_emails = load_team_emails(team_emails_json)
     if not team_emails:
         print("[SKIP] Team email configuration is missing.")
@@ -730,7 +732,7 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
     skip_count = 0
     
     for team_name, news_list in team_news.items():
-        # ?대떦 ???team_emails.json???덈뒗吏 ?뺤씤
+        # 해당 팀이 team_emails.json에 있는지 확인
         if team_name not in team_emails:
             print(f"[SKIP] {team_name}: missing team configuration")
             skip_count += 1
@@ -744,7 +746,7 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
             skip_count += 1
             continue
         
-        # ?대찓??二쇱냼 異붿텧
+        # 이메일 주소 추출
         to_emails = [m["email"] for m in members if m.get("email")]
         
         if not to_emails:
@@ -752,18 +754,18 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
             skip_count += 1
             continue
         
-        # ?ㅼ썙???녿뒗 湲곗궗 ?쒖쇅
+        # AI 태그된 기사 필터
         tagged_news = [a for a in news_list if a.get("ai_analysis", {}).get("ai_keywords")]
         if not tagged_news:
             print(f"[SKIP] {team_name}: no tagged news items")
             skip_count += 1
             continue
 
-        # ?대찓???댁슜 ?앹꽦
+        # 이메일 제목 및 내용 생성
         subject = f"{team_name} News Briefing - {today} ({len(tagged_news)} items)"
         html_content = create_email_html(team_name, tagged_news)
         
-        # ?대찓??諛쒖넚
+        # 이메일 발송
         print(f"\n[{team_name}] Sending {len(news_list)} news item(s) to {len(to_emails)} recipient(s)...")
         print(f"  To: {', '.join(to_emails)}")
         
@@ -782,14 +784,14 @@ def send_news_to_teams(summarized_json: str, team_emails_json: str = "team_email
 
 def send_log_email(log_file: str = None):
     """
-    ?쇱씪 ?ㅽ뻾 濡쒓렇瑜?愿由ъ옄(諛쒖떊?? ?대찓?쇰줈 諛쒖넚
-    ?뚯씠?꾨씪???ㅽ뻾 寃곌낵瑜?紐⑤땲?곕쭅?섍린 ?꾪븿
+    매일 실행 로그를 수신자(발신자) 이메일로 발송
+    당일 실행 결과를 정해진 수신자에게 전달
     """
     if not SENDER_EMAIL or not SENDER_PASSWORD:
         print("[LOG EMAIL] Sender email configuration is missing.")
         return False
 
-    # 濡쒓렇 ?뚯씪 寃쎈줈 寃곗젙
+    # 로그 파일 경로 설정
     if log_file is None:
         today = datetime.now().strftime('%Y%m%d')
         log_file = os.path.join(PROJECT_ROOT, "logs", f"log_{today}.txt")
@@ -798,7 +800,7 @@ def send_log_email(log_file: str = None):
         print(f"[LOG EMAIL] Log file not found: {log_file}")
         return False
 
-    # 濡쒓렇 ?댁슜 ?쎄린
+    # 로그 내용 읽기
     with open(log_file, 'r', encoding='utf-8') as f:
         log_content = f.read()
 
@@ -870,7 +872,7 @@ def send_log_email(log_file: str = None):
     except Exception as e:
         print(f"[LOG EMAIL] Failed to load source health diagnostics: {e}")
 
-    # 媛꾨떒??HTML ?щ㎎
+    # 최종 HTML 생성
     html = f'''<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
@@ -891,7 +893,7 @@ def send_log_email(log_file: str = None):
 </body>
 </html>'''
 
-    # 諛쒖떊???대찓?쇰줈 ?꾩넚 (?먭린 ?먯떊?먭쾶)
+    # 수신자에게 이메일로 전송 (발신자 주소로)
     try:
         msg = MIMEMultipart()
         msg['Subject'] = subject
@@ -1092,7 +1094,7 @@ def send_admin_summary_email(days: int = ADMIN_SUMMARY_LOOKBACK_DAYS) -> bool:
         return False
 
 
-# ?⑤룆 ?ㅽ뻾 ??
+# 직접 실행 시
 if __name__ == "__main__":
     import argparse
     from datetime import datetime
@@ -1104,7 +1106,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    # ?낅젰 ?뚯씪 寃곗젙
+    # 입력 파일 설정
     if args.input:
         input_file = args.input
     else:

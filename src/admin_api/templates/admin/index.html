@@ -160,7 +160,7 @@
           <h4>선택 실행 소스 상세</h4>
           <div id="run-source-list" class="list-box"></div>
           <h4>Source Health</h4>
-          <div id="source-health-summary" class="muted">理쒖떊 吏꾨떒 ?곹깭瑜?遺덈윭?ㅺ굅 ?덉뒿?덈떎.</div>
+          <div id="source-health-summary" class="muted">Source health diagnostics를 실행하면 결과가 여기에 표시됩니다.</div>
           <div id="source-health-list" class="list-box"></div>
         </article>
 
@@ -209,7 +209,8 @@
         <article class="panel">
           <h3>설정</h3>
           <form id="general-settings-form" class="form-stack compact">
-            <label>스크랩 주기 (분)</label>
+            <label>스크랩 주기 (분, 1–1440)</label>
+            <input id="set-frequency" type="number" min="1" max="1440" placeholder="1440">
             <label>최대 기사 수</label>
             <input id="set-max-articles" type="number" min="1" max="100000">
             <button type="submit">일반 설정 저장</button>

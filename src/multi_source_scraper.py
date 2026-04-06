@@ -35,7 +35,6 @@ from scrapers.ispe_scraper import ISPEScraper  # ISPE 제약 엔지니어링
 from scrapers.bioprocess_scraper import BioProcessScraper  # BioProcess QA/QC
 from scrapers.pda_scraper import PDAScraper  # PDA Letter (주사제/무균공정)
 from scrapers.pharmaceutical_online_scraper import PharmaceuticalOnlineScraper  # 완제의약품 제조 실무
-# from scrapers.usp_monograph_scraper import USPMonographScraper  # PDF parsing, optional
 
 import src.logger as logger  # Logging module
 from src.runtime_admin_config import load_runtime_admin_config

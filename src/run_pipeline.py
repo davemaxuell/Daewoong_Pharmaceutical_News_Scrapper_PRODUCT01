@@ -7,7 +7,7 @@ import subprocess
 import sys
 import os
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import glob
 import json
 import atexit
@@ -31,7 +31,7 @@ os.makedirs(DATA_DIAGNOSTICS_DIR, exist_ok=True)
 os.makedirs(LOGS_DIR, exist_ok=True)
 
 from src.env_config import load_project_env
-from src.runtime_admin_config import load_runtime_admin_config
+from src.runtime_admin_config import load_runtime_admin_config, record_schedule_run
 
 # Load .env from project root or config directory
 load_project_env()
@@ -185,6 +185,29 @@ def main(ignore_db_schedule: bool = False):
     if schedule_settings and not schedule_settings.get("is_enabled", True) and not ignore_db_schedule:
         print("\n[INFO] Admin DB schedule is disabled. Skipping scheduled pipeline run.")
         return 0
+
+    # Check minimum run frequency (scrape_frequency_minutes from admin general settings)
+    if not ignore_db_schedule and isinstance(runtime_admin_config, dict):
+        general_settings = runtime_admin_config.get("general", {}) or {}
+        frequency_minutes = general_settings.get("scrape_frequency_minutes")
+        last_run_at_str = (schedule_settings or {}).get("last_run_at")
+        if frequency_minutes and last_run_at_str:
+            try:
+                last_run_at = datetime.fromisoformat(last_run_at_str)
+                if last_run_at.tzinfo is None:
+                    last_run_at = last_run_at.replace(tzinfo=timezone.utc)
+                elapsed_minutes = (datetime.now(timezone.utc) - last_run_at).total_seconds() / 60
+                if elapsed_minutes < frequency_minutes:
+                    print(
+                        f"\n[INFO] Last run was {elapsed_minutes:.0f} min ago. "
+                        f"Min frequency is {frequency_minutes} min. Skipping."
+                    )
+                    return 0
+            except Exception as exc:
+                print(f"[WARN] Could not check run frequency: {exc}")
+
+    # Stamp last_run_at now so concurrent cron triggers see it immediately
+    record_schedule_run()
 
     if is_weekend:
         print("\n[INFO] Weekend run detected. Pipeline will not scrape or send emails on Saturday/Sunday.")
